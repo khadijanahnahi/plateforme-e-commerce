@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import http from "../api/http";
+import { useAuth } from "../contexts/AuthContext";
 
 function validateEmail(email) {
   return /\S+@\S+\.\S+/.test(email);
@@ -25,6 +28,8 @@ function getPasswordStrength(password) {
 }
 
 export default function RegisterPage() {
+  const navigate = useNavigate();
+  const { login } = useAuth();
   const [form, setForm] = useState({
     fullName: "",
     email: "",
@@ -37,6 +42,7 @@ export default function RegisterPage() {
   const [submitMessage, setSubmitMessage] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const passwordStrength = useMemo(
     () => getPasswordStrength(form.password),
@@ -66,7 +72,7 @@ export default function RegisterPage() {
     setSubmitMessage("");
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
 
     const nextErrors = {};
@@ -105,15 +111,33 @@ export default function RegisterPage() {
       return;
     }
 
+    setIsSubmitting(true);
     setSubmitMessage("");
-    setToastVisible(true);
-    setForm({
-      fullName: "",
-      email: "",
-      phone: "",
-      password: "",
-      confirmPassword: "",
-    });
+    setToastVisible(false);
+
+    try {
+      const response = await http.post("/auth/register", {
+        fullName: form.fullName,
+        email: form.email,
+        phone: form.phone,
+        password: form.password,
+      });
+
+      login(response.data);
+      setToastVisible(true);
+      navigate("/profile", { replace: true });
+    } catch (error) {
+      const apiMessage = error.response?.data?.message;
+      const validationErrors = error.response?.data?.validationErrors;
+
+      if (validationErrors) {
+        setErrors(validationErrors);
+      }
+
+      setSubmitMessage(apiMessage ?? "Unable to create account. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -261,10 +285,11 @@ export default function RegisterPage() {
 
             <button
               className="auth-submit stagger-field"
+              disabled={isSubmitting}
               style={{ "--delay": "0.36s" }}
               type="submit"
             >
-              Create Account
+              {isSubmitting ? "Creating account..." : "Create Account"}
             </button>
           </form>
 

@@ -5,6 +5,7 @@ import { useAuth } from "../contexts/AuthContext";
 export default function MainLayout() {
   const navigate = useNavigate();
   const { isAuthenticated, logout, user } = useAuth();
+  const isAdmin = user?.roles?.includes("ADMIN");
 
   function handleLogout() {
     logout();
@@ -28,10 +29,12 @@ export default function MainLayout() {
 
           <nav className="primary-nav">
             <NavLink to="/">Home</NavLink>
-            <NavLink to="/">Categories</NavLink>
+            <NavLink to="/products">Products</NavLink>
             <NavLink to="/">Flash Sale</NavLink>
             <NavLink to="/">Recommended</NavLink>
+            <NavLink to="/cart">Cart</NavLink>
             <NavLink to="/orders">Orders</NavLink>
+            {isAdmin ? <NavLink to="/admin/dashboard">Admin</NavLink> : null}
           </nav>
 
           <div className="header-actions">
@@ -47,7 +50,7 @@ export default function MainLayout() {
             </NavLink>
             {isAuthenticated ? (
               <>
-                <span className="auth-user">{user?.fullName ?? "Client"}</span>
+                <NavLink className="auth-user" to="/profile">{user?.fullName ?? "Client"}</NavLink>
                 <button className="auth-button logout-button" type="button" onClick={handleLogout}>
                   Logout
                 </button>

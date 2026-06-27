@@ -29,10 +29,15 @@ jwt:
   refresh-token-expiration-ms: 604800000
 
 app:
-  upload-dir: uploads
   admin:
     enabled: true
     full-name: ShopSphere Admin
     email: admin@shopsphere.local
     phone: "+212600000000"
     password: Admin@12345
+
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:}
+  api-key: ${CLOUDINARY_API_KEY:}
+  api-secret: ${CLOUDINARY_API_SECRET:}
+  product-folder: ${CLOUDINARY_PRODUCT_FOLDER:shopsphere/products}
