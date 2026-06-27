@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: ecommerce
+  datasource:
+    url: jdbc:postgresql://127.0.0.1:5433/ecommerce_db
+    driver-class-name: org.postgresql.Driver
+    username: ecommerce_user
+    password: ecommerce_password
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: true
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+
+server:
+  port: 8080
+
+jwt:
+  secret: change-this-secret-key-before-production-please-use-64-characters-minimum
+  access-token-expiration-ms: 900000
+  refresh-token-expiration-ms: 604800000
+
+app:
+  upload-dir: uploads
+  admin:
+    enabled: true
+    full-name: ShopSphere Admin
+    email: admin@shopsphere.local
+    phone: "+212600000000"
+    password: Admin@12345

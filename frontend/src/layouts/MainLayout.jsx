@@ -1,6 +1,16 @@
 import { NavLink, Outlet } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function MainLayout() {
+  const navigate = useNavigate();
+  const { isAuthenticated, logout, user } = useAuth();
+
+  function handleLogout() {
+    logout();
+    navigate("/login", { replace: true });
+  }
+
   return (
     <div className="app-shell">
       <header className="site-header">
@@ -35,12 +45,23 @@ export default function MainLayout() {
             <NavLink className="icon-link" to="/">
               Saved
             </NavLink>
-            <NavLink className="auth-button signup-button" to="/register">
-              Inscription
-            </NavLink>
-            <NavLink className="auth-button login-button" to="/login">
-              Login
-            </NavLink>
+            {isAuthenticated ? (
+              <>
+                <span className="auth-user">{user?.fullName ?? "Client"}</span>
+                <button className="auth-button logout-button" type="button" onClick={handleLogout}>
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <NavLink className="auth-button signup-button" to="/register">
+                  Inscription
+                </NavLink>
+                <NavLink className="auth-button login-button" to="/login">
+                  Login
+                </NavLink>
+              </>
+            )}
           </div>
         </div>
       </header>
