@@ -27,17 +27,29 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             join fetch p.category c
             where p.status in :statuses
               and (:categoryId is null or c.id = :categoryId)
-              and (
-                    :search is null
-                    or lower(p.name) like lower(concat('%', :search, '%'))
-                    or lower(coalesce(p.description, '')) like lower(concat('%', :search, '%'))
-                    or lower(coalesce(p.sku, '')) like lower(concat('%', :search, '%'))
-                  )
             order by p.createdAt desc
             """)
     List<Product> findVisibleProducts(
             @Param("statuses") Collection<ProductStatus> statuses,
-            @Param("search") String search,
+            @Param("categoryId") Long categoryId
+    );
+
+    @Query("""
+            select p
+            from Product p
+            join fetch p.category c
+            where p.status in :statuses
+              and (:categoryId is null or c.id = :categoryId)
+              and (
+                    lower(p.name) like :searchPattern
+                    or lower(coalesce(p.description, '')) like :searchPattern
+                    or lower(coalesce(p.sku, '')) like :searchPattern
+                  )
+            order by p.createdAt desc
+            """)
+    List<Product> searchVisibleProducts(
+            @Param("statuses") Collection<ProductStatus> statuses,
+            @Param("searchPattern") String searchPattern,
             @Param("categoryId") Long categoryId
     );
 
@@ -46,16 +58,24 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             from Product p
             join fetch p.category c
             where (:categoryId is null or c.id = :categoryId)
+            order by p.createdAt desc
+            """)
+    List<Product> findProductsForAdmin(@Param("categoryId") Long categoryId);
+
+    @Query("""
+            select p
+            from Product p
+            join fetch p.category c
+            where (:categoryId is null or c.id = :categoryId)
               and (
-                    :search is null
-                    or lower(p.name) like lower(concat('%', :search, '%'))
-                    or lower(coalesce(p.description, '')) like lower(concat('%', :search, '%'))
-                    or lower(coalesce(p.sku, '')) like lower(concat('%', :search, '%'))
+                    lower(p.name) like :searchPattern
+                    or lower(coalesce(p.description, '')) like :searchPattern
+                    or lower(coalesce(p.sku, '')) like :searchPattern
                   )
             order by p.createdAt desc
             """)
-    List<Product> findProductsForAdmin(
-            @Param("search") String search,
+    List<Product> searchProductsForAdmin(
+            @Param("searchPattern") String searchPattern,
             @Param("categoryId") Long categoryId
     );
 

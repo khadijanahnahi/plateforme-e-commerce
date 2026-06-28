@@ -14,6 +14,17 @@ const emptyForm = {
   categoryId: "",
 };
 
+function getApiErrorMessage(exception, fallback) {
+  const status = exception.response?.status;
+  const data = exception.response?.data;
+  const validationErrors = data?.validationErrors
+    ? Object.values(data.validationErrors).filter(Boolean).join(" ")
+    : "";
+  const message = validationErrors || data?.message || exception.message || fallback;
+
+  return status ? `${message} (HTTP ${status})` : message;
+}
+
 function toProductRequest(form) {
   return {
     name: form.name,
@@ -58,16 +69,16 @@ export default function AdminProductsPage() {
       try {
         const [productsResponse, categoriesResponse] = await Promise.all([
           http.get("/admin/products"),
-          http.get("/categories"),
+          http.get("/admin/categories"),
         ]);
         if (mounted) {
           setProducts(productsResponse.data);
-          setCategories(categoriesResponse.data);
+          setCategories(categoriesResponse.data.filter((category) => category.active));
           setError("");
         }
       } catch (exception) {
         if (mounted) {
-          setError(exception.response?.data?.message ?? "Unable to load admin products.");
+          setError(getApiErrorMessage(exception, "Unable to load admin products."));
         }
       } finally {
         if (mounted) {
@@ -134,7 +145,7 @@ export default function AdminProductsPage() {
       closeModal();
       await loadProducts();
     } catch (exception) {
-      setError(exception.response?.data?.message ?? "Unable to save product.");
+      setError(getApiErrorMessage(exception, "Unable to save product."));
     }
   }
 
@@ -146,7 +157,7 @@ export default function AdminProductsPage() {
       setMessage("Product archived.");
       await loadProducts();
     } catch (exception) {
-      setError(exception.response?.data?.message ?? "Unable to archive product.");
+      setError(getApiErrorMessage(exception, "Unable to archive product."));
     }
   }
 
@@ -169,7 +180,7 @@ export default function AdminProductsPage() {
       setMessage("Stock updated.");
       await loadProducts();
     } catch (exception) {
-      setError(exception.response?.data?.message ?? "Unable to update stock.");
+      setError(getApiErrorMessage(exception, "Unable to update stock."));
     }
   }
 
@@ -180,7 +191,7 @@ export default function AdminProductsPage() {
       await loadProducts(search);
       setError("");
     } catch (exception) {
-      setError(exception.response?.data?.message ?? "Unable to search products.");
+      setError(getApiErrorMessage(exception, "Unable to search products."));
     } finally {
       setLoading(false);
     }
@@ -206,7 +217,7 @@ export default function AdminProductsPage() {
       setForm((current) => ({ ...current, imageUrl: response.data.imageUrl }));
       setMessage("Image uploaded.");
     } catch (exception) {
-      setError(exception.response?.data?.message ?? "Unable to upload image.");
+      setError(getApiErrorMessage(exception, "Unable to upload image."));
     } finally {
       setImageUploading(false);
       event.target.value = "";
@@ -329,6 +340,9 @@ export default function AdminProductsPage() {
                   <option key={category.id} value={category.id}>{category.name}</option>
                 ))}
               </select>
+              {categories.length === 0 ? (
+                <small className="admin-muted">Aucune categorie active disponible. Cree ou reactive une categorie avant d'ajouter un produit.</small>
+              ) : null}
               <div className="admin-form-actions">
                 <button className="button button-primary" type="submit">
                   {editingId ? "Enregistrer" : "Ajouter le produit"}

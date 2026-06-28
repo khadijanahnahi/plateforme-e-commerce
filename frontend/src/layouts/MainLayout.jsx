@@ -6,7 +6,7 @@ export default function MainLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated, logout, user } = useAuth();
-  const isAdmin = user?.roles?.includes("ADMIN");
+  const isAdmin = user?.roles?.some((role) => role === "ADMIN" || role === "ROLE_ADMIN");
   const isAdminRoute = location.pathname.startsWith("/admin");
 
   function handleLogout() {

@@ -1,4 +1,5 @@
 import { Route, Routes } from "react-router-dom";
+import AdminRoute from "./AdminRoute";
 import AdminOrderDetailsPage from "../pages/AdminOrderDetailsPage";
 import MainLayout from "../layouts/MainLayout";
 import AdminDashboardPage from "../pages/AdminDashboardPage";
@@ -29,11 +30,13 @@ export default function AppRouter() {
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/orders" element={<OrdersPage />} />
         <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
-        <Route path="/admin/categories" element={<AdminCategoriesPage />} />
-        <Route path="/admin/products" element={<AdminProductsPage />} />
-        <Route path="/admin/orders" element={<AdminOrdersPage />} />
-        <Route path="/admin/orders/:id" element={<AdminOrderDetailsPage />} />
+        <Route element={<AdminRoute />}>
+          <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+          <Route path="/admin/categories" element={<AdminCategoriesPage />} />
+          <Route path="/admin/products" element={<AdminProductsPage />} />
+          <Route path="/admin/orders" element={<AdminOrdersPage />} />
+          <Route path="/admin/orders/:id" element={<AdminOrderDetailsPage />} />
+        </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

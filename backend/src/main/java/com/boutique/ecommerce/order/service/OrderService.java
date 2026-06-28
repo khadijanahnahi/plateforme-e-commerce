@@ -5,6 +5,7 @@ import com.boutique.ecommerce.cart.repository.CartItemRepository;
 import com.boutique.ecommerce.common.exception.ResourceNotFoundException;
 import com.boutique.ecommerce.common.exception.UnauthorizedException;
 import com.boutique.ecommerce.order.dto.CreateOrderRequest;
+import com.boutique.ecommerce.order.dto.DirectOrderRequest;
 import com.boutique.ecommerce.order.dto.OrderItemResponse;
 import com.boutique.ecommerce.order.dto.OrderResponse;
 import com.boutique.ecommerce.order.dto.UpdateOrderStatusRequest;
@@ -15,6 +16,7 @@ import com.boutique.ecommerce.order.entity.PaymentStatus;
 import com.boutique.ecommerce.order.repository.OrderRepository;
 import com.boutique.ecommerce.product.entity.Product;
 import com.boutique.ecommerce.product.entity.ProductStatus;
+import com.boutique.ecommerce.product.repository.ProductRepository;
 import com.boutique.ecommerce.user.entity.AppUser;
 import com.boutique.ecommerce.user.repository.UserRepository;
 import java.math.BigDecimal;
@@ -30,15 +32,18 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final CartItemRepository cartItemRepository;
+    private final ProductRepository productRepository;
     private final UserRepository userRepository;
 
     public OrderService(
             OrderRepository orderRepository,
             CartItemRepository cartItemRepository,
+            ProductRepository productRepository,
             UserRepository userRepository
     ) {
         this.orderRepository = orderRepository;
         this.cartItemRepository = cartItemRepository;
+        this.productRepository = productRepository;
         this.userRepository = userRepository;
     }
 
@@ -81,6 +86,29 @@ public class OrderService {
         cartItemRepository.deleteByUserId(user.getId());
 
         return mapToOrderResponse(savedOrder);
+    }
+
+    @Transactional
+    public OrderResponse createDirectOrder(DirectOrderRequest request) {
+        AppUser user = getCurrentUser();
+        Product product = productRepository.findById(request.productId())
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found."));
+
+        validateProductForOrder(product);
+        validateStock(product, request.quantity());
+
+        Order order = createPendingOrder(user, request.shippingAddress());
+        OrderItem orderItem = OrderItem.fromProduct(product, request.quantity());
+        order.addItem(orderItem);
+        order.setTotalAmount(orderItem.getSubtotal());
+
+        int remainingStock = product.getStockQuantity() - request.quantity();
+        product.setStockQuantity(remainingStock);
+        if (remainingStock == 0) {
+            product.setStatus(ProductStatus.OUT_OF_STOCK);
+        }
+
+        return mapToOrderResponse(orderRepository.save(order));
     }
 
     @Transactional(readOnly = true)
@@ -164,6 +192,17 @@ public class OrderService {
         if (!allowed) {
             throw new IllegalArgumentException("Invalid order status transition.");
         }
+    }
+
+    private Order createPendingOrder(AppUser user, String shippingAddress) {
+        return Order.builder()
+                .orderNumber(generateOrderNumber())
+                .user(user)
+                .totalAmount(BigDecimal.ZERO)
+                .status(OrderStatus.PENDING)
+                .paymentStatus(PaymentStatus.UNPAID)
+                .shippingAddress(normalizeOptional(shippingAddress))
+                .build();
     }
 
     private String generateOrderNumber() {

@@ -33,7 +33,12 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public List<ProductResponse> getVisibleProducts(String search, Long categoryId) {
-        return productRepository.findVisibleProducts(PUBLIC_STATUSES, normalizeSearch(search), categoryId)
+        String normalizedSearch = normalizeSearch(search);
+        List<Product> products = normalizedSearch == null
+                ? productRepository.findVisibleProducts(PUBLIC_STATUSES, categoryId)
+                : productRepository.searchVisibleProducts(PUBLIC_STATUSES, toSearchPattern(normalizedSearch), categoryId);
+
+        return products
                 .stream()
                 .map(this::toResponse)
                 .toList();
@@ -48,7 +53,12 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public List<ProductResponse> getProductsForAdmin(String search, Long categoryId) {
-        return productRepository.findProductsForAdmin(normalizeSearch(search), categoryId)
+        String normalizedSearch = normalizeSearch(search);
+        List<Product> products = normalizedSearch == null
+                ? productRepository.findProductsForAdmin(categoryId)
+                : productRepository.searchProductsForAdmin(toSearchPattern(normalizedSearch), categoryId);
+
+        return products
                 .stream()
                 .map(this::toResponse)
                 .toList();
@@ -158,6 +168,10 @@ public class ProductService {
 
     private String normalizeSearch(String value) {
         return normalizeOptional(value);
+    }
+
+    private String toSearchPattern(String value) {
+        return "%" + value.toLowerCase() + "%";
     }
 
     private String normalizeRequired(String value) {

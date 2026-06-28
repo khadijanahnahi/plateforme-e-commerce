@@ -1,8 +1,10 @@
 package com.boutique.ecommerce.order.controller;
 
 import com.boutique.ecommerce.order.dto.CreateOrderRequest;
+import com.boutique.ecommerce.order.dto.DirectOrderRequest;
 import com.boutique.ecommerce.order.dto.OrderResponse;
 import com.boutique.ecommerce.order.service.OrderService;
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,6 +29,12 @@ public class OrderController {
     @ResponseStatus(HttpStatus.CREATED)
     public OrderResponse createOrder(@RequestBody CreateOrderRequest request) {
         return orderService.createOrder(request);
+    }
+
+    @PostMapping("/direct")
+    @ResponseStatus(HttpStatus.CREATED)
+    public OrderResponse createDirectOrder(@Valid @RequestBody DirectOrderRequest request) {
+        return orderService.createDirectOrder(request);
     }
 
     @GetMapping("/my-orders")

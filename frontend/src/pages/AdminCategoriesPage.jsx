@@ -7,6 +7,17 @@ const emptyForm = {
   active: true,
 };
 
+function getApiErrorMessage(exception, fallback) {
+  const status = exception.response?.status;
+  const data = exception.response?.data;
+  const validationErrors = data?.validationErrors
+    ? Object.values(data.validationErrors).filter(Boolean).join(" ")
+    : "";
+  const message = validationErrors || data?.message || exception.message || fallback;
+
+  return status ? `${message} (HTTP ${status})` : message;
+}
+
 export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState([]);
   const [form, setForm] = useState(emptyForm);
@@ -31,7 +42,7 @@ export default function AdminCategoriesPage() {
         }
       } catch (exception) {
         if (mounted) {
-          setError(exception.response?.data?.message ?? "Unable to load categories.");
+          setError(getApiErrorMessage(exception, "Unable to load categories."));
         }
       } finally {
         if (mounted) {
@@ -83,7 +94,7 @@ export default function AdminCategoriesPage() {
       resetForm();
       await loadCategories();
     } catch (exception) {
-      setError(exception.response?.data?.message ?? "Unable to save category.");
+      setError(getApiErrorMessage(exception, "Unable to save category."));
     }
   }
 
@@ -95,7 +106,7 @@ export default function AdminCategoriesPage() {
       setMessage("Category deactivated.");
       await loadCategories();
     } catch (exception) {
-      setError(exception.response?.data?.message ?? "Unable to deactivate category.");
+      setError(getApiErrorMessage(exception, "Unable to deactivate category."));
     }
   }
 
