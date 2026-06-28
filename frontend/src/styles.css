@@ -175,15 +175,59 @@ a {
   cursor: pointer;
 }
 
-.auth-user {
-  max-width: 150px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  padding: 0.72rem 1rem;
+.profile-avatar-link {
+  width: 48px;
+  height: 48px;
+  padding: 0.25rem;
   border-radius: 999px;
-  background: rgba(17, 17, 17, 0.05);
-  border: 1px solid rgba(17, 17, 17, 0.08);
+  border: 1px solid rgba(17, 17, 17, 0.12);
+  background: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.profile-avatar-link:hover {
+  transform: translateY(-1px);
+  border-color: #111111;
+  box-shadow: 0 12px 24px rgba(17, 17, 17, 0.12);
+}
+
+.profile-avatar-link img {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+
+.admin-site-header {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.admin-topbar {
+  min-height: 82px;
+}
+
+.admin-brand {
+  letter-spacing: 0.02em;
+}
+
+.admin-nav a {
+  font-weight: 600;
+}
+
+.admin-header-actions {
+  justify-content: flex-end;
+}
+
+.admin-profile-link {
+  width: 44px;
+  height: 44px;
 }
 
 .page {

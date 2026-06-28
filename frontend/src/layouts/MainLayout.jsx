@@ -1,15 +1,61 @@
-import { NavLink, Outlet } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import profileImage from "../../images/profile.png";
 
 export default function MainLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated, logout, user } = useAuth();
   const isAdmin = user?.roles?.includes("ADMIN");
+  const isAdminRoute = location.pathname.startsWith("/admin");
 
   function handleLogout() {
     logout();
     navigate("/login", { replace: true });
+  }
+
+  if (isAdminRoute) {
+    return (
+      <div className="app-shell admin-shell">
+        <header className="site-header admin-site-header">
+          <div className="topbar admin-topbar">
+            <NavLink className="brand admin-brand" to="/admin/dashboard">
+              ShopSphere Admin
+            </NavLink>
+
+            <nav className="primary-nav admin-nav">
+              <NavLink to="/admin/dashboard">Dashboard</NavLink>
+              <NavLink to="/admin/products">Products</NavLink>
+              <NavLink to="/admin/categories">Categories</NavLink>
+              <NavLink to="/admin/orders">Orders</NavLink>
+            </nav>
+
+            <div className="header-actions admin-header-actions">
+              <NavLink className="auth-button signup-button" to="/">
+                View Store
+              </NavLink>
+              {isAuthenticated ? (
+                <>
+                  <NavLink className="profile-avatar-link admin-profile-link" to="/profile" aria-label="Open admin profile">
+                    <img src={profileImage} alt={user?.fullName ?? "Admin profile"} />
+                  </NavLink>
+                  <button className="auth-button logout-button" type="button" onClick={handleLogout}>
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <NavLink className="auth-button login-button" to="/login">
+                  Login
+                </NavLink>
+              )}
+            </div>
+          </div>
+        </header>
+        <main>
+          <Outlet />
+        </main>
+      </div>
+    );
   }
 
   return (
@@ -45,12 +91,14 @@ export default function MainLayout() {
                 placeholder="Search products"
               />
             </label>
-            <NavLink className="icon-link" to="/">
-              Saved
-            </NavLink>
             {isAuthenticated ? (
               <>
-                <NavLink className="auth-user" to="/profile">{user?.fullName ?? "Client"}</NavLink>
+                <NavLink className="icon-link" to="/">
+                  Saved
+                </NavLink>
+                <NavLink className="profile-avatar-link" to="/profile" aria-label="Open profile">
+                  <img src={profileImage} alt={user?.fullName ?? "Profile"} />
+                </NavLink>
                 <button className="auth-button logout-button" type="button" onClick={handleLogout}>
                   Logout
                 </button>
