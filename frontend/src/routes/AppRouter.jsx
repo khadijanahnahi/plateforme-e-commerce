@@ -6,6 +6,7 @@ import AdminDashboardPage from "../pages/AdminDashboardPage";
 import AdminOrdersPage from "../pages/AdminOrdersPage";
 import AdminProductsPage from "../pages/AdminProductsPage";
 import AdminCategoriesPage from "../pages/AdminCategoriesPage";
+import CategoriesPage from "../pages/CategoriesPage";
 import CartPage from "../pages/CartPage";
 import CheckoutPage from "../pages/CheckoutPage";
 import HomePage from "../pages/HomePage";
@@ -24,6 +25,7 @@ export default function AppRouter() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/categories" element={<CategoriesPage />} />
         <Route path="/products" element={<ProductsPage />} />
         <Route path="/products/:id" element={<ProductDetailsPage />} />
         <Route path="/cart" element={<CartPage />} />

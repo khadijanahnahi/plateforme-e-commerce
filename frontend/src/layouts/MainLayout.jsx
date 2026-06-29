@@ -116,7 +116,7 @@ export default function MainLayout() {
 
           <nav className="primary-nav">
             <NavLink to="/products">Shop</NavLink>
-            <NavLink to="/products">Categories</NavLink>
+            <NavLink to="/categories">Categories</NavLink>
             <NavLink to="/products">New Arrivals</NavLink>
             <NavLink to="/products">Best Sellers</NavLink>
           </nav>

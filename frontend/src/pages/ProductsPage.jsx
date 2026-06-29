@@ -5,10 +5,11 @@ import http from "../api/http";
 export default function ProductsPage() {
   const [searchParams] = useSearchParams();
   const querySearch = searchParams.get("search") ?? "";
+  const queryCategoryId = searchParams.get("categoryId") ?? "";
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [search, setSearch] = useState(querySearch);
-  const [categoryId, setCategoryId] = useState("");
+  const [categoryId, setCategoryId] = useState(queryCategoryId);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -26,7 +27,7 @@ export default function ProductsPage() {
   useEffect(() => {
     let mounted = true;
     setSearch(querySearch);
-    setCategoryId("");
+    setCategoryId(queryCategoryId);
 
     async function loadInitialData() {
       try {
@@ -34,6 +35,7 @@ export default function ProductsPage() {
           http.get("/products", {
             params: {
               search: querySearch || undefined,
+              categoryId: queryCategoryId || undefined,
             },
           }),
           http.get("/categories"),
@@ -57,7 +59,7 @@ export default function ProductsPage() {
     return () => {
       mounted = false;
     };
-  }, [querySearch]);
+  }, [querySearch, queryCategoryId]);
 
   async function handleFilter(event) {
     event.preventDefault();

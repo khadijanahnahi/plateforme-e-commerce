@@ -51,4 +51,9 @@ public class AdminCategoryController {
     public CategoryResponse deactivate(@PathVariable Long id) {
         return categoryService.deactivate(id);
     }
+
+    @PatchMapping("/{id}/activate")
+    public CategoryResponse activate(@PathVariable Long id) {
+        return categoryService.activate(id);
+    }
 }

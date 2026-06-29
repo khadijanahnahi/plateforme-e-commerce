@@ -6,6 +6,7 @@ import com.boutique.ecommerce.category.entity.Category;
 import com.boutique.ecommerce.category.repository.CategoryRepository;
 import com.boutique.ecommerce.common.exception.ResourceConflictException;
 import com.boutique.ecommerce.common.exception.ResourceNotFoundException;
+import com.boutique.ecommerce.product.repository.ProductRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,9 +15,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final ProductRepository productRepository;
 
-    public CategoryService(CategoryRepository categoryRepository) {
+    public CategoryService(CategoryRepository categoryRepository, ProductRepository productRepository) {
         this.categoryRepository = categoryRepository;
+        this.productRepository = productRepository;
     }
 
     @Transactional(readOnly = true)
@@ -55,6 +58,7 @@ public class CategoryService {
         Category category = Category.builder()
                 .name(name)
                 .description(normalizeDescription(request.description()))
+                .imageUrl(normalizeImageUrl(request.imageUrl()))
                 .active(request.active() == null || request.active())
                 .build();
 
@@ -69,6 +73,7 @@ public class CategoryService {
 
         category.setName(name);
         category.setDescription(normalizeDescription(request.description()));
+        category.setImageUrl(normalizeImageUrl(request.imageUrl()));
         if (request.active() != null) {
             category.setActive(request.active());
         }
@@ -80,6 +85,13 @@ public class CategoryService {
     public CategoryResponse deactivate(Long id) {
         Category category = findById(id);
         category.setActive(false);
+        return toResponse(category);
+    }
+
+    @Transactional
+    public CategoryResponse activate(Long id) {
+        Category category = findById(id);
+        category.setActive(true);
         return toResponse(category);
     }
 
@@ -107,12 +119,21 @@ public class CategoryService {
         return description.trim();
     }
 
+    private String normalizeImageUrl(String imageUrl) {
+        if (imageUrl == null || imageUrl.isBlank()) {
+            return null;
+        }
+        return imageUrl.trim();
+    }
+
     private CategoryResponse toResponse(Category category) {
         return new CategoryResponse(
                 category.getId(),
                 category.getName(),
                 category.getDescription(),
+                category.getImageUrl(),
                 category.isActive(),
+                productRepository.countByCategoryId(category.getId()),
                 category.getCreatedAt(),
                 category.getUpdatedAt()
         );

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import heroMonochrome from "../../images/hero-monochrome.png";
 
 const categories = [
   {
@@ -100,9 +101,9 @@ const stores = [
 ];
 
 const heroHeadline = [
-  "Big Fashion Sale",
-  "Limited Time Offer!",
-  "Up to 50% OFF!",
+  "Refined",
+  "Monochrome",
+  "Essentials",
 ];
 
 export default function HomePage() {
@@ -111,7 +112,7 @@ export default function HomePage() {
       <section className="page hero-section">
         <div className="hero-card">
           <div className="hero-copy">
-            <span className="eyebrow">Redefine Your Everyday Style</span>
+            <span className="eyebrow">Curated. Minimal. Timeless.</span>
             <div className="hero-headline">
               {heroHeadline.map((line, index) => (
                 <span
@@ -124,37 +125,21 @@ export default function HomePage() {
               ))}
             </div>
             <p className="hero-description">
-              ShopSphere curates monochrome fashion, refined accessories and
-              clean essentials for a modern black and white wardrobe.
+              Elevated pieces and thoughtful design.
+              Built for the way you live.
             </p>
             <div className="hero-actions">
               <button className="button button-primary" type="button">
-                Shop Now
+                Shop Now <span aria-hidden="true">→</span>
               </button>
               <button className="button button-secondary" type="button">
-                Explore Collection
+                Explore Categories
               </button>
-            </div>
-            <div className="hero-slider-dots" aria-label="Hero navigation">
-              <span className="dot dot-active" />
-              <span className="dot" />
-              <span className="dot" />
             </div>
           </div>
 
           <div className="hero-visual">
-            <div className="product-stage stage-tall">
-              <span>T-Shirt</span>
-            </div>
-            <div className="product-stage stage-wide">
-              <span>Sneakers</span>
-            </div>
-            <div className="product-stage stage-compact">
-              <span>Bag</span>
-            </div>
-            <div className="product-stage stage-circle">
-              <span>Watch</span>
-            </div>
+            <img src={heroMonochrome} alt="ShopSphere monochrome essentials" />
           </div>
         </div>
       </section>
@@ -327,7 +312,7 @@ export default function HomePage() {
             <h3>Shop</h3>
             <div className="footer-links">
               <Link to="/products">Products</Link>
-              <Link to="/products">Categories</Link>
+              <Link to="/categories">Categories</Link>
               <Link to="/products">New Arrivals</Link>
               <Link to="/products">Best Sellers</Link>
             </div>

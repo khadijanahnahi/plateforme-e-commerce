@@ -38,6 +38,9 @@ public class Category extends AuditableEntity {
     @Column(columnDefinition = "text")
     private String description;
 
+    @Column(name = "image_url", columnDefinition = "text")
+    private String imageUrl;
+
     @Builder.Default
     @Column(nullable = false)
     private boolean active = true;

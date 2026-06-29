@@ -11,6 +11,9 @@ public record CategoryRequest(
         @Size(max = 1000, message = "Category description must not exceed 1000 characters.")
         String description,
 
+        @Size(max = 1000, message = "Category image URL must not exceed 1000 characters.")
+        String imageUrl,
+
         Boolean active
 ) {
 }
