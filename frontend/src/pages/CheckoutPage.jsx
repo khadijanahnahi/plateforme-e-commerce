@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import http from "../api/http";
+import { useAuth } from "../contexts/AuthContext";
 
 const DIRECT_CHECKOUT_KEY = "shopsphere_direct_checkout";
+const DELIVERY_FEE = 0;
 
 function readDirectCheckout() {
   const value = sessionStorage.getItem(DIRECT_CHECKOUT_KEY);
@@ -18,13 +20,42 @@ function readDirectCheckout() {
   }
 }
 
+function buildShippingAddress(form) {
+  const lines = [
+    form.streetAddress,
+    `${form.city}${form.postalCode ? ` ${form.postalCode}` : ""}`,
+    form.deliveryNotes ? `Notes: ${form.deliveryNotes}` : "",
+  ];
+
+  return lines.filter(Boolean).join(", ");
+}
+
+function getApiErrorMessage(exception, fallback) {
+  const status = exception.response?.status;
+  const data = exception.response?.data;
+  const validationErrors = data?.validationErrors
+    ? Object.values(data.validationErrors).filter(Boolean).join(" ")
+    : "";
+  const message = validationErrors || data?.message || exception.message || fallback;
+
+  return status ? `${message} (HTTP ${status})` : message;
+}
+
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { user } = useAuth();
   const isDirectCheckout = searchParams.get("mode") === "direct";
   const [cart, setCart] = useState({ items: [], totalAmount: 0, totalItems: 0 });
   const [directCheckout, setDirectCheckout] = useState(() => isDirectCheckout ? readDirectCheckout() : null);
-  const [shippingAddress, setShippingAddress] = useState("");
+  const [form, setForm] = useState({
+    fullName: user?.fullName ?? "",
+    phoneNumber: user?.phone ?? "",
+    streetAddress: "",
+    city: "",
+    postalCode: "",
+    deliveryNotes: "",
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -41,6 +72,17 @@ export default function CheckoutPage() {
         totalItems: directCheckout.quantity,
       }
     : cart;
+  const hasItems = checkoutSummary.items.length > 0;
+  const subtotal = Number(checkoutSummary.totalAmount);
+  const total = subtotal + DELIVERY_FEE;
+
+  useEffect(() => {
+    setForm((current) => ({
+      ...current,
+      fullName: current.fullName || user?.fullName || "",
+      phoneNumber: current.phoneNumber || user?.phone || "",
+    }));
+  }, [user]);
 
   useEffect(() => {
     let mounted = true;
@@ -80,24 +122,34 @@ export default function CheckoutPage() {
     };
   }, [isDirectCheckout]);
 
+  function updateField(event) {
+    const { name, value } = event.target;
+    setForm((current) => ({ ...current, [name]: value }));
+  }
+
   async function confirmOrder(event) {
     event.preventDefault();
     setError("");
+
+    const payload = {
+      ...form,
+      shippingAddress: buildShippingAddress(form),
+    };
 
     try {
       if (directCheckout) {
         await http.post("/orders/direct", {
           productId: directCheckout.productId,
           quantity: directCheckout.quantity,
-          shippingAddress,
+          ...payload,
         });
         sessionStorage.removeItem(DIRECT_CHECKOUT_KEY);
       } else {
-        await http.post("/orders", { shippingAddress });
+        await http.post("/orders", payload);
       }
       navigate("/orders", { replace: true });
     } catch (exception) {
-      setError(exception.response?.data?.message ?? "Unable to create order.");
+      setError(getApiErrorMessage(exception, "Unable to create order."));
     }
   }
 
@@ -107,20 +159,24 @@ export default function CheckoutPage() {
         <div>
           <span className="section-kicker">Secure checkout</span>
           <h1>Confirm your order</h1>
-          <p>{directCheckout ? "Review this direct checkout item without changing your cart." : "Review your cart, add a shipping address and submit the order."}</p>
+          <p>{directCheckout ? "Review this direct checkout item without changing your cart." : "Review your cart, confirm delivery information and submit the order."}</p>
         </div>
       </div>
 
       {error ? <div className="admin-alert">{error}</div> : null}
 
-      <div className="checkout-grid">
-        <div className="admin-panel">
-          <h2>{directCheckout ? "Buy Now summary" : "Cart summary"}</h2>
-          {loading ? (
-            <p>Loading checkout...</p>
-          ) : checkoutSummary.items.length === 0 ? (
-            <p>Your cart is empty. <Link className="table-link" to="/products">Go shopping</Link></p>
-          ) : (
+      {loading ? (
+        <div className="admin-panel">Loading checkout...</div>
+      ) : !hasItems ? (
+        <div className="cart-empty admin-panel">
+          <h2>Your cart is empty.</h2>
+          <p>Add products before checkout.</p>
+          <Link className="button button-primary" to="/products">Go to products</Link>
+        </div>
+      ) : (
+        <div className="checkout-grid">
+          <div className="admin-panel">
+            <h2>{directCheckout ? "Buy Now summary" : "Cart summary"}</h2>
             <div className="checkout-items">
               {checkoutSummary.items.map((item) => (
                 <div className="checkout-item" key={item.id}>
@@ -132,29 +188,60 @@ export default function CheckoutPage() {
                 </div>
               ))}
             </div>
-          )}
-          <div className="checkout-total">
-            <span>Total items: {checkoutSummary.totalItems}</span>
-            <strong>{Number(checkoutSummary.totalAmount).toFixed(2)} DH</strong>
-          </div>
-          {directCheckout ? (
-            <p className="admin-muted">This checkout does not modify your existing cart.</p>
-          ) : null}
-        </div>
 
-        <form className="admin-panel admin-form" onSubmit={confirmOrder}>
-          <h2>Shipping address</h2>
-          <textarea
-            value={shippingAddress}
-            onChange={(event) => setShippingAddress(event.target.value)}
-            placeholder="Street, city, postal code, phone notes..."
-            required
-          />
-          <button className="button button-primary" type="submit" disabled={checkoutSummary.items.length === 0}>
-            Confirm order
-          </button>
-        </form>
-      </div>
+            <div className="checkout-breakdown">
+              <div>
+                <span>Subtotal</span>
+                <strong>{subtotal.toFixed(2)} DH</strong>
+              </div>
+              <div>
+                <span>Delivery fee</span>
+                <strong>{DELIVERY_FEE === 0 ? "Free" : `${DELIVERY_FEE.toFixed(2)} DH`}</strong>
+              </div>
+              <div className="checkout-breakdown-total">
+                <span>Total</span>
+                <strong>{total.toFixed(2)} DH</strong>
+              </div>
+            </div>
+
+            {directCheckout ? (
+              <p className="admin-muted">This checkout does not modify your existing cart.</p>
+            ) : null}
+          </div>
+
+          <form className="admin-panel admin-form" onSubmit={confirmOrder}>
+            <h2>Delivery information</h2>
+            <input name="fullName" value={form.fullName} onChange={updateField} placeholder="Full name" required />
+            <input name="phoneNumber" value={form.phoneNumber} onChange={updateField} placeholder="Phone number" required />
+            <textarea
+              name="streetAddress"
+              value={form.streetAddress}
+              onChange={updateField}
+              placeholder="Street address"
+              required
+            />
+            <div className="admin-form-row">
+              <input name="city" value={form.city} onChange={updateField} placeholder="City" required />
+              <input name="postalCode" value={form.postalCode} onChange={updateField} placeholder="Postal code" />
+            </div>
+            <textarea
+              name="deliveryNotes"
+              value={form.deliveryNotes}
+              onChange={updateField}
+              placeholder="Delivery notes"
+            />
+
+            <p className="cash-message">Vous paierez en especes au moment de la livraison.</p>
+
+            <div className="checkout-actions">
+              <Link className="button button-secondary" to="/cart">Back to cart</Link>
+              <button className="button button-primary" type="submit">
+                Confirm order
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </section>
   );
 }

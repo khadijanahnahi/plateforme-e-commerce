@@ -56,6 +56,7 @@ export default function CartPage() {
     try {
       const response = await http.put(`/cart/items/${item.id}`, { quantity: nextQuantity });
       setCart(response.data);
+      window.dispatchEvent(new Event("shopsphere-cart-updated"));
     } catch (exception) {
       setError(exception.response?.data?.message ?? "Unable to update cart item.");
     }
@@ -68,6 +69,7 @@ export default function CartPage() {
     try {
       const response = await http.delete(`/cart/items/${itemId}`);
       setCart(response.data);
+      window.dispatchEvent(new Event("shopsphere-cart-updated"));
       setMessage("Item removed.");
     } catch (exception) {
       setError(exception.response?.data?.message ?? "Unable to remove cart item.");
@@ -81,6 +83,7 @@ export default function CartPage() {
     try {
       const response = await http.delete("/cart");
       setCart(response.data);
+      window.dispatchEvent(new Event("shopsphere-cart-updated"));
       setMessage("Cart cleared.");
     } catch (exception) {
       setError(exception.response?.data?.message ?? "Unable to clear cart.");

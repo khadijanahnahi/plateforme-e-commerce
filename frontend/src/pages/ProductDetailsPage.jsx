@@ -66,6 +66,7 @@ export default function ProductDetailsPage() {
         quantity,
       });
 
+      window.dispatchEvent(new Event("shopsphere-cart-updated"));
       setMessage("Product added to cart.");
     } catch (exception) {
       setError(exception.response?.data?.message ?? "Login required or product unavailable.");

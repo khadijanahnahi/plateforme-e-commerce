@@ -18,11 +18,19 @@ const defaultStats = {
   totalRevenue: 0,
 };
 
+const dashboardPeriods = [
+  { value: "all", label: "All Time" },
+  { value: "today", label: "Today" },
+  { value: "week", label: "This Week" },
+  { value: "month", label: "This Month" },
+];
+
 function formatMoney(value) {
   return `${Number(value ?? 0).toFixed(2)} DH`;
 }
 
 export default function AdminDashboardPage() {
+  const [period, setPeriod] = useState("all");
   const [stats, setStats] = useState(defaultStats);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -31,8 +39,11 @@ export default function AdminDashboardPage() {
     let mounted = true;
 
     async function loadStats() {
+      setLoading(true);
       try {
-        const response = await http.get("/admin/dashboard/stats");
+        const response = await http.get("/admin/dashboard/stats", {
+          params: { period },
+        });
         if (mounted) {
           setStats(response.data);
           setError("");
@@ -52,7 +63,7 @@ export default function AdminDashboardPage() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [period]);
 
   const cards = [
     ["Products", stats.totalProducts, "Total catalog items"],
@@ -78,6 +89,11 @@ export default function AdminDashboardPage() {
           <p>Vue rapide sur les produits, commandes, clients et revenu non annule.</p>
         </div>
         <div className="admin-actions">
+          <select className="dashboard-period-select" value={period} onChange={(event) => setPeriod(event.target.value)}>
+            {dashboardPeriods.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
           <Link className="button button-secondary" to="/admin/categories">Manage Categories</Link>
           <Link className="button button-secondary" to="/admin/products">Manage Products</Link>
           <Link className="button button-primary" to="/admin/orders">View Orders</Link>
@@ -89,7 +105,7 @@ export default function AdminDashboardPage() {
       <div className="revenue-card reveal-card">
         <span>Total Revenue</span>
         <strong>{loading ? "..." : formatMoney(stats.totalRevenue)}</strong>
-        <small>Somme des commandes non CANCELLED</small>
+        <small>Somme des commandes non CANCELLED pour la periode selectionnee</small>
       </div>
 
       <div className="admin-stats-grid">

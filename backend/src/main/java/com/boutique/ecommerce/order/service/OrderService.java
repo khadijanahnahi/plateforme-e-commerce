@@ -55,14 +55,16 @@ public class OrderService {
             throw new IllegalArgumentException("Cart is empty.");
         }
 
-        Order order = Order.builder()
-                .orderNumber(generateOrderNumber())
-                .user(user)
-                .totalAmount(BigDecimal.ZERO)
-                .status(OrderStatus.PENDING)
-                .paymentStatus(PaymentStatus.UNPAID)
-                .shippingAddress(normalizeOptional(request.shippingAddress()))
-                .build();
+        Order order = createPendingOrder(
+                user,
+                request.fullName(),
+                request.phoneNumber(),
+                request.streetAddress(),
+                request.city(),
+                request.postalCode(),
+                request.deliveryNotes(),
+                request.shippingAddress()
+        );
 
         BigDecimal totalAmount = BigDecimal.ZERO;
         for (CartItem cartItem : cartItems) {
@@ -97,7 +99,16 @@ public class OrderService {
         validateProductForOrder(product);
         validateStock(product, request.quantity());
 
-        Order order = createPendingOrder(user, request.shippingAddress());
+        Order order = createPendingOrder(
+                user,
+                request.fullName(),
+                request.phoneNumber(),
+                request.streetAddress(),
+                request.city(),
+                request.postalCode(),
+                request.deliveryNotes(),
+                request.shippingAddress()
+        );
         OrderItem orderItem = OrderItem.fromProduct(product, request.quantity());
         order.addItem(orderItem);
         order.setTotalAmount(orderItem.getSubtotal());
@@ -149,6 +160,9 @@ public class OrderService {
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found."));
 
         validateStatusTransition(order.getStatus(), request.status());
+        if (request.status() == OrderStatus.CANCELLED) {
+            restoreStock(order);
+        }
         order.setStatus(request.status());
         return mapToOrderResponse(order);
     }
@@ -194,14 +208,51 @@ public class OrderService {
         }
     }
 
-    private Order createPendingOrder(AppUser user, String shippingAddress) {
+    private void restoreStock(Order order) {
+        for (OrderItem item : order.getItems()) {
+            Product product = item.getProduct();
+            product.setStockQuantity(product.getStockQuantity() + item.getQuantity());
+            if (product.getStatus() == ProductStatus.OUT_OF_STOCK && product.getStockQuantity() > 0) {
+                product.setStatus(ProductStatus.ACTIVE);
+            }
+        }
+    }
+
+    private Order createPendingOrder(
+            AppUser user,
+            String fullName,
+            String phoneNumber,
+            String streetAddress,
+            String city,
+            String postalCode,
+            String deliveryNotes,
+            String shippingAddress
+    ) {
+        String normalizedStreet = normalizeRequired(streetAddress);
+        String normalizedCity = normalizeRequired(city);
+        String normalizedPostalCode = normalizeOptional(postalCode);
+        String normalizedDeliveryNotes = normalizeOptional(deliveryNotes);
+
         return Order.builder()
                 .orderNumber(generateOrderNumber())
                 .user(user)
+                .customerName(normalizeOptional(fullName) == null ? user.getFullName() : normalizeOptional(fullName))
+                .customerEmail(user.getEmail())
+                .customerPhone(normalizeOptional(phoneNumber) == null ? user.getPhone() : normalizeOptional(phoneNumber))
                 .totalAmount(BigDecimal.ZERO)
                 .status(OrderStatus.PENDING)
                 .paymentStatus(PaymentStatus.UNPAID)
-                .shippingAddress(normalizeOptional(shippingAddress))
+                .shippingAddress(resolveShippingAddress(
+                        shippingAddress,
+                        normalizedStreet,
+                        normalizedCity,
+                        normalizedPostalCode,
+                        normalizedDeliveryNotes
+                ))
+                .shippingStreetAddress(normalizedStreet)
+                .shippingCity(normalizedCity)
+                .shippingPostalCode(normalizedPostalCode)
+                .deliveryNotes(normalizedDeliveryNotes)
                 .build();
     }
 
@@ -223,6 +274,33 @@ public class OrderService {
         return value.trim();
     }
 
+    private String normalizeRequired(String value) {
+        return value.trim();
+    }
+
+    private String resolveShippingAddress(
+            String shippingAddress,
+            String streetAddress,
+            String city,
+            String postalCode,
+            String deliveryNotes
+    ) {
+        String normalizedShippingAddress = normalizeOptional(shippingAddress);
+        if (normalizedShippingAddress != null) {
+            return normalizedShippingAddress;
+        }
+
+        StringBuilder builder = new StringBuilder();
+        builder.append(streetAddress).append(", ").append(city);
+        if (postalCode != null) {
+            builder.append(" ").append(postalCode);
+        }
+        if (deliveryNotes != null) {
+            builder.append(" | Notes: ").append(deliveryNotes);
+        }
+        return builder.toString();
+    }
+
     private OrderResponse mapToOrderResponse(Order order) {
         List<OrderItemResponse> items = order.getItems()
                 .stream()
@@ -238,10 +316,17 @@ public class OrderService {
         return new OrderResponse(
                 order.getId(),
                 order.getOrderNumber(),
+                order.getCustomerName(),
+                order.getCustomerEmail(),
+                order.getCustomerPhone(),
                 order.getTotalAmount(),
                 order.getStatus(),
                 order.getPaymentStatus(),
                 order.getShippingAddress(),
+                order.getShippingStreetAddress(),
+                order.getShippingCity(),
+                order.getShippingPostalCode(),
+                order.getDeliveryNotes(),
                 order.getCreatedAt(),
                 items
         );

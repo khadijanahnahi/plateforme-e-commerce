@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import http from "../api/http";
 
 export default function ProductsPage() {
+  const [searchParams] = useSearchParams();
+  const querySearch = searchParams.get("search") ?? "";
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(querySearch);
   const [categoryId, setCategoryId] = useState("");
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
@@ -23,11 +25,17 @@ export default function ProductsPage() {
 
   useEffect(() => {
     let mounted = true;
+    setSearch(querySearch);
+    setCategoryId("");
 
     async function loadInitialData() {
       try {
         const [productsResponse, categoriesResponse] = await Promise.all([
-          http.get("/products"),
+          http.get("/products", {
+            params: {
+              search: querySearch || undefined,
+            },
+          }),
           http.get("/categories"),
         ]);
         if (mounted) {
@@ -49,7 +57,7 @@ export default function ProductsPage() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [querySearch]);
 
   async function handleFilter(event) {
     event.preventDefault();
@@ -70,6 +78,7 @@ export default function ProductsPage() {
     setError("");
     try {
       await http.post("/cart/items", { productId, quantity: 1 });
+      window.dispatchEvent(new Event("shopsphere-cart-updated"));
       setMessage("Product added to cart.");
     } catch (exception) {
       setError(exception.response?.data?.message ?? "Login required or product unavailable.");

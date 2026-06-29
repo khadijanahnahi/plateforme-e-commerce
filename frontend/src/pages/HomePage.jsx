@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 const categories = [
   {
     name: "Monochrome Wear",
@@ -316,15 +318,38 @@ export default function HomePage() {
 
       <footer className="site-footer">
         <div className="page footer-content">
-          <div>
+          <div className="footer-brand">
             <strong>ShopSphere</strong>
-            <p>Minimal black and white e-commerce for fashion-tech retail.</p>
+            <p>Premium monochrome essentials for modern everyday style.</p>
           </div>
-          <div className="footer-links">
-            <a href="/#">Collections</a>
-            <a href="/#">Flash Sale</a>
-            <a href="/#">Stores</a>
-            <a href="/#">Support</a>
+
+          <div className="footer-column">
+            <h3>Shop</h3>
+            <div className="footer-links">
+              <Link to="/products">Products</Link>
+              <Link to="/products">Categories</Link>
+              <Link to="/products">New Arrivals</Link>
+              <Link to="/products">Best Sellers</Link>
+            </div>
+          </div>
+
+          <div className="footer-column">
+            <h3>Customer</h3>
+            <div className="footer-links">
+              <Link to="/orders">My Orders</Link>
+              <Link to="/cart">Cart</Link>
+              <a href="/#wishlist">Wishlist</a>
+              <a href="/#support">Support</a>
+            </div>
+          </div>
+
+          <div className="footer-column">
+            <h3>Company</h3>
+            <div className="footer-links">
+              <a href="/#about">About</a>
+              <a href="/#contact">Contact</a>
+              <a href="/#terms">Terms</a>
+            </div>
           </div>
         </div>
       </footer>

@@ -57,6 +57,15 @@ public class Order extends AuditableEntity {
     )
     private AppUser user;
 
+    @Column(name = "customer_name", length = 120)
+    private String customerName;
+
+    @Column(name = "customer_email", length = 180)
+    private String customerEmail;
+
+    @Column(name = "customer_phone", length = 20)
+    private String customerPhone;
+
     @Column(name = "total_amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal totalAmount;
 
@@ -72,6 +81,18 @@ public class Order extends AuditableEntity {
 
     @Column(name = "shipping_address", columnDefinition = "text")
     private String shippingAddress;
+
+    @Column(name = "shipping_street_address", columnDefinition = "text")
+    private String shippingStreetAddress;
+
+    @Column(name = "shipping_city", length = 100)
+    private String shippingCity;
+
+    @Column(name = "shipping_postal_code", length = 30)
+    private String shippingPostalCode;
+
+    @Column(name = "delivery_notes", columnDefinition = "text")
+    private String deliveryNotes;
 
     @Builder.Default
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)

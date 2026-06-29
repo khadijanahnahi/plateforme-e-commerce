@@ -1,7 +1,9 @@
 package com.boutique.ecommerce.order.dto;
 
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 
 public record DirectOrderRequest(
         @NotNull(message = "Product id is required.")
@@ -10,6 +12,26 @@ public record DirectOrderRequest(
         @NotNull(message = "Quantity is required.")
         @Min(value = 1, message = "Quantity must be greater than 0.")
         Integer quantity,
+
+        @NotBlank(message = "Full name is required.")
+        String fullName,
+
+        @NotBlank(message = "Phone number is required.")
+        @Pattern(
+                regexp = "^[+0-9()\\-\\s]{8,20}$",
+                message = "Phone number format is invalid."
+        )
+        String phoneNumber,
+
+        @NotBlank(message = "Street address is required.")
+        String streetAddress,
+
+        @NotBlank(message = "City is required.")
+        String city,
+
+        String postalCode,
+
+        String deliveryNotes,
 
         String shippingAddress
 ) {

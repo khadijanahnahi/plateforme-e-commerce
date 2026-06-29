@@ -81,6 +81,11 @@ export default function AdminOrderDetailsPage() {
         <>
           <div className="admin-detail-grid">
             <article className="admin-stat-card">
+              <span>Customer</span>
+              <strong>{order.customerName ?? "Unknown"}</strong>
+              <small>{order.customerEmail ?? "-"} | {order.customerPhone ?? "-"}</small>
+            </article>
+            <article className="admin-stat-card">
               <span>Total</span>
               <strong>{Number(order.totalAmount).toFixed(2)} DH</strong>
               <small>{order.paymentStatus}</small>
@@ -91,10 +96,36 @@ export default function AdminOrderDetailsPage() {
               <small>{formatDate(order.createdAt)}</small>
             </article>
             <article className="admin-stat-card">
-              <span>Shipping</span>
-              <strong>{order.shippingAddress ? "Provided" : "Missing"}</strong>
-              <small>{order.shippingAddress ?? "No address"}</small>
+              <span>City</span>
+              <strong>{order.shippingCity ?? "Missing"}</strong>
+              <small>{order.shippingPostalCode ?? "No postal code"}</small>
             </article>
+          </div>
+
+          <div className="admin-panel" style={{ marginBottom: "1rem" }}>
+            <h2>Delivery information</h2>
+            <dl className="profile-list">
+              <div>
+                <dt>Phone</dt>
+                <dd>{order.customerPhone ?? "-"}</dd>
+              </div>
+              <div>
+                <dt>Street address</dt>
+                <dd>{order.shippingStreetAddress ?? order.shippingAddress ?? "-"}</dd>
+              </div>
+              <div>
+                <dt>City</dt>
+                <dd>{order.shippingCity ?? "-"}</dd>
+              </div>
+              <div>
+                <dt>Postal code</dt>
+                <dd>{order.shippingPostalCode ?? "-"}</dd>
+              </div>
+              <div>
+                <dt>Delivery notes</dt>
+                <dd>{order.deliveryNotes ?? "-"}</dd>
+              </div>
+            </dl>
           </div>
 
           <div className="admin-panel">

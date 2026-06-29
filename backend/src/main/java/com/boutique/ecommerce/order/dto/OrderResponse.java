@@ -9,10 +9,17 @@ import java.util.List;
 public record OrderResponse(
         Long id,
         String orderNumber,
+        String customerName,
+        String customerEmail,
+        String customerPhone,
         BigDecimal totalAmount,
         OrderStatus status,
         PaymentStatus paymentStatus,
         String shippingAddress,
+        String shippingStreetAddress,
+        String shippingCity,
+        String shippingPostalCode,
+        String deliveryNotes,
         LocalDateTime createdAt,
         List<OrderItemResponse> items
 ) {

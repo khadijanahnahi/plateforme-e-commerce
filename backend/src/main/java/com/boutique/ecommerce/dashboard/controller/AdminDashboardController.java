@@ -1,9 +1,12 @@
 package com.boutique.ecommerce.dashboard.controller;
 
+import com.boutique.ecommerce.dashboard.dto.DashboardPeriod;
 import com.boutique.ecommerce.dashboard.dto.DashboardStatsResponse;
 import com.boutique.ecommerce.dashboard.service.DashboardService;
+import java.util.Locale;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -17,7 +20,11 @@ public class AdminDashboardController {
     }
 
     @GetMapping("/stats")
-    public DashboardStatsResponse getStats() {
-        return dashboardService.getStats();
+    public DashboardStatsResponse getStats(@RequestParam(defaultValue = "all") String period) {
+        return dashboardService.getStats(parsePeriod(period));
+    }
+
+    private DashboardPeriod parsePeriod(String period) {
+        return DashboardPeriod.valueOf(period.trim().toUpperCase(Locale.ROOT));
     }
 }

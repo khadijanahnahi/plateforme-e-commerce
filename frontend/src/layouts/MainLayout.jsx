@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import http from "../api/http";
 import { useAuth } from "../contexts/AuthContext";
 import profileImage from "../../images/profile.png";
 
@@ -6,12 +8,51 @@ export default function MainLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated, logout, user } = useAuth();
+  const [cartCount, setCartCount] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
   const isAdmin = user?.roles?.some((role) => role === "ADMIN" || role === "ROLE_ADMIN");
   const isAdminRoute = location.pathname.startsWith("/admin");
 
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadCartCount() {
+      if (!isAuthenticated) {
+        setCartCount(0);
+        return;
+      }
+
+      try {
+        const response = await http.get("/cart");
+        if (mounted) {
+          setCartCount(response.data.totalItems ?? 0);
+        }
+      } catch {
+        if (mounted) {
+          setCartCount(0);
+        }
+      }
+    }
+
+    loadCartCount();
+    window.addEventListener("shopsphere-cart-updated", loadCartCount);
+
+    return () => {
+      mounted = false;
+      window.removeEventListener("shopsphere-cart-updated", loadCartCount);
+    };
+  }, [isAuthenticated, location.pathname]);
+
   function handleLogout() {
     logout();
+    setCartCount(0);
     navigate("/login", { replace: true });
+  }
+
+  function handleSearchSubmit(event) {
+    event.preventDefault();
+    const query = searchTerm.trim();
+    navigate(query ? `/products?search=${encodeURIComponent(query)}` : "/products");
   }
 
   if (isAdminRoute) {
@@ -74,42 +115,46 @@ export default function MainLayout() {
           </NavLink>
 
           <nav className="primary-nav">
-            <NavLink to="/">Home</NavLink>
-            <NavLink to="/products">Products</NavLink>
-            <NavLink to="/">Flash Sale</NavLink>
-            <NavLink to="/">Recommended</NavLink>
-            <NavLink to="/cart">Cart</NavLink>
-            <NavLink to="/orders">Orders</NavLink>
-            {isAdmin ? <NavLink to="/admin/dashboard">Admin</NavLink> : null}
+            <NavLink to="/products">Shop</NavLink>
+            <NavLink to="/products">Categories</NavLink>
+            <NavLink to="/products">New Arrivals</NavLink>
+            <NavLink to="/products">Best Sellers</NavLink>
           </nav>
 
           <div className="header-actions">
-            <label className="search-shell" htmlFor="shop-search">
+            <form className="search-shell" onSubmit={handleSearchSubmit}>
               <input
                 id="shop-search"
                 type="search"
                 placeholder="Search products"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
               />
-            </label>
+            </form>
+            <NavLink className="icon-link wishlist-link" to="/" aria-label="Saved products">
+              <span aria-hidden="true">&#9825;</span>
+            </NavLink>
+            <NavLink className="icon-link cart-link" to="/cart" aria-label={`Cart with ${cartCount} items`}>
+              <span aria-hidden="true" className="cart-glyph">Cart</span>
+              {isAuthenticated && cartCount > 0 ? <strong className="cart-count">{cartCount}</strong> : null}
+            </NavLink>
             {isAuthenticated ? (
-              <>
-                <NavLink className="icon-link" to="/">
-                  Saved
-                </NavLink>
-                <NavLink className="profile-avatar-link" to="/profile" aria-label="Open profile">
-                  <img src={profileImage} alt={user?.fullName ?? "Profile"} />
-                </NavLink>
-                <button className="auth-button logout-button" type="button" onClick={handleLogout}>
-                  Logout
-                </button>
-              </>
+              <details className="account-menu">
+                <summary className="account-summary">Account</summary>
+                <div className="account-dropdown">
+                  <NavLink to="/profile">My Profile</NavLink>
+                  <NavLink to="/orders">My Orders</NavLink>
+                  {isAdmin ? <NavLink to="/admin/dashboard">Admin Dashboard</NavLink> : null}
+                  <button type="button" onClick={handleLogout}>Logout</button>
+                </div>
+              </details>
             ) : (
               <>
-                <NavLink className="auth-button signup-button" to="/register">
-                  Inscription
-                </NavLink>
                 <NavLink className="auth-button login-button" to="/login">
                   Login
+                </NavLink>
+                <NavLink className="auth-button signup-button" to="/register">
+                  Sign Up
                 </NavLink>
               </>
             )}
