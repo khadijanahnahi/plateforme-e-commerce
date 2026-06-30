@@ -57,6 +57,9 @@ export default function CheckoutPage() {
     deliveryNotes: "",
   });
   const [loading, setLoading] = useState(true);
+  const [couponCode, setCouponCode] = useState("");
+  const [couponValidation, setCouponValidation] = useState(null);
+  const [couponMessage, setCouponMessage] = useState("");
   const [error, setError] = useState("");
 
   const checkoutSummary = directCheckout
@@ -74,7 +77,8 @@ export default function CheckoutPage() {
     : cart;
   const hasItems = checkoutSummary.items.length > 0;
   const subtotal = Number(checkoutSummary.totalAmount);
-  const total = subtotal + DELIVERY_FEE;
+  const discount = Number(couponValidation?.discountAmount ?? 0);
+  const total = Math.max(0, subtotal - discount) + DELIVERY_FEE;
 
   useEffect(() => {
     setForm((current) => ({
@@ -127,6 +131,32 @@ export default function CheckoutPage() {
     setForm((current) => ({ ...current, [name]: value }));
   }
 
+  async function applyCoupon() {
+    setError("");
+    setCouponMessage("");
+    setCouponValidation(null);
+
+    if (!couponCode.trim()) {
+      setCouponMessage("Enter a coupon code.");
+      return;
+    }
+
+    try {
+      const response = directCheckout
+        ? await http.post("/coupons/validate-direct", {
+            code: couponCode.trim(),
+            productId: directCheckout.productId,
+            quantity: directCheckout.quantity,
+          })
+        : await http.post("/coupons/validate", { code: couponCode.trim() });
+      setCouponValidation(response.data);
+      setCouponCode(response.data.code);
+      setCouponMessage("Coupon applied.");
+    } catch (exception) {
+      setCouponMessage(getApiErrorMessage(exception, "Invalid coupon."));
+    }
+  }
+
   async function confirmOrder(event) {
     event.preventDefault();
     setError("");
@@ -134,6 +164,7 @@ export default function CheckoutPage() {
     const payload = {
       ...form,
       shippingAddress: buildShippingAddress(form),
+      couponCode: couponCode.trim() || null,
     };
 
     try {
@@ -193,6 +224,25 @@ export default function CheckoutPage() {
               <div>
                 <span>Subtotal</span>
                 <strong>{subtotal.toFixed(2)} DH</strong>
+              </div>
+              <div className="coupon-box">
+                <input
+                  value={couponCode}
+                  onChange={(event) => {
+                    setCouponCode(event.target.value.toUpperCase());
+                    setCouponValidation(null);
+                    setCouponMessage("");
+                  }}
+                  placeholder="Promo code"
+                />
+                <button className="button button-secondary" type="button" onClick={applyCoupon}>
+                  Apply
+                </button>
+              </div>
+              {couponMessage ? <p className={couponValidation ? "coupon-message coupon-success" : "coupon-message"}>{couponMessage}</p> : null}
+              <div>
+                <span>Discount</span>
+                <strong>-{discount.toFixed(2)} DH</strong>
               </div>
               <div>
                 <span>Delivery fee</span>

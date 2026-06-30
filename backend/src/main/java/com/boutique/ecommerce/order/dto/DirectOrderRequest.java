@@ -33,6 +33,8 @@ public record DirectOrderRequest(
 
         String deliveryNotes,
 
-        String shippingAddress
+        String shippingAddress,
+
+        String couponCode
 ) {
 }

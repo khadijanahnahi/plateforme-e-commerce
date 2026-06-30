@@ -24,6 +24,8 @@ public record CreateOrderRequest(
 
         String deliveryNotes,
 
-        String shippingAddress
+        String shippingAddress,
+
+        String couponCode
 ) {
 }

@@ -1,7 +1,9 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import http from "../api/http";
 import heroMonochrome from "../../images/hero-monochrome.png";
 
-const categories = [
+const fallbackCategories = [
   {
     name: "Monochrome Wear",
     description: "Pieces nettes, textures propres et coupes contemporaines.",
@@ -106,15 +108,105 @@ const heroHeadline = [
   "Essentials",
 ];
 
+function splitHeroTitle(title) {
+  if (!title) {
+    return heroHeadline;
+  }
+
+  return title.split(" ").reduce((lines, word) => {
+    const lastLine = lines[lines.length - 1] ?? "";
+    if (!lastLine || lastLine.length + word.length > 12) {
+      return [...lines, word];
+    }
+    return [...lines.slice(0, -1), `${lastLine} ${word}`];
+  }, []);
+}
+
 export default function HomePage() {
+  const [heroBanners, setHeroBanners] = useState([]);
+  const [activeHeroIndex, setActiveHeroIndex] = useState(0);
+  const [heroLoaded, setHeroLoaded] = useState(false);
+  const [homeCategories, setHomeCategories] = useState(fallbackCategories);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadHeroBanner() {
+      try {
+        const response = await http.get("/banners", {
+          params: { placement: "HOME_HERO" },
+        });
+        if (mounted) {
+          setHeroBanners(response.data ?? []);
+          setHeroLoaded(true);
+        }
+      } catch {
+        if (mounted) {
+          setHeroBanners([]);
+          setHeroLoaded(true);
+        }
+      }
+    }
+
+    loadHeroBanner();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadCategories() {
+      try {
+        const response = await http.get("/categories");
+        if (mounted && response.data?.length) {
+          setHomeCategories(response.data.slice(0, 4));
+        }
+      } catch {
+        if (mounted) {
+          setHomeCategories(fallbackCategories);
+        }
+      }
+    }
+
+    loadCategories();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (heroBanners.length < 2) {
+      setActiveHeroIndex(0);
+      return undefined;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setActiveHeroIndex((current) => (current + 1) % heroBanners.length);
+    }, 5000);
+
+    return () => window.clearInterval(intervalId);
+  }, [heroBanners.length]);
+
+  const heroBanner = heroBanners[activeHeroIndex] ?? null;
+  const shouldUseDefaultHero = heroLoaded && !heroBanner;
+  const heroLines = !heroLoaded ? [] : shouldUseDefaultHero ? heroHeadline : splitHeroTitle(heroBanner?.title);
+  const heroImage = shouldUseDefaultHero ? heroMonochrome : heroBanner?.imageUrl;
+  const primaryTarget = heroBanner?.targetUrl || "/products";
+  const primaryText = heroBanner?.buttonText || "Shop Now";
+  const hasHeroSlider = heroBanners.length > 1;
+
   return (
     <div className="home-page">
       <section className="page hero-section">
-        <div className="hero-card">
+        <div className={`hero-card ${hasHeroSlider ? "hero-card-carousel" : ""}`} key={heroBanner?.id ?? "default-hero"}>
           <div className="hero-copy">
-            <span className="eyebrow">Curated. Minimal. Timeless.</span>
+            <span className="eyebrow">
+              {heroBanner ? "Featured campaign" : "Curated. Minimal. Timeless."}
+            </span>
             <div className="hero-headline">
-              {heroHeadline.map((line, index) => (
+              {heroLines.map((line, index) => (
                 <span
                   className="hero-line"
                   key={line}
@@ -125,21 +217,34 @@ export default function HomePage() {
               ))}
             </div>
             <p className="hero-description">
-              Elevated pieces and thoughtful design.
-              Built for the way you live.
+              {heroBanner?.subtitle || "Elevated pieces and thoughtful design. Built for the way you live."}
             </p>
             <div className="hero-actions">
-              <button className="button button-primary" type="button">
+              <Link className="button button-primary button-dynamic-label" to={primaryTarget}>
+                <span className="button-visible-label">{primaryText} -&gt;</span>
                 Shop Now <span aria-hidden="true">→</span>
-              </button>
-              <button className="button button-secondary" type="button">
+              </Link>
+              <Link className="button button-secondary" to="/categories">
                 Explore Categories
-              </button>
+              </Link>
             </div>
+            {hasHeroSlider ? (
+              <div className="hero-slider-dots" aria-label="Hero banner navigation">
+                {heroBanners.map((banner, index) => (
+                  <button
+                    className={`dot ${index === activeHeroIndex ? "dot-active" : ""}`}
+                    key={banner.id}
+                    type="button"
+                    aria-label={`Show banner ${index + 1}`}
+                    onClick={() => setActiveHeroIndex(index)}
+                  />
+                ))}
+              </div>
+            ) : null}
           </div>
 
           <div className="hero-visual">
-            <img src={heroMonochrome} alt="ShopSphere monochrome essentials" />
+            {heroImage ? <img src={heroImage} alt={heroBanner?.title || "ShopSphere monochrome essentials"} /> : null}
           </div>
         </div>
       </section>
@@ -153,17 +258,20 @@ export default function HomePage() {
           <p>Focused categories built for a premium monochrome storefront.</p>
         </div>
         <div className="category-grid">
-          {categories.map((category, index) => (
-            <article
+          {homeCategories.map((category, index) => (
+            <Link
               className="category-card reveal-card"
-              key={category.name}
+              key={category.id ?? category.name}
+              to={category.id ? `/products?categoryId=${category.id}` : "/categories"}
               style={{ animationDelay: `${0.1 + index * 0.1}s` }}
             >
               <span className="category-index">0{index + 1}</span>
               <h3>{category.name}</h3>
-              <p>{category.description}</p>
-              <strong>{category.itemCount}</strong>
-            </article>
+              <p>{category.description ?? "Premium essentials selected for a clean everyday wardrobe."}</p>
+              <strong>
+                {category.productCount !== undefined ? `${category.productCount} products` : category.itemCount}
+              </strong>
+            </Link>
           ))}
         </div>
       </section>

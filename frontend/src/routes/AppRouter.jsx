@@ -3,6 +3,8 @@ import AdminRoute from "./AdminRoute";
 import AdminOrderDetailsPage from "../pages/AdminOrderDetailsPage";
 import MainLayout from "../layouts/MainLayout";
 import AdminDashboardPage from "../pages/AdminDashboardPage";
+import AdminBannersPage from "../pages/AdminBannersPage";
+import AdminCouponsPage from "../pages/AdminCouponsPage";
 import AdminOrdersPage from "../pages/AdminOrdersPage";
 import AdminProductsPage from "../pages/AdminProductsPage";
 import AdminCategoriesPage from "../pages/AdminCategoriesPage";
@@ -34,7 +36,9 @@ export default function AppRouter() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route element={<AdminRoute />}>
           <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+          <Route path="/admin/banners" element={<AdminBannersPage />} />
           <Route path="/admin/categories" element={<AdminCategoriesPage />} />
+          <Route path="/admin/coupons" element={<AdminCouponsPage />} />
           <Route path="/admin/products" element={<AdminProductsPage />} />
           <Route path="/admin/orders" element={<AdminOrdersPage />} />
           <Route path="/admin/orders/:id" element={<AdminOrderDetailsPage />} />

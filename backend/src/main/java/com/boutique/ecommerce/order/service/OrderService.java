@@ -4,6 +4,8 @@ import com.boutique.ecommerce.cart.entity.CartItem;
 import com.boutique.ecommerce.cart.repository.CartItemRepository;
 import com.boutique.ecommerce.common.exception.ResourceNotFoundException;
 import com.boutique.ecommerce.common.exception.UnauthorizedException;
+import com.boutique.ecommerce.coupon.service.CouponService;
+import com.boutique.ecommerce.coupon.service.CouponService.CouponCalculation;
 import com.boutique.ecommerce.order.dto.CreateOrderRequest;
 import com.boutique.ecommerce.order.dto.DirectOrderRequest;
 import com.boutique.ecommerce.order.dto.OrderItemResponse;
@@ -34,17 +36,20 @@ public class OrderService {
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final CouponService couponService;
 
     public OrderService(
             OrderRepository orderRepository,
             CartItemRepository cartItemRepository,
             ProductRepository productRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            CouponService couponService
     ) {
         this.orderRepository = orderRepository;
         this.cartItemRepository = cartItemRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
+        this.couponService = couponService;
     }
 
     @Transactional
@@ -66,7 +71,7 @@ public class OrderService {
                 request.shippingAddress()
         );
 
-        BigDecimal totalAmount = BigDecimal.ZERO;
+        BigDecimal subtotalAmount = BigDecimal.ZERO;
         for (CartItem cartItem : cartItems) {
             Product product = cartItem.getProduct();
             validateProductForOrder(product);
@@ -74,7 +79,7 @@ public class OrderService {
 
             OrderItem orderItem = OrderItem.fromProduct(product, cartItem.getQuantity());
             order.addItem(orderItem);
-            totalAmount = totalAmount.add(orderItem.getSubtotal());
+            subtotalAmount = subtotalAmount.add(orderItem.getSubtotal());
 
             int remainingStock = product.getStockQuantity() - cartItem.getQuantity();
             product.setStockQuantity(remainingStock);
@@ -83,8 +88,10 @@ public class OrderService {
             }
         }
 
-        order.setTotalAmount(totalAmount);
+        CouponCalculation couponCalculation = couponService.calculateDiscount(request.couponCode(), subtotalAmount, user);
+        applyTotals(order, subtotalAmount, couponCalculation);
         Order savedOrder = orderRepository.save(order);
+        couponService.registerUsage(couponCalculation.coupon(), user, savedOrder);
         cartItemRepository.deleteByUserId(user.getId());
 
         return mapToOrderResponse(savedOrder);
@@ -111,7 +118,8 @@ public class OrderService {
         );
         OrderItem orderItem = OrderItem.fromProduct(product, request.quantity());
         order.addItem(orderItem);
-        order.setTotalAmount(orderItem.getSubtotal());
+        CouponCalculation couponCalculation = couponService.calculateDiscount(request.couponCode(), orderItem.getSubtotal(), user);
+        applyTotals(order, orderItem.getSubtotal(), couponCalculation);
 
         int remainingStock = product.getStockQuantity() - request.quantity();
         product.setStockQuantity(remainingStock);
@@ -119,7 +127,9 @@ public class OrderService {
             product.setStatus(ProductStatus.OUT_OF_STOCK);
         }
 
-        return mapToOrderResponse(orderRepository.save(order));
+        Order savedOrder = orderRepository.save(order);
+        couponService.registerUsage(couponCalculation.coupon(), user, savedOrder);
+        return mapToOrderResponse(savedOrder);
     }
 
     @Transactional(readOnly = true)
@@ -239,6 +249,8 @@ public class OrderService {
                 .customerName(normalizeOptional(fullName) == null ? user.getFullName() : normalizeOptional(fullName))
                 .customerEmail(user.getEmail())
                 .customerPhone(normalizeOptional(phoneNumber) == null ? user.getPhone() : normalizeOptional(phoneNumber))
+                .subtotalAmount(BigDecimal.ZERO)
+                .discountAmount(BigDecimal.ZERO)
                 .totalAmount(BigDecimal.ZERO)
                 .status(OrderStatus.PENDING)
                 .paymentStatus(PaymentStatus.UNPAID)
@@ -301,6 +313,14 @@ public class OrderService {
         return builder.toString();
     }
 
+    private void applyTotals(Order order, BigDecimal subtotalAmount, CouponCalculation couponCalculation) {
+        BigDecimal discountAmount = couponCalculation.discountAmount();
+        order.setSubtotalAmount(subtotalAmount);
+        order.setDiscountAmount(discountAmount);
+        order.setCouponCode(couponCalculation.coupon() == null ? null : couponCalculation.coupon().getCode());
+        order.setTotalAmount(subtotalAmount.subtract(discountAmount));
+    }
+
     private OrderResponse mapToOrderResponse(Order order) {
         List<OrderItemResponse> items = order.getItems()
                 .stream()
@@ -319,6 +339,9 @@ public class OrderService {
                 order.getCustomerName(),
                 order.getCustomerEmail(),
                 order.getCustomerPhone(),
+                order.getSubtotalAmount(),
+                order.getDiscountAmount(),
+                order.getCouponCode(),
                 order.getTotalAmount(),
                 order.getStatus(),
                 order.getPaymentStatus(),
