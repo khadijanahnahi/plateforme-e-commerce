@@ -207,6 +207,7 @@ export default function MainLayout() {
               <NavLink className={({ isActive }) => (isActive ? "active" : undefined)} to="/categories">Categories</NavLink>
               <NavLink className={() => getProductNavClass("new")} to="/products?sort=new">New Arrivals</NavLink>
               <NavLink className={() => getProductNavClass("best")} to="/products?sort=best">Best Sellers</NavLink>
+              <NavLink to="/support">Support</NavLink>
               {isAuthenticated ? (
                 <>
                   <NavLink to="/profile">My Profile</NavLink>

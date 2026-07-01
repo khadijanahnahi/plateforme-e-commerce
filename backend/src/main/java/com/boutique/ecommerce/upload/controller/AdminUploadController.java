@@ -3,12 +3,14 @@ package com.boutique.ecommerce.upload.controller;
 import com.boutique.ecommerce.upload.dto.UploadResponse;
 import com.boutique.ecommerce.upload.service.UploadService;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+@PreAuthorize("hasRole('ADMIN')")
 @RestController
 @RequestMapping("/api/admin/uploads")
 public class AdminUploadController {

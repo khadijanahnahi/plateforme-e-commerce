@@ -19,6 +19,7 @@ import ProductDetailsPage from "../pages/ProductDetailsPage";
 import ProductsPage from "../pages/ProductsPage";
 import ProfilePage from "../pages/ProfilePage";
 import RegisterPage from "../pages/RegisterPage";
+import SupportPage from "../pages/SupportPage";
 
 export default function AppRouter() {
   return (
@@ -34,6 +35,7 @@ export default function AppRouter() {
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/orders" element={<OrdersPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/support" element={<SupportPage />} />
         <Route element={<AdminRoute />}>
           <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
           <Route path="/admin/banners" element={<AdminBannersPage />} />

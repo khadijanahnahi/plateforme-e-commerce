@@ -432,7 +432,7 @@ export default function HomePage() {
               <Link to="/orders">My Orders</Link>
               <Link to="/cart">Cart</Link>
               <a href="/#wishlist">Wishlist</a>
-              <a href="/#support">Support</a>
+              <Link to="/support">Support</Link>
             </div>
           </div>
 
@@ -440,7 +440,7 @@ export default function HomePage() {
             <h3>Company</h3>
             <div className="footer-links">
               <a href="/#about">About</a>
-              <a href="/#contact">Contact</a>
+              <Link to="/support">Contact</Link>
               <a href="/#terms">Terms</a>
             </div>
           </div>
