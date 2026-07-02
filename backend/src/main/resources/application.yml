@@ -24,6 +24,18 @@ spring:
     multipart:
       max-file-size: 5MB
       max-request-size: 5MB
+  mail:
+    host: ${AWS_SES_SMTP_HOST:}
+    port: ${AWS_SES_SMTP_PORT:587}
+    username: ${AWS_SES_SMTP_USERNAME:}
+    password: ${AWS_SES_SMTP_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
 
 server:
   port: 8080
@@ -40,6 +52,10 @@ app:
     email: admin@shopsphere.local
     phone: "+212600000000"
     password: Admin@12345
+  email:
+    enabled: ${APP_EMAIL_ENABLED:false}
+    from: ${APP_EMAIL_FROM:no-reply@shopsphere.local}
+    store-name: ${APP_EMAIL_STORE_NAME:ShopSphere}
 
 cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME:}

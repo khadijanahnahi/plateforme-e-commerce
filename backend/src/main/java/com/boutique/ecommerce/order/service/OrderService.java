@@ -17,6 +17,7 @@ import com.boutique.ecommerce.order.entity.OrderItem;
 import com.boutique.ecommerce.order.entity.OrderStatus;
 import com.boutique.ecommerce.order.entity.PaymentStatus;
 import com.boutique.ecommerce.order.repository.OrderRepository;
+import com.boutique.ecommerce.notification.OrderCreatedEvent;
 import com.boutique.ecommerce.product.entity.Product;
 import com.boutique.ecommerce.product.entity.ProductStatus;
 import com.boutique.ecommerce.product.repository.ProductRepository;
@@ -25,6 +26,7 @@ import com.boutique.ecommerce.user.repository.UserRepository;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -38,19 +40,22 @@ public class OrderService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final CouponService couponService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public OrderService(
             OrderRepository orderRepository,
             CartItemRepository cartItemRepository,
             ProductRepository productRepository,
             UserRepository userRepository,
-            CouponService couponService
+            CouponService couponService,
+            ApplicationEventPublisher eventPublisher
     ) {
         this.orderRepository = orderRepository;
         this.cartItemRepository = cartItemRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
         this.couponService = couponService;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -94,6 +99,7 @@ public class OrderService {
         Order savedOrder = orderRepository.save(order);
         couponService.registerUsage(couponCalculation.coupon(), user, savedOrder);
         cartItemRepository.deleteByUserId(user.getId());
+        eventPublisher.publishEvent(new OrderCreatedEvent(savedOrder.getId()));
 
         return mapToOrderResponse(savedOrder);
     }
@@ -130,6 +136,7 @@ public class OrderService {
 
         Order savedOrder = orderRepository.save(order);
         couponService.registerUsage(couponCalculation.coupon(), user, savedOrder);
+        eventPublisher.publishEvent(new OrderCreatedEvent(savedOrder.getId()));
         return mapToOrderResponse(savedOrder);
     }
 
