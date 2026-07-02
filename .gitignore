@@ -15,6 +15,7 @@ backend/.mvn/
 backend/uploads/*
 !backend/uploads/.gitkeep
 backend/run-backend.ps1
+backend/storage/
 
 .DS_Store
 Thumbs.db

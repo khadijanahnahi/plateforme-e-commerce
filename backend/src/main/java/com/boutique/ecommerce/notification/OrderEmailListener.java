@@ -17,4 +17,9 @@ public class OrderEmailListener {
     public void handleOrderCreated(OrderCreatedEvent event) {
         orderEmailService.sendOrderConfirmation(event.orderId());
     }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleOrderStatusChanged(OrderStatusChangedEvent event) {
+        orderEmailService.sendOrderStatusUpdate(event.orderId(), event.oldStatus(), event.newStatus());
+    }
 }

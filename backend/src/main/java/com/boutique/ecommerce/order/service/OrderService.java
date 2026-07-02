@@ -6,6 +6,7 @@ import com.boutique.ecommerce.common.exception.ResourceNotFoundException;
 import com.boutique.ecommerce.common.exception.UnauthorizedException;
 import com.boutique.ecommerce.coupon.service.CouponService;
 import com.boutique.ecommerce.coupon.service.CouponService.CouponCalculation;
+import com.boutique.ecommerce.invoice.event.InvoiceRequestedEvent;
 import com.boutique.ecommerce.order.dto.CreateOrderRequest;
 import com.boutique.ecommerce.order.dto.DirectOrderRequest;
 import com.boutique.ecommerce.order.dto.OrderItemResponse;
@@ -18,6 +19,7 @@ import com.boutique.ecommerce.order.entity.OrderStatus;
 import com.boutique.ecommerce.order.entity.PaymentStatus;
 import com.boutique.ecommerce.order.repository.OrderRepository;
 import com.boutique.ecommerce.notification.OrderCreatedEvent;
+import com.boutique.ecommerce.notification.OrderStatusChangedEvent;
 import com.boutique.ecommerce.product.entity.Product;
 import com.boutique.ecommerce.product.entity.ProductStatus;
 import com.boutique.ecommerce.product.repository.ProductRepository;
@@ -177,11 +179,18 @@ public class OrderService {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found."));
 
-        validateStatusTransition(order.getStatus(), request.status());
+        OrderStatus oldStatus = order.getStatus();
+        OrderStatus newStatus = request.status();
+        if (oldStatus == newStatus) {
+            throw new IllegalArgumentException("Order already has this status.");
+        }
+
+        validateStatusTransition(oldStatus, newStatus);
         if (request.status() == OrderStatus.CANCELLED) {
             restoreStock(order);
         }
-        order.setStatus(request.status());
+        order.setStatus(newStatus);
+        eventPublisher.publishEvent(new OrderStatusChangedEvent(order.getId(), oldStatus, newStatus));
         return mapToOrderResponse(order);
     }
 
@@ -194,7 +203,16 @@ public class OrderService {
             throw new IllegalArgumentException("Cannot update payment status for a cancelled order.");
         }
 
-        order.setPaymentStatus(request.paymentStatus());
+        PaymentStatus oldPaymentStatus = order.getPaymentStatus();
+        PaymentStatus newPaymentStatus = request.paymentStatus();
+        if (oldPaymentStatus == newPaymentStatus) {
+            throw new IllegalArgumentException("Order already has this payment status.");
+        }
+
+        order.setPaymentStatus(newPaymentStatus);
+        if (oldPaymentStatus == PaymentStatus.UNPAID && newPaymentStatus == PaymentStatus.PAID) {
+            eventPublisher.publishEvent(new InvoiceRequestedEvent(order.getId()));
+        }
         return mapToOrderResponse(order);
     }
 

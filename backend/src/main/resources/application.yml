@@ -56,6 +56,8 @@ app:
     enabled: ${APP_EMAIL_ENABLED:false}
     from: ${APP_EMAIL_FROM:no-reply@shopsphere.local}
     store-name: ${APP_EMAIL_STORE_NAME:ShopSphere}
+  invoice:
+    storage-path: ${APP_INVOICE_STORAGE_PATH:./storage/invoices}
 
 cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME:}
