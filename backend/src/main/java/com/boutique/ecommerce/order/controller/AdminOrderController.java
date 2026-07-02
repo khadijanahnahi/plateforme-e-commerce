@@ -2,6 +2,7 @@ package com.boutique.ecommerce.order.controller;
 
 import com.boutique.ecommerce.order.dto.OrderResponse;
 import com.boutique.ecommerce.order.dto.UpdateOrderStatusRequest;
+import com.boutique.ecommerce.order.dto.UpdatePaymentStatusRequest;
 import com.boutique.ecommerce.order.service.OrderService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -40,5 +41,13 @@ public class AdminOrderController {
             @Valid @RequestBody UpdateOrderStatusRequest request
     ) {
         return orderService.updateStatus(id, request);
+    }
+
+    @PatchMapping("/{id}/payment-status")
+    public OrderResponse updatePaymentStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdatePaymentStatusRequest request
+    ) {
+        return orderService.updatePaymentStatus(id, request);
     }
 }

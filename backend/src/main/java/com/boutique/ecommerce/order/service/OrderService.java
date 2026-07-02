@@ -11,6 +11,7 @@ import com.boutique.ecommerce.order.dto.DirectOrderRequest;
 import com.boutique.ecommerce.order.dto.OrderItemResponse;
 import com.boutique.ecommerce.order.dto.OrderResponse;
 import com.boutique.ecommerce.order.dto.UpdateOrderStatusRequest;
+import com.boutique.ecommerce.order.dto.UpdatePaymentStatusRequest;
 import com.boutique.ecommerce.order.entity.Order;
 import com.boutique.ecommerce.order.entity.OrderItem;
 import com.boutique.ecommerce.order.entity.OrderStatus;
@@ -174,6 +175,19 @@ public class OrderService {
             restoreStock(order);
         }
         order.setStatus(request.status());
+        return mapToOrderResponse(order);
+    }
+
+    @Transactional
+    public OrderResponse updatePaymentStatus(Long id, UpdatePaymentStatusRequest request) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found."));
+
+        if (order.getStatus() == OrderStatus.CANCELLED) {
+            throw new IllegalArgumentException("Cannot update payment status for a cancelled order.");
+        }
+
+        order.setPaymentStatus(request.paymentStatus());
         return mapToOrderResponse(order);
     }
 

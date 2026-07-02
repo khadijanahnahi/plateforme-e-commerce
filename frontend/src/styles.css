@@ -2260,6 +2260,21 @@ a {
   color: #8f2218;
 }
 
+.payment-unpaid {
+  background: rgba(180, 35, 24, 0.08);
+  color: #8f2218;
+}
+
+.payment-paid {
+  background: rgba(17, 111, 61, 0.1);
+  color: #145c36;
+}
+
+.payment-failed {
+  background: rgba(180, 35, 24, 0.12);
+  color: #7a1f17;
+}
+
 .admin-detail-toolbar {
   justify-content: space-between;
   margin-bottom: 1rem;
@@ -2277,7 +2292,100 @@ a {
 
 .admin-orders-toolbar {
   display: grid;
-  grid-template-columns: minmax(260px, 1fr) minmax(190px, 0.24fr);
+  grid-template-columns: minmax(260px, 1fr) minmax(170px, 0.22fr) minmax(170px, 0.22fr);
+  margin-bottom: 1rem;
+}
+
+.admin-orders-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.admin-orders-summary article {
+  padding: 1rem;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(244, 244, 244, 0.84));
+}
+
+.admin-orders-summary span {
+  display: block;
+  color: #666666;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.admin-orders-summary strong {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 1.8rem;
+}
+
+.payment-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+}
+
+.paid-note {
+  color: #145c36;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 0.82rem;
+}
+
+.payment-action,
+.order-update-control button {
+  min-height: 34px;
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid rgba(17, 17, 17, 0.14);
+  background: #ffffff;
+  color: #111111;
+  cursor: pointer;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 0.82rem;
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease,
+    transform 0.25s ease;
+}
+
+.payment-action:hover:not(:disabled),
+.order-update-control button:hover:not(:disabled) {
+  background: #111111;
+  color: #ffffff;
+  border-color: #111111;
+  transform: translateY(-1px);
+}
+
+.payment-action:disabled,
+.order-update-control button:disabled,
+.order-update-control select:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.order-update-control {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.order-update-control select {
+  min-height: 38px;
+  padding: 0.55rem 0.7rem;
+  border-radius: 12px;
+  border: 1px solid rgba(17, 17, 17, 0.12);
+  background: rgba(255, 255, 255, 0.94);
+  color: #111111;
 }
 
 .admin-product-toolbar input,
@@ -3512,6 +3620,10 @@ a {
     grid-template-columns: 1fr;
   }
 
+  .admin-orders-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .admin-hero,
   .revenue-card {
     flex-direction: column;
@@ -3554,7 +3666,8 @@ a {
   .admin-detail-grid,
   .admin-form-row,
   .catalog-grid,
-  .categories-catalog-grid {
+  .categories-catalog-grid,
+  .admin-orders-summary {
     grid-template-columns: 1fr;
   }
 
