@@ -202,7 +202,7 @@ export default function AdminBannersPage() {
       {message ? <div className="admin-alert admin-success">{message}</div> : null}
       {error ? <div className="admin-alert">{error}</div> : null}
 
-      <div className="admin-panel-grid">
+      <div className="admin-banners-layout">
         <form className="admin-panel admin-form" onSubmit={handleSubmit}>
           <h2>{editingId ? "Update banner" : "Create banner"}</h2>
           <input name="title" value={form.title} onChange={updateField} placeholder="Title" required />
@@ -246,7 +246,7 @@ export default function AdminBannersPage() {
           </div>
         </form>
 
-        <div className="admin-panel">
+        <div className="admin-panel admin-banners-list-panel">
           <div className="admin-search">
             <select value={placementFilter} onChange={(event) => setPlacementFilter(event.target.value)}>
               <option value="ALL">Placement: All</option>
@@ -255,56 +255,44 @@ export default function AdminBannersPage() {
               <option value="HOME_BOTTOM">Home bottom</option>
             </select>
           </div>
-          <div className="admin-table-wrap">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Image</th>
-                  <th>Title</th>
-                  <th>Placement</th>
-                  <th>Priority</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr><td colSpan="6">Loading banners...</td></tr>
-                ) : filteredBanners.length === 0 ? (
-                  <tr><td colSpan="6">No banners found.</td></tr>
-                ) : filteredBanners.map((banner) => (
-                  <tr key={banner.id}>
-                    <td>
-                      <div className="admin-product-thumb">
-                        {banner.imageUrl ? (
-                          <img src={banner.imageUrl} alt={banner.title} />
-                        ) : (
-                          <span className="admin-product-thumb-empty">No image</span>
-                        )}
-                      </div>
-                    </td>
-                    <td>
-                      <strong>{banner.title}</strong>
-                      <small>{banner.subtitle}</small>
-                    </td>
-                    <td>{banner.placement}</td>
-                    <td>{banner.priority}</td>
-                    <td>
-                      <span className={`status-pill ${banner.active ? "status-active" : "status-archived"}`}>
-                        {banner.active ? "ACTIVE" : "INACTIVE"}
-                      </span>
-                    </td>
-                    <td className="table-actions">
-                      <button type="button" onClick={() => editBanner(banner)}>Edit</button>
-                      <button type="button" onClick={() => changeStatus(banner)}>
-                        {banner.active ? "Deactivate" : "Activate"}
-                      </button>
-                      <button type="button" onClick={() => deleteBanner(banner)}>Delete</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="banner-admin-list">
+            {loading ? (
+              <div className="banner-admin-empty">Loading banners...</div>
+            ) : filteredBanners.length === 0 ? (
+              <div className="banner-admin-empty">No banners found.</div>
+            ) : filteredBanners.map((banner) => (
+              <article className="banner-admin-card" key={banner.id}>
+                <div className="banner-admin-thumb">
+                  {banner.imageUrl ? (
+                    <img src={banner.imageUrl} alt={banner.title} />
+                  ) : (
+                    <span>No image</span>
+                  )}
+                </div>
+
+                <div className="banner-admin-copy">
+                  <strong>{banner.title}</strong>
+                  <p>{banner.subtitle || "No subtitle"}</p>
+                </div>
+
+                <div className="banner-admin-meta">
+                  <span>{banner.placement}</span>
+                  <small>Priority {banner.priority}</small>
+                </div>
+
+                <span className={`status-pill ${banner.active ? "status-active" : "status-archived"}`}>
+                  {banner.active ? "ACTIVE" : "INACTIVE"}
+                </span>
+
+                <div className="table-actions banner-admin-actions">
+                  <button type="button" onClick={() => editBanner(banner)}>Edit</button>
+                  <button type="button" onClick={() => changeStatus(banner)}>
+                    {banner.active ? "Deactivate" : "Activate"}
+                  </button>
+                  <button type="button" onClick={() => deleteBanner(banner)}>Delete</button>
+                </div>
+              </article>
+            ))}
           </div>
         </div>
       </div>

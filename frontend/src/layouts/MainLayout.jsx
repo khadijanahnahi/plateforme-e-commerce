@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import http from "../api/http";
 import { useAuth } from "../contexts/AuthContext";
-import profileImage from "../../images/profile.png";
 
 export default function MainLayout() {
   const navigate = useNavigate();
@@ -12,7 +11,6 @@ export default function MainLayout() {
   const [searchTerm, setSearchTerm] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isAdmin = user?.roles?.some((role) => role === "ADMIN" || role === "ROLE_ADMIN");
-  const isAdminRoute = location.pathname.startsWith("/admin");
 
   useEffect(() => {
     let mounted = true;
@@ -71,53 +69,6 @@ export default function MainLayout() {
     }
 
     return currentSort === sortValue ? "active" : undefined;
-  }
-
-  if (isAdminRoute) {
-    return (
-      <div className="app-shell admin-shell">
-        <header className="site-header admin-site-header">
-          <div className="topbar admin-topbar">
-            <NavLink className="brand admin-brand" to="/admin/dashboard">
-              ShopSphere Admin
-            </NavLink>
-
-            <nav className="primary-nav admin-nav">
-              <NavLink to="/admin/dashboard">Dashboard</NavLink>
-              <NavLink to="/admin/banners">Banners</NavLink>
-              <NavLink to="/admin/products">Products</NavLink>
-              <NavLink to="/admin/categories">Categories</NavLink>
-              <NavLink to="/admin/coupons">Coupons</NavLink>
-              <NavLink to="/admin/reviews">Reviews</NavLink>
-              <NavLink to="/admin/orders">Orders</NavLink>
-            </nav>
-
-            <div className="header-actions admin-header-actions">
-              <NavLink className="auth-button signup-button" to="/">
-                View Store
-              </NavLink>
-              {isAuthenticated ? (
-                <>
-                  <NavLink className="profile-avatar-link admin-profile-link" to="/profile" aria-label="Open admin profile">
-                    <img src={profileImage} alt={user?.fullName ?? "Admin profile"} />
-                  </NavLink>
-                  <button className="auth-button logout-button" type="button" onClick={handleLogout}>
-                    Logout
-                  </button>
-                </>
-              ) : (
-                <NavLink className="auth-button login-button" to="/login">
-                  Login
-                </NavLink>
-              )}
-            </div>
-          </div>
-        </header>
-        <main>
-          <Outlet />
-        </main>
-      </div>
-    );
   }
 
   return (
