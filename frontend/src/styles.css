@@ -2513,7 +2513,9 @@ a {
 
 .status-archived,
 .status-cancelled,
-.status-draft {
+.status-draft,
+.status-expired,
+.status-inactive {
   background: rgba(180, 35, 24, 0.08);
   color: #8f2218;
 }
@@ -2541,6 +2543,122 @@ a {
 .admin-product-toolbar {
   display: grid;
   grid-template-columns: minmax(260px, 1fr) minmax(170px, 0.22fr) minmax(190px, 0.25fr) auto auto;
+}
+
+.promotions-toolbar {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.18fr) minmax(170px, 0.2fr) minmax(260px, 1fr) auto auto auto;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.compact-check {
+  min-height: 46px;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid rgba(17, 17, 17, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.92);
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.promotions-table {
+  min-width: 1180px;
+}
+
+.promotion-product-cell {
+  display: grid;
+  grid-template-columns: 74px minmax(160px, 1fr);
+  gap: 0.8rem;
+  align-items: center;
+}
+
+.promotion-product-cell img,
+.promotion-product-cell > span {
+  width: 74px;
+  height: 62px;
+  border-radius: 16px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  background: #eeeeee;
+}
+
+.promotion-product-cell img {
+  object-fit: cover;
+  display: block;
+}
+
+.promotion-product-cell > span {
+  padding: 0.45rem;
+  color: #777777;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 0.78rem;
+}
+
+.promotion-price-stack {
+  display: grid;
+  gap: 0.2rem;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.promotion-price-stack strong {
+  color: #111111;
+  font-size: 1rem;
+}
+
+.promotion-price-stack small {
+  color: #8f2218;
+  font-weight: 700;
+}
+
+.promotion-old-price {
+  color: #777777;
+  text-decoration: line-through;
+}
+
+.promotion-live-dot {
+  display: block;
+  margin-top: 0.4rem;
+  color: #145c36;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.promotion-live-dot::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  margin-right: 0.35rem;
+  border-radius: 999px;
+  background: #168447;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.promotion-actions {
+  min-width: 230px;
+}
+
+.promotion-actions button {
+  padding: 0.5rem 0.68rem;
+}
+
+.promotion-modal {
+  width: min(820px, 100%);
+}
+
+.admin-form-note {
+  padding: 0.8rem 0.95rem;
+  border-radius: 16px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  background: rgba(17, 17, 17, 0.04);
+  color: #555555;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.5;
 }
 
 .admin-category-toolbar {
@@ -4157,6 +4275,7 @@ a {
   .checkout-grid,
   .catalog-filters,
   .admin-product-toolbar,
+  .promotions-toolbar,
   .admin-category-toolbar,
   .admin-orders-toolbar,
   .reviews-grid,

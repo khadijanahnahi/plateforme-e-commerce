@@ -23,6 +23,8 @@ import com.boutique.ecommerce.notification.OrderStatusChangedEvent;
 import com.boutique.ecommerce.product.entity.Product;
 import com.boutique.ecommerce.product.entity.ProductStatus;
 import com.boutique.ecommerce.product.repository.ProductRepository;
+import com.boutique.ecommerce.promotion.service.PromotionService;
+import com.boutique.ecommerce.promotion.service.PromotionService.EffectivePriceResult;
 import com.boutique.ecommerce.user.entity.AppUser;
 import com.boutique.ecommerce.user.repository.UserRepository;
 import java.math.BigDecimal;
@@ -42,6 +44,7 @@ public class OrderService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final CouponService couponService;
+    private final PromotionService promotionService;
     private final ApplicationEventPublisher eventPublisher;
 
     public OrderService(
@@ -50,6 +53,7 @@ public class OrderService {
             ProductRepository productRepository,
             UserRepository userRepository,
             CouponService couponService,
+            PromotionService promotionService,
             ApplicationEventPublisher eventPublisher
     ) {
         this.orderRepository = orderRepository;
@@ -57,6 +61,7 @@ public class OrderService {
         this.productRepository = productRepository;
         this.userRepository = userRepository;
         this.couponService = couponService;
+        this.promotionService = promotionService;
         this.eventPublisher = eventPublisher;
     }
 
@@ -85,7 +90,8 @@ public class OrderService {
             validateProductForOrder(product);
             validateStock(product, cartItem.getQuantity());
 
-            OrderItem orderItem = OrderItem.fromProduct(product, cartItem.getQuantity());
+            EffectivePriceResult price = promotionService.getEffectivePrice(product);
+            OrderItem orderItem = createOrderItem(product, cartItem.getQuantity(), price);
             order.addItem(orderItem);
             subtotalAmount = subtotalAmount.add(orderItem.getSubtotal());
 
@@ -125,7 +131,8 @@ public class OrderService {
                 request.deliveryNotes(),
                 request.shippingAddress()
         );
-        OrderItem orderItem = OrderItem.fromProduct(product, request.quantity());
+        EffectivePriceResult price = promotionService.getEffectivePrice(product);
+        OrderItem orderItem = createOrderItem(product, request.quantity(), price);
         order.addItem(orderItem);
         CouponCalculation couponCalculation = couponService.calculateDiscount(request.couponCode(), orderItem.getSubtotal(), user);
         applyTotals(order, orderItem.getSubtotal(), couponCalculation);
@@ -367,6 +374,9 @@ public class OrderService {
                         item.getProduct().getId(),
                         item.getProductName(),
                         item.getUnitPrice(),
+                        item.getOriginalPrice(),
+                        item.getDiscountAmount(),
+                        item.getPromotionTitle(),
                         item.getQuantity(),
                         item.getSubtotal()
                 ))
@@ -391,6 +401,17 @@ public class OrderService {
                 order.getDeliveryNotes(),
                 order.getCreatedAt(),
                 items
+        );
+    }
+
+    private OrderItem createOrderItem(Product product, int quantity, EffectivePriceResult price) {
+        return OrderItem.fromProduct(
+                product,
+                quantity,
+                price.effectivePrice(),
+                price.promotionActive() ? price.originalPrice() : null,
+                price.promotionActive() ? price.discountAmount() : BigDecimal.ZERO,
+                price.promotionActive() ? price.promotionTitle() : null
         );
     }
 }

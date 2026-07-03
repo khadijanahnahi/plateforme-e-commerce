@@ -11,6 +11,8 @@ import com.boutique.ecommerce.common.exception.UnauthorizedException;
 import com.boutique.ecommerce.product.entity.Product;
 import com.boutique.ecommerce.product.entity.ProductStatus;
 import com.boutique.ecommerce.product.repository.ProductRepository;
+import com.boutique.ecommerce.promotion.service.PromotionService;
+import com.boutique.ecommerce.promotion.service.PromotionService.EffectivePriceResult;
 import com.boutique.ecommerce.user.entity.AppUser;
 import com.boutique.ecommerce.user.repository.UserRepository;
 import java.math.BigDecimal;
@@ -26,15 +28,18 @@ public class CartService {
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final PromotionService promotionService;
 
     public CartService(
             CartItemRepository cartItemRepository,
             ProductRepository productRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            PromotionService promotionService
     ) {
         this.cartItemRepository = cartItemRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
+        this.promotionService = promotionService;
     }
 
     @Transactional(readOnly = true)
@@ -140,7 +145,8 @@ public class CartService {
 
     private CartItemResponse toItemResponse(CartItem cartItem) {
         Product product = cartItem.getProduct();
-        BigDecimal unitPrice = product.getPrice();
+        EffectivePriceResult price = promotionService.getEffectivePrice(product);
+        BigDecimal unitPrice = price.effectivePrice();
         BigDecimal subtotal = unitPrice.multiply(BigDecimal.valueOf(cartItem.getQuantity()));
 
         return new CartItemResponse(
@@ -149,6 +155,12 @@ public class CartService {
                 product.getName(),
                 product.getImageUrl(),
                 unitPrice,
+                price.originalPrice(),
+                price.promotionActive(),
+                price.promotionalPrice(),
+                price.discountPercentage(),
+                price.promotionEndsAt(),
+                price.badgeLabel(),
                 cartItem.getQuantity(),
                 subtotal,
                 product.getStockQuantity()

@@ -58,6 +58,16 @@ public class OrderItem {
     @Column(name = "unit_price", nullable = false, precision = 10, scale = 2)
     private BigDecimal unitPrice;
 
+    @Column(name = "original_price", precision = 10, scale = 2)
+    private BigDecimal originalPrice;
+
+    @Builder.Default
+    @Column(name = "discount_amount", nullable = false, precision = 10, scale = 2)
+    private BigDecimal discountAmount = BigDecimal.ZERO;
+
+    @Column(name = "promotion_title", length = 160)
+    private String promotionTitle;
+
     @Column(nullable = false)
     private Integer quantity;
 
@@ -66,10 +76,24 @@ public class OrderItem {
 
     public static OrderItem fromProduct(Product product, int quantity) {
         BigDecimal unitPrice = product.getPrice();
+        return fromProduct(product, quantity, unitPrice, null, BigDecimal.ZERO, null);
+    }
+
+    public static OrderItem fromProduct(
+            Product product,
+            int quantity,
+            BigDecimal unitPrice,
+            BigDecimal originalPrice,
+            BigDecimal discountAmount,
+            String promotionTitle
+    ) {
         return OrderItem.builder()
                 .product(product)
                 .productName(product.getName())
                 .unitPrice(unitPrice)
+                .originalPrice(originalPrice)
+                .discountAmount(discountAmount == null ? BigDecimal.ZERO : discountAmount)
+                .promotionTitle(promotionTitle)
                 .quantity(quantity)
                 .subtotal(unitPrice.multiply(BigDecimal.valueOf(quantity)))
                 .build();

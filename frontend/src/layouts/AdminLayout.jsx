@@ -6,6 +6,7 @@ import profileImage from "../../images/profile.png";
 const adminLinks = [
   { label: "Dashboard", to: "/admin/dashboard" },
   { label: "Banners", to: "/admin/banners" },
+  { label: "Promotions", to: "/admin/promotions" },
   { label: "Products", to: "/admin/products" },
   { label: "Categories", to: "/admin/categories" },
   { label: "Coupons", to: "/admin/coupons" },

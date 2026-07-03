@@ -11,6 +11,8 @@ import com.boutique.ecommerce.product.dto.UpdateProductStockRequest;
 import com.boutique.ecommerce.product.entity.Product;
 import com.boutique.ecommerce.product.entity.ProductStatus;
 import com.boutique.ecommerce.product.repository.ProductRepository;
+import com.boutique.ecommerce.promotion.service.PromotionService;
+import com.boutique.ecommerce.promotion.service.PromotionService.EffectivePriceResult;
 import com.boutique.ecommerce.review.entity.ReviewStatus;
 import com.boutique.ecommerce.review.repository.ProductReviewRepository;
 import java.util.List;
@@ -28,15 +30,18 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final ProductReviewRepository reviewRepository;
+    private final PromotionService promotionService;
 
     public ProductService(
             ProductRepository productRepository,
             CategoryRepository categoryRepository,
-            ProductReviewRepository reviewRepository
+            ProductReviewRepository reviewRepository,
+            PromotionService promotionService
     ) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
         this.reviewRepository = reviewRepository;
+        this.promotionService = promotionService;
     }
 
     @Transactional(readOnly = true)
@@ -200,11 +205,19 @@ public class ProductService {
         Double averageRating = reviewCount == 0
                 ? 0.0
                 : roundOneDecimal(reviewRepository.averageRatingByProductIdAndStatus(productId, ReviewStatus.APPROVED));
+        EffectivePriceResult price = promotionService.getEffectivePrice(product);
         return new ProductResponse(
                 productId,
                 product.getName(),
                 product.getDescription(),
                 product.getPrice(),
+                price.originalPrice(),
+                price.effectivePrice(),
+                price.promotionActive(),
+                price.promotionalPrice(),
+                price.discountPercentage(),
+                price.promotionEndsAt(),
+                price.badgeLabel(),
                 product.getStockQuantity(),
                 product.getImageUrl(),
                 product.getSku(),
