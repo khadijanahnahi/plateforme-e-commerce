@@ -76,21 +76,28 @@ export default function MainLayout() {
       <header className="site-header">
         <div className="announcement-bar">
           <div className="announcement-inner">
-            <span>Premium monochrome edits, weekly drops, express delivery.</span>
-            <span>ShopSphere Members get early access to flash deals.</span>
+            <div className="announcement-track" aria-label="Annonces ShopSphere">
+              <span>ÉDITIONS MONOCHROMES PREMIUM</span>
+              <span>NOUVEAUX DROPS CHAQUE SEMAINE</span>
+              <span>LIVRAISON EXPRESS 48H</span>
+              <span>ACCÈS PRIORITAIRE MEMBRES</span>
+              <span>ÉDITIONS MONOCHROMES PREMIUM</span>
+              <span>NOUVEAUX DROPS CHAQUE SEMAINE</span>
+              <span>LIVRAISON EXPRESS 48H</span>
+              <span>ACCÈS PRIORITAIRE MEMBRES</span>
+            </div>
           </div>
         </div>
 
         <div className="topbar client-topbar">
           <NavLink className="brand client-brand" to="/">
-            ShopSphere
+            Shop<span className="brand-dot" aria-hidden="true" />Sphere
           </NavLink>
 
-          <nav className="primary-nav client-nav" aria-label="Main navigation">
-            <NavLink className={() => getProductNavClass(null)} to="/products">Shop</NavLink>
-            <NavLink className={({ isActive }) => (isActive ? "active" : undefined)} to="/categories">Categories</NavLink>
-            <NavLink className={() => getProductNavClass("new")} to="/products?sort=new">New Arrivals</NavLink>
-            <NavLink className={() => getProductNavClass("best")} to="/products?sort=best">Best Sellers</NavLink>
+          <nav className="primary-nav client-nav" aria-label="Navigation principale">
+            <NavLink className={() => getProductNavClass(null)} to="/products">Boutique</NavLink>
+            <NavLink className={({ isActive }) => (isActive ? "active" : undefined)} to="/categories">Catégories</NavLink>
+            <NavLink className={() => getProductNavClass("new")} to="/products?sort=new">Nouveautés</NavLink>
           </nav>
 
           <div className="header-actions client-header-actions">
@@ -98,42 +105,42 @@ export default function MainLayout() {
               <input
                 id="shop-search"
                 type="search"
-                placeholder="Search products"
+                placeholder="Rechercher"
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
               />
             </form>
-            <NavLink className="icon-link wishlist-link" to="/" aria-label="Saved products">
+            <NavLink className="icon-link wishlist-link" to="/" aria-label="Produits favoris">
               <span aria-hidden="true">&#9825;</span>
             </NavLink>
-            <NavLink className="icon-link cart-link" to="/cart" aria-label={`Cart with ${cartCount} items`}>
-              <span aria-hidden="true" className="cart-glyph">Cart</span>
+            <NavLink className="icon-link cart-link" to="/cart" aria-label={`Panier avec ${cartCount} article${cartCount > 1 ? "s" : ""}`}>
+              <span aria-hidden="true" className="cart-glyph">Panier</span>
               {isAuthenticated && cartCount > 0 ? <strong className="cart-count">{cartCount}</strong> : null}
             </NavLink>
             {isAuthenticated ? (
               <details className="account-menu">
-                <summary className="account-summary">Account</summary>
+                <summary className="account-summary">Compte</summary>
                 <div className="account-dropdown">
-                  <NavLink to="/profile">My Profile</NavLink>
-                  <NavLink to="/orders">My Orders</NavLink>
-                  {isAdmin ? <NavLink to="/admin/dashboard">Admin Dashboard</NavLink> : null}
-                  <button type="button" onClick={handleLogout}>Logout</button>
+                  <NavLink to="/profile">Mon profil</NavLink>
+                  <NavLink to="/orders">Mes commandes</NavLink>
+                  {isAdmin ? <NavLink to="/admin/dashboard">Dashboard admin</NavLink> : null}
+                  <button type="button" onClick={handleLogout}>Déconnexion</button>
                 </div>
               </details>
             ) : (
               <>
                 <NavLink className="auth-button login-button" to="/login">
-                  Login
+                  Connexion
                 </NavLink>
                 <NavLink className="auth-button signup-button" to="/register">
-                  Sign Up
+                  Créer un compte
                 </NavLink>
               </>
             )}
             <button
               className="mobile-menu-button"
               type="button"
-              aria-label="Open navigation menu"
+              aria-label="Ouvrir le menu de navigation"
               aria-expanded={mobileMenuOpen}
               onClick={() => setMobileMenuOpen((current) => !current)}
             >
@@ -149,28 +156,27 @@ export default function MainLayout() {
             <form className="search-shell mobile-search-shell" onSubmit={handleSearchSubmit}>
               <input
                 type="search"
-                placeholder="Search products"
+                placeholder="Rechercher"
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
               />
             </form>
-            <nav aria-label="Mobile navigation">
-              <NavLink className={() => getProductNavClass(null)} to="/products">Shop</NavLink>
-              <NavLink className={({ isActive }) => (isActive ? "active" : undefined)} to="/categories">Categories</NavLink>
-              <NavLink className={() => getProductNavClass("new")} to="/products?sort=new">New Arrivals</NavLink>
-              <NavLink className={() => getProductNavClass("best")} to="/products?sort=best">Best Sellers</NavLink>
+            <nav aria-label="Navigation mobile">
+              <NavLink className={() => getProductNavClass(null)} to="/products">Boutique</NavLink>
+              <NavLink className={({ isActive }) => (isActive ? "active" : undefined)} to="/categories">Catégories</NavLink>
+              <NavLink className={() => getProductNavClass("new")} to="/products?sort=new">Nouveautés</NavLink>
               <NavLink to="/support">Support</NavLink>
               {isAuthenticated ? (
                 <>
-                  <NavLink to="/profile">My Profile</NavLink>
-                  <NavLink to="/orders">My Orders</NavLink>
-                  {isAdmin ? <NavLink to="/admin/dashboard">Admin Dashboard</NavLink> : null}
-                  <button type="button" onClick={handleLogout}>Logout</button>
+                  <NavLink to="/profile">Mon profil</NavLink>
+                  <NavLink to="/orders">Mes commandes</NavLink>
+                  {isAdmin ? <NavLink to="/admin/dashboard">Dashboard admin</NavLink> : null}
+                  <button type="button" onClick={handleLogout}>Déconnexion</button>
                 </>
               ) : (
                 <>
-                  <NavLink to="/login">Login</NavLink>
-                  <NavLink to="/register">Sign Up</NavLink>
+                  <NavLink to="/login">Connexion</NavLink>
+                  <NavLink to="/register">Créer un compte</NavLink>
                 </>
               )}
             </nav>

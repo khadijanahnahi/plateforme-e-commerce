@@ -37,19 +37,19 @@ export default function LoginPage() {
     const nextErrors = {};
 
     if (!form.email.trim()) {
-      nextErrors.email = "Email is required.";
+      nextErrors.email = "L'email est obligatoire.";
     } else if (!validateEmail(form.email)) {
-      nextErrors.email = "Please enter a valid email address.";
+      nextErrors.email = "Veuillez saisir une adresse email valide.";
     }
 
     if (!form.password.trim()) {
-      nextErrors.password = "Password is required.";
+      nextErrors.password = "Le mot de passe est obligatoire.";
     }
 
     setErrors(nextErrors);
 
     if (Object.keys(nextErrors).length > 0) {
-      setSubmitMessage("Please fix the highlighted fields.");
+      setSubmitMessage("Veuillez corriger les champs indiqués.");
       return;
     }
 
@@ -67,7 +67,7 @@ export default function LoginPage() {
     } catch (error) {
       const message =
         error.response?.data?.message ??
-        "Unable to login. Check your credentials and try again.";
+        "Connexion impossible. Vérifiez vos identifiants puis réessayez.";
       setSubmitMessage(message);
     } finally {
       setIsSubmitting(false);
@@ -81,24 +81,23 @@ export default function LoginPage() {
           <Link className="auth-logo" to="/">
             ShopSphere
           </Link>
-          <span className="section-kicker">Secure access</span>
-          <h1>Welcome Back</h1>
+          <span className="section-kicker">Espace client</span>
+          <h1>Votre espace ShopSphere</h1>
           <p>
-            Access your premium storefront account, review saved products and
-            continue your orders with a clean, fast sign-in flow.
+            Accédez à vos commandes, vos produits sauvegardés et vos avantages membres.
           </p>
           <div className="auth-stat-list">
             <div>
               <strong>24h</strong>
-              <span>Flash sale access</span>
+              <span>Accès prioritaire</span>
             </div>
             <div>
-              <strong>Fast</strong>
-              <span>Protected checkout</span>
+              <strong>Sécurisé</strong>
+              <span>Paiement protégé</span>
             </div>
             <div>
-              <strong>Pro</strong>
-              <span>Monochrome shopping experience</span>
+              <strong>Premium</strong>
+              <span>Expérience monochrome</span>
             </div>
           </div>
         </div>
@@ -108,8 +107,8 @@ export default function LoginPage() {
             <Link className="auth-mini-logo" to="/">
               ShopSphere
             </Link>
-            <h2>Welcome Back</h2>
-            <p>Sign in with your email and password.</p>
+            <h2>Bienvenue</h2>
+            <p>Connectez-vous avec votre email et votre mot de passe.</p>
           </div>
 
           <form className="auth-form" onSubmit={handleSubmit}>
@@ -127,13 +126,13 @@ export default function LoginPage() {
             </div>
 
             <div className="auth-field stagger-field" style={{ "--delay": "0.16s" }}>
-              <label htmlFor="login-password">Password</label>
+              <label htmlFor="login-password">Mot de passe</label>
               <div className="password-input-shell">
                 <input
                   id="login-password"
                   name="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
+                  placeholder="Entrez votre mot de passe"
                   value={form.password}
                   onChange={handleChange}
                 />
@@ -141,9 +140,9 @@ export default function LoginPage() {
                   className="password-toggle"
                   type="button"
                   onClick={() => setShowPassword((current) => !current)}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
                 >
-                  {showPassword ? "Hide" : "Show"}
+                  {showPassword ? "Masquer" : "Voir"}
                 </button>
               </div>
               {errors.password ? (
@@ -160,10 +159,10 @@ export default function LoginPage() {
                   checked={form.remember}
                   onChange={handleChange}
                 />
-                <span>Remember me</span>
+                <span>Se souvenir de moi</span>
               </label>
               <Link className="auth-text-link" to="/login">
-                Forgot password?
+                Mot de passe oublié ?
               </Link>
             </div>
 
@@ -183,14 +182,14 @@ export default function LoginPage() {
               style={{ "--delay": "0.32s" }}
               type="submit"
             >
-              {isSubmitting ? "Signing in..." : "Login"}
+              {isSubmitting ? "Connexion..." : "Se connecter"}
             </button>
           </form>
 
           <p className="auth-switch">
-            New to ShopSphere?{" "}
+            Nouveau sur ShopSphere ?{" "}
             <Link className="auth-text-link" to="/register">
-              Create account
+              Créer un compte
             </Link>
           </p>
         </div>

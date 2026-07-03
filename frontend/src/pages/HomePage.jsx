@@ -5,108 +5,104 @@ import heroMonochrome from "../../images/hero-monochrome.png";
 
 const fallbackCategories = [
   {
-    name: "Monochrome Wear",
-    description: "Pieces nettes, textures propres et coupes contemporaines.",
-    itemCount: "42 pieces",
+    name: "Essentiels monochromes",
+    description: "Pièces nettes, textures propres et coupes contemporaines.",
+    itemCount: "42 pièces",
   },
   {
-    name: "Sneaker Edit",
-    description: "Silhouettes blanches, gris graphite et details minimalistes.",
-    itemCount: "18 models",
+    name: "Sneakers minimalistes",
+    description: "Silhouettes blanches, gris graphite et détails premium.",
+    itemCount: "18 modèles",
   },
   {
-    name: "Accessories",
-    description: "Sacs, montres et essentials au rendu premium.",
-    itemCount: "27 picks",
+    name: "Accessoires",
+    description: "Sacs, montres et essentiels au rendu soigné.",
+    itemCount: "27 sélections",
   },
   {
-    name: "Office Tech",
-    description: "Objets quotidiens au design discret et haut de gamme.",
-    itemCount: "11 launches",
+    name: "Éditions limitées",
+    description: "Drops saisonniers et pièces rares à forte identité.",
+    itemCount: "11 nouveautés",
   },
 ];
 
 const flashProducts = [
   {
     name: "Graphite Hoodie",
-    price: "$72",
-    oldPrice: "$118",
+    price: "720 DH",
+    oldPrice: "1180 DH",
     sold: 82,
-    sales: "82 sold",
+    sales: "82 ventes",
     badge: "Hoodie",
   },
   {
     name: "White Arc Sneakers",
-    price: "$124",
-    oldPrice: "$179",
+    price: "1240 DH",
+    oldPrice: "1790 DH",
     sold: 64,
-    sales: "64 sold",
+    sales: "64 ventes",
     badge: "Sneakers",
   },
   {
     name: "Midnight Crossbody",
-    price: "$89",
-    oldPrice: "$134",
+    price: "890 DH",
+    oldPrice: "1340 DH",
     sold: 73,
-    sales: "73 sold",
-    badge: "Bag",
+    sales: "73 ventes",
+    badge: "Sac",
   },
   {
     name: "Noir Ceramic Watch",
-    price: "$146",
-    oldPrice: "$210",
+    price: "1460 DH",
+    oldPrice: "2100 DH",
     sold: 58,
-    sales: "58 sold",
-    badge: "Watch",
+    sales: "58 ventes",
+    badge: "Montre",
   },
 ];
 
 const recommendedProducts = [
   {
     name: "Clean Line Tee",
-    price: "$34",
-    details: "Organic cotton, regular fit, stone white.",
+    price: "340 DH",
+    details: "Coton organique, coupe régulière, blanc pierre.",
   },
   {
     name: "Tailored Track Pants",
-    price: "$68",
-    details: "Relaxed profile with matte black finish.",
+    price: "680 DH",
+    details: "Profil relax avec finition noire mate.",
   },
   {
     name: "Studio Tote",
-    price: "$92",
-    details: "Structured carryall in soft grain texture.",
+    price: "920 DH",
+    details: "Sac structure en texture grain doux.",
   },
   {
     name: "Frame Shades",
-    price: "$56",
-    details: "Sharp monochrome eyewear for daily wear.",
+    price: "560 DH",
+    details: "Lunettes monochromes nettes pour le quotidien.",
   },
 ];
 
 const stores = [
   {
     name: "Atelier Noir",
-    tagline: "Fashion essentials",
+    tagline: "Essentiels fashion",
     rating: "4.9",
   },
   {
     name: "North Form",
-    tagline: "Urban premium basics",
+    tagline: "Basics urbains premium",
     rating: "4.8",
   },
   {
     name: "Silver Thread",
-    tagline: "Minimal craft pieces",
+    tagline: "Pièces minimalistes",
     rating: "4.7",
   },
 ];
 
-const heroHeadline = [
-  "Refined",
-  "Monochrome",
-  "Essentials",
-];
+const heroHeadline = ["Élevez votre", "allure"];
 
 function splitHeroTitle(title) {
   if (!title) {
@@ -115,11 +111,37 @@ function splitHeroTitle(title) {
 
   return title.split(" ").reduce((lines, word) => {
     const lastLine = lines[lines.length - 1] ?? "";
-    if (!lastLine || lastLine.length + word.length > 12) {
+    if (!lastLine || lastLine.length + word.length > 16) {
       return [...lines, word];
     }
     return [...lines.slice(0, -1), `${lastLine} ${word}`];
   }, []);
+}
+
+function localizeHeroTitle(title) {
+  if (!title) {
+    return title;
+  }
+
+  const normalizedTitle = title.trim().toLowerCase();
+  if (normalizedTitle === "elevate your style") {
+    return "Élevez votre allure";
+  }
+
+  return title;
+}
+
+function localizeHeroButtonText(text) {
+  if (!text) {
+    return "Découvrir la collection";
+  }
+
+  const normalizedText = text.trim().toLowerCase().replace(/\s*->\s*$/, "");
+  if (normalizedText === "shop collection" || normalizedText === "shop now") {
+    return "Découvrir la collection";
+  }
+
+  return text;
 }
 
 export default function HomePage() {
@@ -191,10 +213,10 @@ export default function HomePage() {
 
   const heroBanner = heroBanners[activeHeroIndex] ?? null;
   const shouldUseDefaultHero = heroLoaded && !heroBanner;
-  const heroLines = !heroLoaded ? [] : shouldUseDefaultHero ? heroHeadline : splitHeroTitle(heroBanner?.title);
+  const heroLines = !heroLoaded ? [] : shouldUseDefaultHero ? heroHeadline : splitHeroTitle(localizeHeroTitle(heroBanner?.title));
   const heroImage = shouldUseDefaultHero ? heroMonochrome : heroBanner?.imageUrl;
   const primaryTarget = heroBanner?.targetUrl || "/products";
-  const primaryText = heroBanner?.buttonText || "Shop Now";
+  const primaryText = localizeHeroButtonText(heroBanner?.buttonText);
   const hasHeroSlider = heroBanners.length > 1;
 
   return (
@@ -202,14 +224,12 @@ export default function HomePage() {
       <section className="page hero-section">
         <div className={`hero-card ${hasHeroSlider ? "hero-card-carousel" : ""}`} key={heroBanner?.id ?? "default-hero"}>
           <div className="hero-copy">
-            <span className="eyebrow">
-              {heroBanner ? "Featured campaign" : "Curated. Minimal. Timeless."}
-            </span>
+            <span className="eyebrow">{heroBanner ? "Campagne en vedette" : "Édition premium"}</span>
             <div className="hero-headline">
               {heroLines.map((line, index) => (
                 <span
                   className="hero-line"
-                  key={line}
+                  key={`${line}-${index}`}
                   style={{ animationDelay: `${0.15 + index * 0.15}s` }}
                 >
                   {line}
@@ -217,25 +237,39 @@ export default function HomePage() {
               ))}
             </div>
             <p className="hero-description">
-              {heroBanner?.subtitle || "Elevated pieces and thoughtful design. Built for the way you live."}
+              {heroBanner?.subtitle ||
+                "Des essentiels monochromes pensés pour chaque saison. Découvrez des pièces premium, durables et faciles à porter au quotidien."}
             </p>
             <div className="hero-actions">
-              <Link className="button button-primary button-dynamic-label" to={primaryTarget}>
-                <span className="button-visible-label">{primaryText} -&gt;</span>
-                Shop Now <span aria-hidden="true">→</span>
+              <Link className="button button-primary" to={primaryTarget}>
+                {primaryText} <span aria-hidden="true">→</span>
               </Link>
               <Link className="button button-secondary" to="/categories">
-                Explore Categories
+                Explorer les catégories
               </Link>
             </div>
+            <div className="hero-stats" aria-label="Indicateurs ShopSphere">
+              <div>
+                <strong>4.9/5</strong>
+                <span>Satisfaction client</span>
+              </div>
+              <div>
+                <strong>48h</strong>
+                <span>Livraison express</span>
+              </div>
+              <div>
+                <strong>120+</strong>
+                <span>Pièces exclusives</span>
+              </div>
+            </div>
             {hasHeroSlider ? (
-              <div className="hero-slider-dots" aria-label="Hero banner navigation">
+              <div className="hero-slider-dots" aria-label="Navigation des bannières">
                 {heroBanners.map((banner, index) => (
                   <button
                     className={`dot ${index === activeHeroIndex ? "dot-active" : ""}`}
                     key={banner.id}
                     type="button"
-                    aria-label={`Show banner ${index + 1}`}
+                    aria-label={`Afficher la bannière ${index + 1}`}
                     onClick={() => setActiveHeroIndex(index)}
                   />
                 ))}
@@ -245,6 +279,8 @@ export default function HomePage() {
 
           <div className="hero-visual">
             {heroImage ? <img src={heroImage} alt={heroBanner?.title || "ShopSphere monochrome essentials"} /> : null}
+            <span className="hero-floating-chip chip-one">Nouveau drop</span>
+            <span className="hero-floating-chip chip-two">Paiement à la livraison</span>
           </div>
         </div>
       </section>
@@ -252,10 +288,10 @@ export default function HomePage() {
       <section className="page section-block">
         <div className="section-heading">
           <div>
-            <span className="section-kicker">Categories</span>
-            <h2>Shop by mood and silhouette</h2>
+            <span className="section-kicker">Catégories</span>
+            <h2>Une garde-robe pensée pièce par pièce</h2>
           </div>
-          <p>Focused categories built for a premium monochrome storefront.</p>
+          <p>Des univers courts, lisibles et orientés conversion pour une boutique premium.</p>
         </div>
         <div className="category-grid">
           {homeCategories.map((category, index) => (
@@ -267,9 +303,9 @@ export default function HomePage() {
             >
               <span className="category-index">0{index + 1}</span>
               <h3>{category.name}</h3>
-              <p>{category.description ?? "Premium essentials selected for a clean everyday wardrobe."}</p>
+              <p>{category.description ?? "Essentiels premium sélectionnés pour une garde-robe nette."}</p>
               <strong>
-                {category.productCount !== undefined ? `${category.productCount} products` : category.itemCount}
+                {category.productCount !== undefined ? `${category.productCount} produits` : category.itemCount}
               </strong>
             </Link>
           ))}
@@ -280,7 +316,7 @@ export default function HomePage() {
         <div className="section-heading flash-header">
           <div>
             <span className="section-kicker">Flash Sale</span>
-            <h2>Limited drops moving fast</h2>
+            <h2>Drops limités, stocks en mouvement</h2>
           </div>
           <div className="flash-toolbar">
             <div className="countdown">
@@ -289,10 +325,10 @@ export default function HomePage() {
               <span>56</span>
             </div>
             <div className="carousel-controls">
-              <button type="button" aria-label="Previous flash products">
+              <button type="button" aria-label="Produits précédents">
                 &lt;
               </button>
-              <button type="button" aria-label="Next flash products">
+              <button type="button" aria-label="Produits suivants">
                 &gt;
               </button>
             </div>
@@ -306,7 +342,7 @@ export default function HomePage() {
               style={{ animationDelay: `${0.12 + index * 0.08}s` }}
             >
               <div className="product-image">
-                <span className="favorite-chip">Save</span>
+                <span className="favorite-chip">Favori</span>
                 <div className="product-placeholder">
                   <span>{product.badge}</span>
                 </div>
@@ -318,15 +354,12 @@ export default function HomePage() {
                   <span>{product.oldPrice}</span>
                 </div>
                 <div className="progress-track" aria-hidden="true">
-                  <div
-                    className="progress-fill"
-                    style={{ width: `${product.sold}%` }}
-                  />
+                  <div className="progress-fill" style={{ width: `${product.sold}%` }} />
                 </div>
                 <div className="product-meta">
                   <small>{product.sales}</small>
                   <button className="inline-cart" type="button">
-                    Add to Cart
+                    Ajouter
                   </button>
                 </div>
               </div>
@@ -338,10 +371,10 @@ export default function HomePage() {
       <section className="page section-block">
         <div className="section-heading">
           <div>
-            <span className="section-kicker">Recommended</span>
-            <h2>Curated for your daily rotation</h2>
+            <span className="section-kicker">Sélection</span>
+            <h2>Des pièces choisies pour votre quotidien</h2>
           </div>
-          <p>Pieces selected to keep the storefront editorial and conversion-led.</p>
+          <p>Une sélection éditoriale pour garder la boutique claire, premium et orientée achat.</p>
         </div>
         <div className="recommended-grid">
           {recommendedProducts.map((product, index) => (
@@ -358,7 +391,7 @@ export default function HomePage() {
                 <p>{product.details}</p>
                 <div className="recommended-footer">
                   <strong>{product.price}</strong>
-                  <button type="button">View Product</button>
+                  <button type="button">Voir produit</button>
                 </div>
               </div>
             </article>
@@ -369,10 +402,10 @@ export default function HomePage() {
       <section className="page section-block">
         <div className="section-heading">
           <div>
-            <span className="section-kicker">Popular Stores</span>
-            <h2>Trusted shops with strong visual identity</h2>
+            <span className="section-kicker">Boutiques</span>
+            <h2>Des marques avec une vraie identité visuelle</h2>
           </div>
-          <p>Partner storefronts that match the premium tone of ShopSphere.</p>
+          <p>Des univers partenaires cohérents avec l'ambiance premium ShopSphere.</p>
         </div>
         <div className="stores-grid">
           {stores.map((store, index) => (
@@ -395,16 +428,16 @@ export default function HomePage() {
       <section className="page section-block">
         <div className="final-banner">
           <div>
-            <span className="section-kicker">Final Call</span>
-            <h2>Build a cleaner storefront experience around fewer, better products.</h2>
+            <span className="section-kicker">Dernier appel</span>
+            <h2>Construisez une silhouette plus nette avec moins de pièces, mieux choisies.</h2>
           </div>
           <div className="banner-actions">
-            <button className="button button-primary" type="button">
-              Start Shopping
-            </button>
-            <button className="button button-secondary" type="button">
-              View Brands
-            </button>
+            <Link className="button button-primary" to="/products">
+              Découvrir
+            </Link>
+            <Link className="button button-secondary" to="/categories">
+              Voir les collections
+            </Link>
           </div>
         </div>
       </section>
@@ -413,35 +446,35 @@ export default function HomePage() {
         <div className="page footer-content">
           <div className="footer-brand">
             <strong>ShopSphere</strong>
-            <p>Premium monochrome essentials for modern everyday style.</p>
+            <p>Essentiels monochromes premium pour un style moderne au quotidien.</p>
           </div>
 
           <div className="footer-column">
-            <h3>Shop</h3>
+            <h3>Boutique</h3>
             <div className="footer-links">
-              <Link to="/products">Products</Link>
-              <Link to="/categories">Categories</Link>
-              <Link to="/products">New Arrivals</Link>
-              <Link to="/products">Best Sellers</Link>
+              <Link to="/products">Produits</Link>
+              <Link to="/categories">Catégories</Link>
+              <Link to="/products?sort=new">Nouveautés</Link>
+              <Link to="/products?sort=best">Meilleures ventes</Link>
             </div>
           </div>
 
           <div className="footer-column">
-            <h3>Customer</h3>
+            <h3>Client</h3>
             <div className="footer-links">
-              <Link to="/orders">My Orders</Link>
-              <Link to="/cart">Cart</Link>
-              <a href="/#wishlist">Wishlist</a>
+              <Link to="/orders">Mes commandes</Link>
+              <Link to="/cart">Panier</Link>
+              <a href="/#wishlist">Favoris</a>
               <Link to="/support">Support</Link>
             </div>
           </div>
 
           <div className="footer-column">
-            <h3>Company</h3>
+            <h3>Marque</h3>
             <div className="footer-links">
-              <a href="/#about">About</a>
+              <a href="/#about">À propos</a>
               <Link to="/support">Contact</Link>
-              <a href="/#terms">Terms</a>
+              <a href="/#terms">Conditions</a>
             </div>
           </div>
         </div>
