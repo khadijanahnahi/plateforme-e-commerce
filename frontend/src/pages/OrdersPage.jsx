@@ -81,7 +81,20 @@ export default function OrdersPage() {
                   </td>
                   <td>{Number(order.totalAmount).toFixed(2)} DH</td>
                   <td><span className={`status-pill status-${order.status.toLowerCase()}`}>{order.status}</span></td>
-                  <td>{order.items?.length ?? 0}</td>
+                  <td>
+                    <div className="order-items-review-list">
+                      {(order.items ?? []).map((item) => (
+                        <div key={`${order.id}-${item.productId}`}>
+                          <span>{item.productName}</span>
+                          {order.status === "DELIVERED" && order.paymentStatus === "PAID" ? (
+                            <Link className="table-link" to={`/products/${item.productId}?review=1`}>
+                              Review Product
+                            </Link>
+                          ) : null}
+                        </div>
+                      ))}
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>

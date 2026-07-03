@@ -3443,6 +3443,198 @@ a {
   text-align: center;
 }
 
+.reviews-section {
+  margin-top: 1.5rem;
+  padding: clamp(1.1rem, 2vw, 1.6rem);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 30px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(244, 244, 244, 0.92));
+  box-shadow: 0 28px 80px rgba(17, 17, 17, 0.07);
+}
+
+.reviews-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.reviews-heading h2 {
+  margin: 0.25rem 0 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.reviews-score {
+  min-width: 140px;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.8);
+  text-align: right;
+}
+
+.reviews-score strong {
+  display: block;
+  font-size: 2rem;
+}
+
+.reviews-score span,
+.review-card p,
+.review-card small,
+.review-form-card p,
+.review-form-card label,
+.order-items-review-list {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.reviews-score span {
+  color: #666666;
+  font-size: 0.9rem;
+}
+
+.reviews-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.36fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.reviews-list {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.review-card,
+.review-form-card {
+  padding: 1rem;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.review-card div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.review-card span,
+.review-stars {
+  color: #111111;
+  letter-spacing: 0.08em;
+}
+
+.review-card p {
+  margin: 0.75rem 0;
+  color: #4f4f4f;
+  line-height: 1.7;
+}
+
+.review-card small {
+  width: fit-content;
+  display: inline-flex;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(17, 111, 61, 0.1);
+  color: #145c36;
+  font-size: 0.78rem;
+}
+
+.review-empty {
+  margin: 0;
+  padding: 1rem;
+  color: #666666;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.review-form-card {
+  position: sticky;
+  top: 110px;
+}
+
+.review-form-card h3 {
+  margin: 0 0 0.8rem;
+  font-size: 1.45rem;
+}
+
+.review-form-card form {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.review-form-card label {
+  display: grid;
+  gap: 0.45rem;
+  color: #333333;
+}
+
+.review-form-card select,
+.review-form-card textarea,
+.admin-review-toolbar select {
+  width: 100%;
+  min-height: 48px;
+  padding: 0.78rem 0.9rem;
+  border-radius: 16px;
+  border: 1px solid rgba(17, 17, 17, 0.12);
+  background: #ffffff;
+  color: #111111;
+}
+
+.review-form-card textarea {
+  min-height: 130px;
+  resize: vertical;
+}
+
+.review-form-card select:focus,
+.review-form-card textarea:focus,
+.admin-review-toolbar select:focus {
+  outline: none;
+  border-color: #111111;
+  box-shadow: 0 0 0 4px rgba(17, 17, 17, 0.08);
+}
+
+.order-items-review-list {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.order-items-review-list div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.review-comment-cell {
+  max-width: 360px;
+  white-space: normal;
+  color: #4f4f4f;
+}
+
+.review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.review-pending {
+  background: rgba(187, 124, 17, 0.12);
+  color: #7a4a00;
+}
+
+.review-approved {
+  background: rgba(17, 111, 61, 0.12);
+  color: #145c36;
+}
+
+.review-rejected {
+  background: rgba(180, 35, 24, 0.1);
+  color: #8f2218;
+}
+
 @keyframes fadeDown {
   from {
     opacity: 0;
@@ -3615,9 +3807,14 @@ a {
   .admin-product-toolbar,
   .admin-category-toolbar,
   .admin-orders-toolbar,
+  .reviews-grid,
   .profile-grid,
   .cart-grid {
     grid-template-columns: 1fr;
+  }
+
+  .review-form-card {
+    position: static;
   }
 
   .admin-orders-summary {

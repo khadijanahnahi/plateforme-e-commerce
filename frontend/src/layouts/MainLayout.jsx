@@ -88,6 +88,7 @@ export default function MainLayout() {
               <NavLink to="/admin/products">Products</NavLink>
               <NavLink to="/admin/categories">Categories</NavLink>
               <NavLink to="/admin/coupons">Coupons</NavLink>
+              <NavLink to="/admin/reviews">Reviews</NavLink>
               <NavLink to="/admin/orders">Orders</NavLink>
             </nav>
 

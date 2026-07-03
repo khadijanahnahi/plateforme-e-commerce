@@ -8,6 +8,7 @@ import AdminCouponsPage from "../pages/AdminCouponsPage";
 import AdminOrdersPage from "../pages/AdminOrdersPage";
 import AdminProductsPage from "../pages/AdminProductsPage";
 import AdminCategoriesPage from "../pages/AdminCategoriesPage";
+import AdminReviewsPage from "../pages/AdminReviewsPage";
 import CategoriesPage from "../pages/CategoriesPage";
 import CartPage from "../pages/CartPage";
 import CheckoutPage from "../pages/CheckoutPage";
@@ -41,6 +42,7 @@ export default function AppRouter() {
           <Route path="/admin/banners" element={<AdminBannersPage />} />
           <Route path="/admin/categories" element={<AdminCategoriesPage />} />
           <Route path="/admin/coupons" element={<AdminCouponsPage />} />
+          <Route path="/admin/reviews" element={<AdminReviewsPage />} />
           <Route path="/admin/products" element={<AdminProductsPage />} />
           <Route path="/admin/orders" element={<AdminOrdersPage />} />
           <Route path="/admin/orders/:id" element={<AdminOrderDetailsPage />} />

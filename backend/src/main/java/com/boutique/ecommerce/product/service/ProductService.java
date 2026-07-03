@@ -11,6 +11,8 @@ import com.boutique.ecommerce.product.dto.UpdateProductStockRequest;
 import com.boutique.ecommerce.product.entity.Product;
 import com.boutique.ecommerce.product.entity.ProductStatus;
 import com.boutique.ecommerce.product.repository.ProductRepository;
+import com.boutique.ecommerce.review.entity.ReviewStatus;
+import com.boutique.ecommerce.review.repository.ProductReviewRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,10 +27,16 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final ProductReviewRepository reviewRepository;
 
-    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository) {
+    public ProductService(
+            ProductRepository productRepository,
+            CategoryRepository categoryRepository,
+            ProductReviewRepository reviewRepository
+    ) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
+        this.reviewRepository = reviewRepository;
     }
 
     @Transactional(readOnly = true)
@@ -187,8 +195,13 @@ public class ProductService {
 
     private ProductResponse toResponse(Product product) {
         Category category = product.getCategory();
+        Long productId = product.getId();
+        long reviewCount = reviewRepository.countByProductIdAndStatus(productId, ReviewStatus.APPROVED);
+        Double averageRating = reviewCount == 0
+                ? 0.0
+                : roundOneDecimal(reviewRepository.averageRatingByProductIdAndStatus(productId, ReviewStatus.APPROVED));
         return new ProductResponse(
-                product.getId(),
+                productId,
                 product.getName(),
                 product.getDescription(),
                 product.getPrice(),
@@ -198,8 +211,17 @@ public class ProductService {
                 product.getStatus(),
                 category.getId(),
                 category.getName(),
+                averageRating,
+                reviewCount,
                 product.getCreatedAt(),
                 product.getUpdatedAt()
         );
+    }
+
+    private Double roundOneDecimal(Double value) {
+        if (value == null) {
+            return 0.0;
+        }
+        return Math.round(value * 10.0) / 10.0;
     }
 }

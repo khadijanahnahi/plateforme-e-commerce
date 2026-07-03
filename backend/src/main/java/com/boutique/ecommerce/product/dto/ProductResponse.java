@@ -15,6 +15,8 @@ public record ProductResponse(
         ProductStatus status,
         Long categoryId,
         String categoryName,
+        Double averageRating,
+        Long reviewCount,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
