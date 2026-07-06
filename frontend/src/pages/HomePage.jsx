@@ -144,6 +144,26 @@ function localizeHeroButtonText(text) {
   return text;
 }
 
+function normalizeListResponse(data) {
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  if (Array.isArray(data?.content)) {
+    return data.content;
+  }
+
+  if (Array.isArray(data?.items)) {
+    return data.items;
+  }
+
+  if (Array.isArray(data?.data)) {
+    return data.data;
+  }
+
+  return [];
+}
+
 export default function HomePage() {
   const [heroBanners, setHeroBanners] = useState([]);
   const [activeHeroIndex, setActiveHeroIndex] = useState(0);
@@ -159,7 +179,7 @@ export default function HomePage() {
           params: { placement: "HOME_HERO" },
         });
         if (mounted) {
-          setHeroBanners(response.data ?? []);
+          setHeroBanners(normalizeListResponse(response.data));
           setHeroLoaded(true);
         }
       } catch {
@@ -182,8 +202,9 @@ export default function HomePage() {
     async function loadCategories() {
       try {
         const response = await http.get("/categories");
-        if (mounted && response.data?.length) {
-          setHomeCategories(response.data.slice(0, 4));
+        const categories = normalizeListResponse(response.data);
+        if (mounted && categories.length) {
+          setHomeCategories(categories.slice(0, 4));
         }
       } catch {
         if (mounted) {
