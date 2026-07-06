@@ -1,6 +1,7 @@
 package com.boutique.ecommerce.security.config;
 
 import com.boutique.ecommerce.security.jwt.JwtAuthenticationFilter;
+import com.boutique.ecommerce.security.ratelimit.AuthRateLimitingFilter;
 import com.boutique.ecommerce.user.service.AppUserDetailsService;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
@@ -26,13 +27,16 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final AuthRateLimitingFilter authRateLimitingFilter;
     private final AppUserDetailsService userDetailsService;
 
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthenticationFilter,
+            AuthRateLimitingFilter authRateLimitingFilter,
             AppUserDetailsService userDetailsService
     ) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.authRateLimitingFilter = authRateLimitingFilter;
         this.userDetailsService = userDetailsService;
     }
 
@@ -52,6 +56,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
+                .addFilterBefore(authRateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

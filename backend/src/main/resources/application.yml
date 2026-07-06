@@ -2,19 +2,19 @@ spring:
   application:
     name: ecommerce
   datasource:
-    url: jdbc:postgresql://127.0.0.1:5433/ecommerce_db
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://127.0.0.1:5433/ecommerce_db}
     driver-class-name: org.postgresql.Driver
-    username: ecommerce_user
-    password: ecommerce_password
+    username: ${SPRING_DATASOURCE_USERNAME:ecommerce_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:ecommerce_password}
   jpa:
     open-in-view: false
     hibernate:
-      ddl-auto: update
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
-    show-sql: true
+    show-sql: ${SPRING_JPA_SHOW_SQL:true}
   flyway:
     enabled: true
     locations: classpath:db/migration
@@ -41,23 +41,28 @@ server:
   port: 8080
 
 jwt:
-  secret: change-this-secret-key-before-production-please-use-64-characters-minimum
-  access-token-expiration-ms: 900000
-  refresh-token-expiration-ms: 604800000
+  secret: ${JWT_SECRET:change-this-secret-key-before-production-please-use-64-characters-minimum}
+  access-token-expiration-ms: ${JWT_ACCESS_TOKEN_EXPIRATION_MS:900000}
+  refresh-token-expiration-ms: ${JWT_REFRESH_TOKEN_EXPIRATION_MS:604800000}
 
 app:
   admin:
-    enabled: true
-    full-name: ShopSphere Admin
-    email: admin@shopsphere.local
-    phone: "+212600000000"
-    password: Admin@12345
+    enabled: ${APP_ADMIN_ENABLED:true}
+    full-name: ${APP_ADMIN_FULL_NAME:ShopSphere Admin}
+    email: ${APP_ADMIN_EMAIL:admin@shopsphere.local}
+    phone: ${APP_ADMIN_PHONE:+212600000000}
+    password: ${APP_ADMIN_PASSWORD:Admin@12345}
   email:
     enabled: ${APP_EMAIL_ENABLED:false}
     from: ${APP_EMAIL_FROM:no-reply@shopsphere.local}
     store-name: ${APP_EMAIL_STORE_NAME:ShopSphere}
   invoice:
     storage-path: ${APP_INVOICE_STORAGE_PATH:./storage/invoices}
+  rate-limit:
+    auth:
+      enabled: ${APP_AUTH_RATE_LIMIT_ENABLED:true}
+      max-attempts: ${APP_AUTH_RATE_LIMIT_MAX_ATTEMPTS:5}
+      window-seconds: ${APP_AUTH_RATE_LIMIT_WINDOW_SECONDS:60}
 
 cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME:}

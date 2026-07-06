@@ -1,16 +1,74 @@
 services:
   postgres:
     image: postgres:16
-    container_name: ecommerce-postgres
+    container_name: shopsphere-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ecommerce_db
-      POSTGRES_USER: ecommerce_user
-      POSTGRES_PASSWORD: ecommerce_password
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
     ports:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+    container_name: shopsphere-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      APP_ADMIN_ENABLED: ${APP_ADMIN_ENABLED:-true}
+      APP_ADMIN_FULL_NAME: ${APP_ADMIN_FULL_NAME:-ShopSphere Admin}
+      APP_ADMIN_EMAIL: ${APP_ADMIN_EMAIL:-admin@shopsphere.local}
+      APP_ADMIN_PHONE: ${APP_ADMIN_PHONE:-+212600000000}
+      APP_ADMIN_PASSWORD: ${APP_ADMIN_PASSWORD:?APP_ADMIN_PASSWORD is required}
+      APP_AUTH_RATE_LIMIT_ENABLED: ${APP_AUTH_RATE_LIMIT_ENABLED:-true}
+      APP_AUTH_RATE_LIMIT_MAX_ATTEMPTS: ${APP_AUTH_RATE_LIMIT_MAX_ATTEMPTS:-5}
+      APP_AUTH_RATE_LIMIT_WINDOW_SECONDS: ${APP_AUTH_RATE_LIMIT_WINDOW_SECONDS:-60}
+      APP_EMAIL_ENABLED: ${APP_EMAIL_ENABLED:-false}
+      APP_EMAIL_FROM: ${APP_EMAIL_FROM:-no-reply@shopsphere.local}
+      APP_EMAIL_STORE_NAME: ${APP_EMAIL_STORE_NAME:-ShopSphere}
+      AWS_SES_SMTP_HOST: ${AWS_SES_SMTP_HOST:-}
+      AWS_SES_SMTP_PORT: ${AWS_SES_SMTP_PORT:-587}
+      AWS_SES_SMTP_USERNAME: ${AWS_SES_SMTP_USERNAME:-}
+      AWS_SES_SMTP_PASSWORD: ${AWS_SES_SMTP_PASSWORD:-}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
+      CLOUDINARY_PRODUCT_FOLDER: ${CLOUDINARY_PRODUCT_FOLDER:-shopsphere/products}
+      APP_INVOICE_STORAGE_PATH: /app/storage/invoices
+    ports:
+      - "8080:8080"
+    expose:
+      - "8080"
+    volumes:
+      - invoice_storage:/app/storage/invoices
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: /api
+    container_name: shopsphere-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
 
 volumes:
   postgres_data:
+  invoice_storage:

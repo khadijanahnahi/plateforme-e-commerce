@@ -1,0 +1,9 @@
+target/
+.mvn/
+uploads/
+storage/
+*.log
+run-backend.ps1
+test-ses-smtp.ps1
+.env
+.env.*
