@@ -158,7 +158,7 @@ public class InvoiceService {
     }
 
     private void ensurePdfExists(Invoice invoice) {
-        if (invoiceFileStorageService.exists(invoice.getPdfUrl())) {
+        if (hasCurrentPdf(invoice)) {
             return;
         }
 
@@ -174,6 +174,12 @@ public class InvoiceService {
                     exception
             );
         }
+    }
+
+    private boolean hasCurrentPdf(Invoice invoice) {
+        String pdfUrl = invoice.getPdfUrl();
+        return invoiceFileStorageService.exists(pdfUrl)
+                && pdfUrl.contains("-" + InvoicePdfService.TEMPLATE_VERSION + ".pdf");
     }
 
     private InvoiceDownload toDownload(Invoice invoice) {

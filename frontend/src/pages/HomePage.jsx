@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import http from "../api/http";
-import heroMonochrome from "../../images/hero-monochrome.png";
+import heroMonochrome from "../../images/hero-monochrome.webp";
 
 const fallbackCategories = [
   {

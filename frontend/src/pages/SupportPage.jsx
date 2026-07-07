@@ -100,7 +100,7 @@ export default function SupportPage() {
           <div className="support-hero-visual">
             {!imageFailed ? (
               <img
-                src="/images/support-hero.png"
+                src="/images/support-hero.webp"
                 alt="ShopSphere customer support and order care"
                 className="support-hero-image"
                 onError={() => setImageFailed(true)}

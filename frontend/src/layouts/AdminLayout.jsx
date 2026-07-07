@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import profileImage from "../../images/profile.png";
+import profileImage from "../../images/profile.webp";
 
 const adminLinks = [
   { label: "Dashboard", to: "/admin/dashboard" },
