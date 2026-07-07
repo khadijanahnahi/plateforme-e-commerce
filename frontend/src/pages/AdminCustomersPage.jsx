@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import http from "../api/http";
 
 function getApiErrorMessage(exception, fallback) {
@@ -92,7 +93,7 @@ export default function AdminCustomersPage() {
   }
 
   return (
-    <section className="admin-page">
+    <section className="admin-page customers-admin-page">
       <div className="admin-hero">
         <div>
           <span className="section-kicker">ADMIN CRM</span>
@@ -103,27 +104,31 @@ export default function AdminCustomersPage() {
 
       {error ? <div className="admin-alert admin-alert-error">{error}</div> : null}
 
-      <div className="admin-stats-grid">
-        <article>
+      <div className="customers-stats-grid">
+        <article className="customers-stat-card">
           <span>Total Customers</span>
           <strong>{stats.total}</strong>
+          <small>Registered customer accounts</small>
         </article>
-        <article>
-          <span>Active</span>
+        <article className="customers-stat-card">
+          <span>Active Customers</span>
           <strong>{stats.active}</strong>
+          <small>Enabled accounts</small>
         </article>
-        <article>
-          <span>Inactive</span>
+        <article className="customers-stat-card">
+          <span>Inactive Customers</span>
           <strong>{stats.inactive}</strong>
+          <small>Disabled or blocked accounts</small>
         </article>
-        <article>
+        <article className="customers-stat-card customers-stat-card-wide">
           <span>Total Spent</span>
           <strong>{formatMoney(stats.revenue)}</strong>
+          <small>Revenue excluding cancelled orders</small>
         </article>
       </div>
 
-      <div className="admin-card">
-        <div className="admin-toolbar">
+      <div className="admin-card customers-card">
+        <div className="customers-toolbar">
           <input
             type="search"
             placeholder="Search by name, email or phone..."
@@ -131,17 +136,17 @@ export default function AdminCustomersPage() {
             onChange={(event) => setSearch(event.target.value)}
           />
           <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
-            <option value="">Status: All</option>
+            <option value="">All</option>
             <option value="true">Active</option>
             <option value="false">Inactive</option>
           </select>
-          <button className="button button-secondary" type="button" onClick={resetFilters}>
+          <button className="customers-reset-button" type="button" onClick={resetFilters}>
             Reset filters
           </button>
         </div>
 
         <div className="admin-table-wrap">
-          <table className="admin-table">
+          <table className="admin-table customers-table">
             <thead>
               <tr>
                 <th>Customer</th>
@@ -151,31 +156,61 @@ export default function AdminCustomersPage() {
                 <th>Total spent</th>
                 <th>Registered</th>
                 <th>Status</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="7">Loading customers...</td>
+                  <td colSpan="8">
+                    <div className="customers-state">Loading customers...</div>
+                  </td>
                 </tr>
               ) : filteredCustomers.length === 0 ? (
                 <tr>
-                  <td colSpan="7">No customers found.</td>
+                  <td colSpan="8">
+                    <div className="customers-state">
+                      <strong>No customers found</strong>
+                      <span>Try another search term or reset filters.</span>
+                    </div>
+                  </td>
                 </tr>
               ) : filteredCustomers.map((customer) => (
                 <tr key={customer.id}>
                   <td>
-                    <strong>{customer.fullName}</strong>
+                    <div className="customer-cell">
+                      <span>{customer.fullName?.slice(0, 1)?.toUpperCase() ?? "C"}</span>
+                      <div>
+                        <strong>{customer.fullName}</strong>
+                        <small>ID #{customer.id}</small>
+                      </div>
+                    </div>
                   </td>
-                  <td>{customer.email}</td>
-                  <td>{customer.phone}</td>
-                  <td>{customer.orderCount ?? 0}</td>
-                  <td>{formatMoney(customer.totalSpent)}</td>
+                  <td>
+                    <span className="customer-secondary">{customer.email}</span>
+                  </td>
+                  <td>
+                    <span className="customer-secondary">{customer.phone}</span>
+                  </td>
+                  <td>
+                    <strong>{customer.orderCount ?? 0}</strong>
+                  </td>
+                  <td className="customers-money">{formatMoney(customer.totalSpent)}</td>
                   <td>{formatDate(customer.registeredAt)}</td>
                   <td>
-                    <span className={`status-badge ${customer.active ? "status-active" : "status-archived"}`}>
+                    <span className={`customer-status-badge ${customer.active ? "customer-status-active" : "customer-status-inactive"}`}>
                       {customer.active ? "ACTIVE" : "INACTIVE"}
                     </span>
+                  </td>
+                  <td>
+                    <div className="table-actions customers-actions">
+                      <Link className="table-link" to={`/admin/customers/${customer.id}`}>
+                        View
+                      </Link>
+                      <Link className="table-link" to={`/admin/orders?customer=${encodeURIComponent(customer.email ?? "")}`}>
+                        Orders
+                      </Link>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -183,7 +218,7 @@ export default function AdminCustomersPage() {
           </table>
         </div>
 
-        <p className="admin-table-note">
+        <p className="customers-table-note">
           Showing {filteredCustomers.length} of {customers.length} customers.
         </p>
       </div>

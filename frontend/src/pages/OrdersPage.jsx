@@ -60,14 +60,15 @@ export default function OrdersPage() {
                 <th>Total</th>
                 <th>Status</th>
                 <th>Items</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="6">Loading orders...</td></tr>
+                <tr><td colSpan="7">Loading orders...</td></tr>
               ) : orders.length === 0 ? (
                 <tr>
-                  <td colSpan="6">
+                  <td colSpan="7">
                     No orders found. <Link className="table-link" to="/products">Go shopping</Link>
                   </td>
                 </tr>
@@ -94,6 +95,11 @@ export default function OrdersPage() {
                         </div>
                       ))}
                     </div>
+                  </td>
+                  <td>
+                    <Link className="table-link" to={`/orders/${order.id}`}>
+                      Details
+                    </Link>
                   </td>
                 </tr>
               ))}

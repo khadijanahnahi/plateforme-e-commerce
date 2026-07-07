@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import http from "../api/http";
 
 const orderStatuses = ["PENDING", "CONFIRMED", "SHIPPED", "DELIVERED", "CANCELLED"];
@@ -19,11 +19,12 @@ function formatDate(value) {
 }
 
 export default function AdminOrdersPage() {
+  const [searchParams] = useSearchParams();
   const [orders, setOrders] = useState([]);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(() => searchParams.get("customer") ?? "");
   const [statusFilter, setStatusFilter] = useState("");
   const [paymentFilter, setPaymentFilter] = useState("");
   const [selectedStatuses, setSelectedStatuses] = useState({});
@@ -89,6 +90,14 @@ export default function AdminOrdersPage() {
       mounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    const customerQuery = searchParams.get("customer");
+    if (customerQuery) {
+      setSearch(customerQuery);
+      setCurrentPage(1);
+    }
+  }, [searchParams]);
 
   async function updateStatus(id, status) {
     if (!status) {
