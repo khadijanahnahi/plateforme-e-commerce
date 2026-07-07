@@ -1,6 +1,5 @@
 package com.boutique.ecommerce.invoice.service;
 
-import com.boutique.ecommerce.invoice.config.AppInvoiceProperties;
 import com.boutique.ecommerce.invoice.entity.Invoice;
 import com.boutique.ecommerce.invoice.entity.InvoiceItem;
 import com.lowagie.text.Document;
@@ -29,19 +28,18 @@ public class InvoicePdfService {
     private static final Color LIGHT_GRAY = new Color(245, 245, 245);
     private static final Color BORDER_GRAY = new Color(220, 220, 220);
 
-    private final AppInvoiceProperties invoiceProperties;
+    private final InvoiceFileStorageService invoiceFileStorageService;
 
-    public InvoicePdfService(AppInvoiceProperties invoiceProperties) {
-        this.invoiceProperties = invoiceProperties;
+    public InvoicePdfService(InvoiceFileStorageService invoiceFileStorageService) {
+        this.invoiceFileStorageService = invoiceFileStorageService;
     }
 
-    public Path generatePdf(Invoice invoice) {
+    public String generatePdf(Invoice invoice) {
+        Path tempPdf = null;
         try {
-            Path storageDirectory = Path.of(invoiceProperties.getStoragePath()).toAbsolutePath().normalize();
-            Files.createDirectories(storageDirectory);
-            Path pdfPath = storageDirectory.resolve(invoice.getInvoiceNumber() + ".pdf");
+            tempPdf = Files.createTempFile("shopsphere-invoice-", ".pdf");
 
-            try (OutputStream outputStream = Files.newOutputStream(pdfPath)) {
+            try (OutputStream outputStream = Files.newOutputStream(tempPdf)) {
                 Document document = new Document(PageSize.A4, 42, 42, 42, 42);
                 PdfWriter.getInstance(document, outputStream);
                 document.open();
@@ -49,9 +47,17 @@ public class InvoicePdfService {
                 document.close();
             }
 
-            return pdfPath;
+            return invoiceFileStorageService.store(tempPdf, invoice.getInvoiceNumber());
         } catch (DocumentException | IOException exception) {
             throw new IllegalStateException("Unable to generate invoice PDF.", exception);
+        } finally {
+            if (tempPdf != null) {
+                try {
+                    Files.deleteIfExists(tempPdf);
+                } catch (IOException ignored) {
+                    // Temporary PDF cleanup failure must not break invoice generation.
+                }
+            }
         }
     }
 

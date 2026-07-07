@@ -3,7 +3,6 @@ package com.boutique.ecommerce.invoice.controller;
 import com.boutique.ecommerce.invoice.dto.InvoiceResponse;
 import com.boutique.ecommerce.invoice.service.InvoiceService;
 import java.io.IOException;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -35,10 +34,9 @@ public class InvoiceController {
     }
 
     private ResponseEntity<Resource> buildPdfResponse(InvoiceService.InvoiceDownload download) throws IOException {
-        FileSystemResource resource = new FileSystemResource(download.pdfPath());
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_PDF)
-                .contentLength(resource.contentLength())
+                .contentLength(download.contentLength())
                 .header(
                         HttpHeaders.CONTENT_DISPOSITION,
                         ContentDisposition.attachment()
@@ -46,6 +44,6 @@ public class InvoiceController {
                                 .build()
                                 .toString()
                 )
-                .body(resource);
+                .body(download.resource());
     }
 }

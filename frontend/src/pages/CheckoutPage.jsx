@@ -168,17 +168,20 @@ export default function CheckoutPage() {
     };
 
     try {
+      let createdOrder;
       if (directCheckout) {
-        await http.post("/orders/direct", {
+        const response = await http.post("/orders/direct", {
           productId: directCheckout.productId,
           quantity: directCheckout.quantity,
           ...payload,
         });
+        createdOrder = response.data;
         sessionStorage.removeItem(DIRECT_CHECKOUT_KEY);
       } else {
-        await http.post("/orders", payload);
+        const response = await http.post("/orders", payload);
+        createdOrder = response.data;
       }
-      navigate("/orders", { replace: true });
+      navigate(`/order-success/${createdOrder.id}`, { replace: true });
     } catch (exception) {
       setError(getApiErrorMessage(exception, "Unable to create order."));
     }

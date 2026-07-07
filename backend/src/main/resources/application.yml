@@ -58,6 +58,12 @@ app:
     store-name: ${APP_EMAIL_STORE_NAME:ShopSphere}
   invoice:
     storage-path: ${APP_INVOICE_STORAGE_PATH:./storage/invoices}
+    storage-provider: ${APP_INVOICE_STORAGE_PROVIDER:local}
+    minio-endpoint: ${MINIO_ENDPOINT:http://127.0.0.1:9000}
+    minio-access-key: ${MINIO_ACCESS_KEY:minioadmin}
+    minio-secret-key: ${MINIO_SECRET_KEY:minioadmin}
+    minio-bucket: ${MINIO_BUCKET:shopsphere-invoices}
+    minio-prefix: ${MINIO_INVOICE_PREFIX:invoices}
   rate-limit:
     auth:
       enabled: ${APP_AUTH_RATE_LIMIT_ENABLED:true}

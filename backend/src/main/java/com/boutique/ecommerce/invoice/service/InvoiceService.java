@@ -6,6 +6,7 @@ import com.boutique.ecommerce.invoice.dto.InvoiceItemResponse;
 import com.boutique.ecommerce.invoice.dto.InvoiceResponse;
 import com.boutique.ecommerce.invoice.entity.Invoice;
 import com.boutique.ecommerce.invoice.entity.InvoiceItem;
+import com.boutique.ecommerce.invoice.service.InvoiceFileStorageService.InvoiceFile;
 import com.boutique.ecommerce.invoice.repository.InvoiceRepository;
 import com.boutique.ecommerce.order.entity.Order;
 import com.boutique.ecommerce.order.entity.OrderItem;
@@ -15,11 +16,10 @@ import com.boutique.ecommerce.order.repository.OrderRepository;
 import com.boutique.ecommerce.user.entity.AppUser;
 import com.boutique.ecommerce.user.repository.UserRepository;
 import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.core.io.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -38,17 +38,20 @@ public class InvoiceService {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final InvoicePdfService invoicePdfService;
+    private final InvoiceFileStorageService invoiceFileStorageService;
 
     public InvoiceService(
             InvoiceRepository invoiceRepository,
             OrderRepository orderRepository,
             UserRepository userRepository,
-            InvoicePdfService invoicePdfService
+            InvoicePdfService invoicePdfService,
+            InvoiceFileStorageService invoiceFileStorageService
     ) {
         this.invoiceRepository = invoiceRepository;
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
         this.invoicePdfService = invoicePdfService;
+        this.invoiceFileStorageService = invoiceFileStorageService;
     }
 
     @Transactional
@@ -63,11 +66,10 @@ public class InvoiceService {
         return mapToResponse(invoice);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public InvoiceResponse getInvoiceForCustomer(Long orderId) {
         AppUser user = getCurrentUser();
-        Invoice invoice = invoiceRepository.findByOrderIdAndOrderUserId(orderId, user.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Invoice not found."));
+        Invoice invoice = findOrCreateInvoiceForCustomer(orderId, user);
         return mapToResponse(invoice);
     }
 
@@ -78,19 +80,18 @@ public class InvoiceService {
         return mapToResponse(invoice);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public InvoiceDownload getInvoiceDownloadForCustomer(Long orderId) {
         AppUser user = getCurrentUser();
-        Invoice invoice = invoiceRepository.findByOrderIdAndOrderUserId(orderId, user.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Invoice not found."));
-        return new InvoiceDownload(invoice.getInvoiceNumber(), resolveExistingPdf(invoice));
+        Invoice invoice = findOrCreateInvoiceForCustomer(orderId, user);
+        return toDownload(invoice);
     }
 
     @Transactional(readOnly = true)
     public InvoiceDownload getInvoiceDownloadForAdmin(Long orderId) {
         Invoice invoice = invoiceRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Invoice not found."));
-        return new InvoiceDownload(invoice.getInvoiceNumber(), resolveExistingPdf(invoice));
+        return toDownload(invoice);
     }
 
     @Transactional
@@ -101,10 +102,21 @@ public class InvoiceService {
 
         Invoice invoice = invoiceRepository.findByOrderId(orderId)
                 .orElseGet(() -> invoiceRepository.save(buildInvoice(order)));
-        Path pdfPath = invoicePdfService.generatePdf(invoice);
-        invoice.setPdfUrl(pdfPath.toString());
+        String pdfLocation = invoicePdfService.generatePdf(invoice);
+        invoice.setPdfUrl(pdfLocation);
         log.info("Invoice PDF regenerated. orderId={} invoiceNumber={}", orderId, invoice.getInvoiceNumber());
         return mapToResponse(invoice);
+    }
+
+    private Invoice findOrCreateInvoiceForCustomer(Long orderId, AppUser user) {
+        Order order = orderRepository.findByIdAndUserId(orderId, user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found."));
+        validateInvoiceAllowed(order);
+
+        Invoice invoice = invoiceRepository.findByOrderId(orderId)
+                .orElseGet(() -> invoiceRepository.save(buildInvoice(order)));
+        ensurePdfExists(invoice);
+        return invoice;
     }
 
     private void validateInvoiceAllowed(Order order) {
@@ -146,13 +158,13 @@ public class InvoiceService {
     }
 
     private void ensurePdfExists(Invoice invoice) {
-        if (invoice.getPdfUrl() != null && Files.exists(Path.of(invoice.getPdfUrl()))) {
+        if (invoiceFileStorageService.exists(invoice.getPdfUrl())) {
             return;
         }
 
         try {
-            Path pdfPath = invoicePdfService.generatePdf(invoice);
-            invoice.setPdfUrl(pdfPath.toString());
+            String pdfLocation = invoicePdfService.generatePdf(invoice);
+            invoice.setPdfUrl(pdfLocation);
             log.info("Invoice PDF generated. orderId={} invoiceNumber={}", invoice.getOrder().getId(), invoice.getInvoiceNumber());
         } catch (RuntimeException exception) {
             log.error(
@@ -164,16 +176,9 @@ public class InvoiceService {
         }
     }
 
-    private Path resolveExistingPdf(Invoice invoice) {
-        if (invoice.getPdfUrl() == null || invoice.getPdfUrl().isBlank()) {
-            throw new ResourceNotFoundException("Invoice PDF is not available.");
-        }
-
-        Path pdfPath = Path.of(invoice.getPdfUrl()).toAbsolutePath().normalize();
-        if (!Files.exists(pdfPath)) {
-            throw new ResourceNotFoundException("Invoice PDF file not found.");
-        }
-        return pdfPath;
+    private InvoiceDownload toDownload(Invoice invoice) {
+        InvoiceFile file = invoiceFileStorageService.download(invoice.getPdfUrl());
+        return new InvoiceDownload(invoice.getInvoiceNumber(), file.resource(), file.contentLength());
     }
 
     private String generateInvoiceNumber() {
@@ -230,6 +235,6 @@ public class InvoiceService {
         );
     }
 
-    public record InvoiceDownload(String invoiceNumber, Path pdfPath) {
+    public record InvoiceDownload(String invoiceNumber, Resource resource, long contentLength) {
     }
 }

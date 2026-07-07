@@ -96,6 +96,9 @@ export default function OrderDetailsPage() {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [invoiceLoading, setInvoiceLoading] = useState(false);
+  const [invoiceAvailable, setInvoiceAvailable] = useState(false);
+  const [invoiceChecked, setInvoiceChecked] = useState(false);
   const [demoMode, setDemoMode] = useState(false);
 
   useEffect(() => {
@@ -124,6 +127,72 @@ export default function OrderDetailsPage() {
       mounted = false;
     };
   }, [id]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function checkInvoiceAvailability() {
+      setInvoiceAvailable(false);
+      setInvoiceChecked(false);
+
+      if (!order?.id || order.paymentStatus !== "PAID") {
+        setInvoiceChecked(true);
+        return;
+      }
+
+      try {
+        await http.get(`/orders/${order.id}/invoice/info`);
+        if (mounted) {
+          setInvoiceAvailable(true);
+        }
+      } catch {
+        if (mounted) {
+          setInvoiceAvailable(false);
+        }
+      } finally {
+        if (mounted) {
+          setInvoiceChecked(true);
+        }
+      }
+    }
+
+    checkInvoiceAvailability();
+    return () => {
+      mounted = false;
+    };
+  }, [order?.id, order?.paymentStatus]);
+
+  async function downloadInvoice() {
+    if (!order) {
+      return;
+    }
+
+    setInvoiceLoading(true);
+    setError("");
+
+    try {
+      const response = await http.get(`/orders/${order.id}/invoice`, {
+        responseType: "blob",
+      });
+      const blobUrl = window.URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = `${order.orderNumber || `commande-${order.id}`}-facture.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (exception) {
+      if (exception.response?.status === 404) {
+        setInvoiceAvailable(false);
+        setError("Facture introuvable. Demandez à l'admin de régénérer la facture.");
+      } else {
+        setError("Impossible de télécharger la facture.");
+      }
+    } finally {
+      setInvoiceLoading(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -184,10 +253,20 @@ export default function OrderDetailsPage() {
               </article>
               <article className="order-status-card">
                 <span>Facture</span>
-                <strong className={`order-status-badge ${order.paymentStatus === "PAID" ? "invoice-ready" : "invoice-pending"}`}>
-                  {order.paymentStatus === "PAID" ? "Disponible" : "En attente"}
+                <strong className={`order-status-badge ${invoiceAvailable ? "invoice-ready" : "invoice-pending"}`}>
+                  {order.paymentStatus === "PAID"
+                    ? invoiceChecked && invoiceAvailable
+                      ? "Disponible"
+                      : "En préparation"
+                    : "En attente"}
                 </strong>
-                <small>{order.paymentStatus === "PAID" ? "Facture prête" : "Disponible après paiement"}</small>
+                <small>
+                  {order.paymentStatus === "PAID"
+                    ? invoiceChecked && invoiceAvailable
+                      ? "Facture prête"
+                      : "Facture non générée"
+                    : "Disponible après paiement"}
+                </small>
               </article>
             </div>
 
@@ -260,10 +339,21 @@ export default function OrderDetailsPage() {
                   </div>
                 </div>
 
-                {order.paymentStatus === "PAID" ? (
-                  <a className="button button-primary order-invoice-button" href={`/api/orders/${order.id}/invoice`}>
-                    Télécharger la facture
-                  </a>
+                {order.paymentStatus === "PAID" && invoiceChecked && invoiceAvailable ? (
+                  <button
+                    className="button button-primary order-invoice-button"
+                    type="button"
+                    disabled={invoiceLoading}
+                    onClick={downloadInvoice}
+                  >
+                    {invoiceLoading ? "Téléchargement..." : "Télécharger la facture"}
+                  </button>
+                ) : order.paymentStatus === "PAID" ? (
+                  <p className="order-invoice-note">
+                    {invoiceChecked
+                      ? "Facture en préparation. Si elle reste indisponible, l'admin doit la régénérer."
+                      : "Vérification de la facture..."}
+                  </p>
                 ) : (
                   <p className="order-invoice-note">La facture sera disponible après confirmation du paiement.</p>
                 )}
