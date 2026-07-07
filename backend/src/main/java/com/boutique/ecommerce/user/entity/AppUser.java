@@ -1,5 +1,6 @@
 package com.boutique.ecommerce.user.entity;
 
+import com.boutique.ecommerce.common.AuditableEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -25,7 +26,7 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AppUser {
+public class AppUser extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

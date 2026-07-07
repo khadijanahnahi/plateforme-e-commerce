@@ -11,6 +11,7 @@ import AdminProductsPage from "../pages/AdminProductsPage";
 import AdminCategoriesPage from "../pages/AdminCategoriesPage";
 import AdminReviewsPage from "../pages/AdminReviewsPage";
 import AdminPromotionsPage from "../pages/AdminPromotionsPage";
+import AdminCustomersPage from "../pages/AdminCustomersPage";
 import CategoriesPage from "../pages/CategoriesPage";
 import CartPage from "../pages/CartPage";
 import CheckoutPage from "../pages/CheckoutPage";
@@ -23,6 +24,8 @@ import ProductsPage from "../pages/ProductsPage";
 import ProfilePage from "../pages/ProfilePage";
 import RegisterPage from "../pages/RegisterPage";
 import SupportPage from "../pages/SupportPage";
+import UnauthorizedPage from "../pages/UnauthorizedPage";
+import ServerErrorPage from "../pages/ServerErrorPage";
 
 export default function AppRouter() {
   return (
@@ -39,6 +42,8 @@ export default function AppRouter() {
         <Route path="/orders" element={<OrdersPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/support" element={<SupportPage />} />
+        <Route path="/unauthorized" element={<UnauthorizedPage />} />
+        <Route path="/500" element={<ServerErrorPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
       <Route element={<AdminRoute />}>
@@ -49,6 +54,7 @@ export default function AppRouter() {
           <Route path="/admin/categories" element={<AdminCategoriesPage />} />
           <Route path="/admin/coupons" element={<AdminCouponsPage />} />
           <Route path="/admin/reviews" element={<AdminReviewsPage />} />
+          <Route path="/admin/customers" element={<AdminCustomersPage />} />
           <Route path="/admin/products" element={<AdminProductsPage />} />
           <Route path="/admin/orders" element={<AdminOrdersPage />} />
           <Route path="/admin/orders/:id" element={<AdminOrderDetailsPage />} />

@@ -11,6 +11,7 @@ const adminLinks = [
   { label: "Categories", to: "/admin/categories" },
   { label: "Coupons", to: "/admin/coupons" },
   { label: "Reviews", to: "/admin/reviews" },
+  { label: "Customers", to: "/admin/customers" },
   { label: "Orders", to: "/admin/orders" },
 ];
 
