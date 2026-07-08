@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
-import http from "../api/http";
+import { productApi } from "../api/productApi";
 import { useAuth } from "../contexts/AuthContext";
+import { useCart } from "../hooks/useCart";
 
 const DIRECT_CHECKOUT_KEY = "shopsphere_direct_checkout";
 
@@ -15,6 +16,7 @@ export default function ProductDetailsPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const { addToCart: addProductToCart } = useCart();
   const reviewsSectionRef = useRef(null);
   const [product, setProduct] = useState(null);
   const [reviews, setReviews] = useState([]);
@@ -36,8 +38,8 @@ export default function ProductDetailsPage() {
     async function loadProduct() {
       try {
         const [productResponse, reviewsResponse] = await Promise.all([
-          http.get(`/products/${id}`),
-          http.get(`/products/${id}/reviews`),
+          productApi.getProduct(id),
+          productApi.getProductReviews(id),
         ]);
 
         if (mounted) {
@@ -72,7 +74,7 @@ export default function ProductDetailsPage() {
       }
 
       try {
-        const response = await http.get(`/products/${product.id}/reviews/eligibility`);
+        const response = await productApi.getReviewEligibility(product.id);
         if (mounted) {
           setEligibility(response.data);
         }
@@ -114,12 +116,7 @@ export default function ProductDetailsPage() {
     }
 
     try {
-      await http.post("/cart/items", {
-        productId: product.id,
-        quantity,
-      });
-
-      window.dispatchEvent(new Event("shopsphere-cart-updated"));
+      await addProductToCart(product.id, quantity);
       setMessage("Product added to cart.");
     } catch (exception) {
       setError(exception.response?.data?.message ?? "Login required or product unavailable.");
@@ -158,13 +155,13 @@ export default function ProductDetailsPage() {
     setReviewMessage("");
 
     try {
-      await http.post(`/products/${product.id}/reviews`, {
+      await productApi.createReview(product.id, {
         rating: Number(reviewForm.rating),
         comment: reviewForm.comment,
       });
       setReviewForm({ rating: 5, comment: "" });
       setReviewMessage("Review submitted for admin approval.");
-      const eligibilityResponse = await http.get(`/products/${product.id}/reviews/eligibility`);
+      const eligibilityResponse = await productApi.getReviewEligibility(product.id);
       setEligibility(eligibilityResponse.data);
     } catch (exception) {
       setReviewError(exception.response?.data?.message ?? "Unable to submit review.");

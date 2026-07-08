@@ -1,47 +1,17 @@
 import { useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import http from "../api/http";
 import ClientHeader from "../components/ClientHeader";
 import { useAuth } from "../contexts/AuthContext";
+import { useCart } from "../hooks/useCart";
 
 export default function MainLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated, logout, user } = useAuth();
-  const [cartCount, setCartCount] = useState(0);
+  const { cartCount } = useCart();
   const [searchTerm, setSearchTerm] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isAdmin = user?.roles?.some((role) => role === "ADMIN" || role === "ROLE_ADMIN");
-
-  useEffect(() => {
-    let mounted = true;
-
-    async function loadCartCount() {
-      if (!isAuthenticated) {
-        setCartCount(0);
-        return;
-      }
-
-      try {
-        const response = await http.get("/cart");
-        if (mounted) {
-          setCartCount(response.data.totalItems ?? 0);
-        }
-      } catch {
-        if (mounted) {
-          setCartCount(0);
-        }
-      }
-    }
-
-    loadCartCount();
-    window.addEventListener("shopsphere-cart-updated", loadCartCount);
-
-    return () => {
-      mounted = false;
-      window.removeEventListener("shopsphere-cart-updated", loadCartCount);
-    };
-  }, [isAuthenticated, location.pathname]);
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -49,7 +19,6 @@ export default function MainLayout() {
 
   function handleLogout() {
     logout();
-    setCartCount(0);
     navigate("/login", { replace: true });
   }
 

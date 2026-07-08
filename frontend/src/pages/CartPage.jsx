@@ -1,33 +1,25 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import http from "../api/http";
-
-const emptyCart = {
-  items: [],
-  totalAmount: 0,
-  totalItems: 0,
-};
+import { useCart } from "../hooks/useCart";
 
 export default function CartPage() {
-  const [cart, setCart] = useState(emptyCart);
+  const {
+    cart,
+    loadCart,
+    updateCartItem,
+    removeCartItem,
+    clearCart: clearCartContext,
+  } = useCart();
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-
-  async function loadCart() {
-    const response = await http.get("/cart");
-    setCart(response.data);
-  }
 
   useEffect(() => {
     let mounted = true;
 
     async function loadData() {
       try {
-        const response = await http.get("/cart");
-        if (mounted) {
-          setCart(response.data);
-        }
+        await loadCart();
       } catch (exception) {
         if (mounted) {
           setError(exception.response?.data?.message ?? "Login required to view your cart.");
@@ -54,9 +46,7 @@ export default function CartPage() {
     setError("");
 
     try {
-      const response = await http.put(`/cart/items/${item.id}`, { quantity: nextQuantity });
-      setCart(response.data);
-      window.dispatchEvent(new Event("shopsphere-cart-updated"));
+      await updateCartItem(item.id, nextQuantity);
     } catch (exception) {
       setError(exception.response?.data?.message ?? "Unable to update cart item.");
     }
@@ -67,9 +57,7 @@ export default function CartPage() {
     setError("");
 
     try {
-      const response = await http.delete(`/cart/items/${itemId}`);
-      setCart(response.data);
-      window.dispatchEvent(new Event("shopsphere-cart-updated"));
+      await removeCartItem(itemId);
       setMessage("Item removed.");
     } catch (exception) {
       setError(exception.response?.data?.message ?? "Unable to remove cart item.");
@@ -81,9 +69,7 @@ export default function CartPage() {
     setError("");
 
     try {
-      const response = await http.delete("/cart");
-      setCart(response.data);
-      window.dispatchEvent(new Event("shopsphere-cart-updated"));
+      await clearCartContext();
       setMessage("Cart cleared.");
     } catch (exception) {
       setError(exception.response?.data?.message ?? "Unable to clear cart.");

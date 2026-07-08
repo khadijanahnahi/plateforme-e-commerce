@@ -1,8 +1,14 @@
-import { useEffect, useState } from "react";
-import http from "../api/http";
-
-const productStatuses = ["DRAFT", "ACTIVE", "OUT_OF_STOCK", "ARCHIVED"];
-const PAGE_SIZE = 10;
+import { useState } from "react";
+import { adminProductsApi, getApiErrorMessage } from "../api/adminProductsApi";
+import AdminPageHeader from "../components/layout/AdminPageHeader";
+import AdminProductsTable from "../components/product/AdminProductsTable";
+import AdminFilterBar from "../components/ui/AdminFilterBar";
+import AdminStatsCard from "../components/ui/AdminStatsCard";
+import {
+  ADMIN_PRODUCTS_PAGE_SIZE,
+  productStatuses,
+  useAdminProducts,
+} from "../hooks/useAdminProducts";
 
 const emptyForm = {
   name: "",
@@ -15,101 +21,37 @@ const emptyForm = {
   categoryId: "",
 };
 
-function getApiErrorMessage(exception, fallback) {
-  const status = exception.response?.status;
-  const data = exception.response?.data;
-  const validationErrors = data?.validationErrors
-    ? Object.values(data.validationErrors).filter(Boolean).join(" ")
-    : "";
-  const message = validationErrors || data?.message || exception.message || fallback;
-
-  return status ? `${message} (HTTP ${status})` : message;
-}
-
-function toProductRequest(form) {
-  return {
-    name: form.name,
-    description: form.description || null,
-    price: Number(form.price),
-    stockQuantity: Number(form.stockQuantity),
-    imageUrl: form.imageUrl || null,
-    sku: form.sku || null,
-    status: form.status,
-    categoryId: Number(form.categoryId),
-  };
-}
-
 export default function AdminProductsPage() {
-  const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const {
+    categories,
+    categoryFilter,
+    currentPage,
+    error,
+    filteredProducts,
+    loading,
+    message,
+    paginatedProducts,
+    productStats,
+    search,
+    statusFilter,
+    totalPages,
+    archiveProduct,
+    resetFilters,
+    saveProduct,
+    searchProducts,
+    setCurrentPage,
+    setError,
+    setMessage,
+    setSearch,
+    updateCategoryFilter,
+    updateStatusFilter,
+    updateStock,
+  } = useAdminProducts();
+
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
   const [imageUploading, setImageUploading] = useState(false);
-
-  const filteredProducts = products.filter((product) => {
-    const matchesStatus = statusFilter ? product.status === statusFilter : true;
-    const matchesCategory = categoryFilter ? String(product.categoryId) === categoryFilter : true;
-    return matchesStatus && matchesCategory;
-  });
-  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE));
-  const safeCurrentPage = Math.min(currentPage, totalPages);
-  const paginatedProducts = filteredProducts.slice(
-    (safeCurrentPage - 1) * PAGE_SIZE,
-    safeCurrentPage * PAGE_SIZE,
-  );
-  const lowStockProducts = products.filter((product) => Number(product.stockQuantity) > 0 && Number(product.stockQuantity) <= 5);
-  const productStats = {
-    total: products.length,
-    active: products.filter((product) => product.status === "ACTIVE").length,
-    lowStock: lowStockProducts.length,
-    outOfStock: products.filter((product) => Number(product.stockQuantity) === 0 || product.status === "OUT_OF_STOCK").length,
-  };
-
-  async function loadProducts(nextSearch = search) {
-    const response = await http.get("/admin/products", {
-      params: { search: nextSearch || undefined },
-    });
-    setProducts(response.data);
-  }
-
-  useEffect(() => {
-    let mounted = true;
-
-    async function loadInitialData() {
-      try {
-        const [productsResponse, categoriesResponse] = await Promise.all([
-          http.get("/admin/products"),
-          http.get("/admin/categories"),
-        ]);
-        if (mounted) {
-          setProducts(productsResponse.data);
-          setCategories(categoriesResponse.data.filter((category) => category.active));
-          setError("");
-        }
-      } catch (exception) {
-        if (mounted) {
-          setError(getApiErrorMessage(exception, "Unable to load admin products."));
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadInitialData();
-    return () => {
-      mounted = false;
-    };
-  }, []);
 
   function updateField(event) {
     const { name, value } = event.target;
@@ -122,18 +64,6 @@ export default function AdminProductsPage() {
     setMessage("");
     setError("");
     setIsModalOpen(true);
-  }
-
-  function resetFilters() {
-    setSearch("");
-    setStatusFilter("");
-    setCategoryFilter("");
-    setCurrentPage(1);
-    setLoading(true);
-    loadProducts("")
-      .then(() => setError(""))
-      .catch((exception) => setError(getApiErrorMessage(exception, "Unable to reset filters.")))
-      .finally(() => setLoading(false));
   }
 
   function openEditModal(product) {
@@ -165,21 +95,14 @@ export default function AdminProductsPage() {
     setError("");
 
     try {
-      if (editingId) {
-        await http.put(`/admin/products/${editingId}`, toProductRequest(form));
-        setMessage("Product updated.");
-      } else {
-        await http.post("/admin/products", toProductRequest(form));
-        setMessage("Product created.");
-      }
+      await saveProduct(editingId, form);
       closeModal();
-      await loadProducts();
     } catch (exception) {
       setError(getApiErrorMessage(exception, "Unable to save product."));
     }
   }
 
-  async function archiveProduct(id) {
+  async function handleArchiveProduct(id) {
     const confirmed = window.confirm("Archive this product? It will no longer be visible to customers.");
     if (!confirmed) {
       return;
@@ -188,15 +111,13 @@ export default function AdminProductsPage() {
     setMessage("");
     setError("");
     try {
-      await http.delete(`/admin/products/${id}`);
-      setMessage("Product archived.");
-      await loadProducts();
+      await archiveProduct(id);
     } catch (exception) {
       setError(getApiErrorMessage(exception, "Unable to archive product."));
     }
   }
 
-  async function changeStock(product) {
+  async function handleStockChange(product) {
     const value = window.prompt("New stock quantity", product.stockQuantity);
     if (value === null) {
       return;
@@ -211,47 +132,10 @@ export default function AdminProductsPage() {
     setMessage("");
     setError("");
     try {
-      await http.patch(`/admin/products/${product.id}/stock`, { stockQuantity });
-      setMessage("Stock updated.");
-      await loadProducts();
+      await updateStock(product, stockQuantity);
     } catch (exception) {
       setError(getApiErrorMessage(exception, "Unable to update stock."));
     }
-  }
-
-  async function handleSearch(event) {
-    event.preventDefault();
-    setLoading(true);
-    setCurrentPage(1);
-    try {
-      await loadProducts(search);
-      setError("");
-    } catch (exception) {
-      setError(getApiErrorMessage(exception, "Unable to search products."));
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function handleStatusFilterChange(event) {
-    setStatusFilter(event.target.value);
-    setCurrentPage(1);
-  }
-
-  function handleCategoryFilterChange(event) {
-    setCategoryFilter(event.target.value);
-    setCurrentPage(1);
-  }
-
-  function getStockBadge(product) {
-    const stock = Number(product.stockQuantity);
-    if (stock === 0) {
-      return { label: "Out of stock", className: "stock-out" };
-    }
-    if (stock <= 5) {
-      return { label: "Low stock", className: "stock-low" };
-    }
-    return { label: "In stock", className: "stock-in" };
   }
 
   async function uploadProductImage(event) {
@@ -268,9 +152,7 @@ export default function AdminProductsPage() {
     setError("");
 
     try {
-      const response = await http.post("/admin/uploads/product-image", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const response = await adminProductsApi.uploadProductImage(formData);
       setForm((current) => ({ ...current, imageUrl: response.data.imageUrl }));
       setMessage("Image uploaded.");
     } catch (exception) {
@@ -281,129 +163,70 @@ export default function AdminProductsPage() {
     }
   }
 
+  const firstShown = filteredProducts.length === 0 ? 0 : (currentPage - 1) * ADMIN_PRODUCTS_PAGE_SIZE + 1;
+  const lastShown = Math.min(currentPage * ADMIN_PRODUCTS_PAGE_SIZE, filteredProducts.length);
+
   return (
     <section className="page admin-page">
-      <div className="admin-hero">
-        <div>
-          <span className="section-kicker">Admin inventory</span>
-          <h1>Gestion des produits</h1>
-          <p>Creer, modifier, archiver et gerer le stock des produits ShopSphere.</p>
-        </div>
-        <button className="button button-primary" type="button" onClick={openCreateModal}>
-          + Ajouter un produit
-        </button>
-      </div>
+      <AdminPageHeader
+        kicker="Admin inventory"
+        title="Gestion des produits"
+        description="Creer, modifier, archiver et gerer le stock des produits ShopSphere."
+        actionLabel="+ Ajouter un produit"
+        onAction={openCreateModal}
+      />
 
       {message ? <div className="admin-alert admin-success">{message}</div> : null}
       {error ? <div className="admin-alert">{error}</div> : null}
 
       <div className="admin-product-stats">
-        <article>
-          <span>Total Products</span>
-          <strong>{productStats.total}</strong>
-        </article>
-        <article>
-          <span>Active</span>
-          <strong>{productStats.active}</strong>
-        </article>
-        <article>
-          <span>Low Stock</span>
-          <strong>{productStats.lowStock}</strong>
-        </article>
-        <article>
-          <span>Out of Stock</span>
-          <strong>{productStats.outOfStock}</strong>
-        </article>
+        <AdminStatsCard label="Total Products" value={productStats.total} />
+        <AdminStatsCard label="Active" value={productStats.active} />
+        <AdminStatsCard label="Low Stock" value={productStats.lowStock} />
+        <AdminStatsCard label="Out of Stock" value={productStats.outOfStock} />
       </div>
 
       <div className="admin-panel">
-        <form className="admin-search admin-product-toolbar" onSubmit={handleSearch}>
-          <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search product..." />
-          <select value={statusFilter} onChange={handleStatusFilterChange}>
-            <option value="">Status: All</option>
-            {productStatuses.map((status) => <option key={status} value={status}>{status}</option>)}
-          </select>
-          <select value={categoryFilter} onChange={handleCategoryFilterChange}>
-            <option value="">Category: All</option>
-            {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
-          </select>
-          <button className="button button-secondary" type="submit">Search</button>
-          <button className="button button-secondary" type="button" onClick={resetFilters}>Reset filters</button>
-        </form>
+        <AdminFilterBar
+          categories={categories}
+          categoryFilter={categoryFilter}
+          onCategoryChange={updateCategoryFilter}
+          onReset={resetFilters}
+          onSearchChange={setSearch}
+          onStatusChange={updateStatusFilter}
+          onSubmit={searchProducts}
+          search={search}
+          statusFilter={statusFilter}
+          statuses={productStatuses}
+        />
 
         <div className="admin-list-summary">
-          Showing {filteredProducts.length === 0 ? 0 : (safeCurrentPage - 1) * PAGE_SIZE + 1}-{Math.min(safeCurrentPage * PAGE_SIZE, filteredProducts.length)} of {filteredProducts.length} products
+          Showing {firstShown}-{lastShown} of {filteredProducts.length} products
         </div>
 
-        <div className="admin-table-wrap">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Image</th>
-                <th>Nom produit</th>
-                <th>Categorie</th>
-                <th>Prix</th>
-                <th>Stock</th>
-                <th>Statut</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr><td colSpan="7">Loading products...</td></tr>
-              ) : filteredProducts.length === 0 ? (
-                <tr><td colSpan="7">No products found.</td></tr>
-              ) : paginatedProducts.map((product) => {
-                const stockBadge = getStockBadge(product);
-                return (
-                  <tr key={product.id}>
-                    <td>
-                      {product.imageUrl ? (
-                        <img className="admin-product-thumb" src={product.imageUrl} alt={product.name} />
-                      ) : (
-                        <span className="admin-product-thumb admin-product-thumb-empty">No image</span>
-                      )}
-                    </td>
-                    <td>
-                      <strong>{product.name}</strong>
-                      <small className="admin-muted">SKU: {product.sku ?? "-"}</small>
-                    </td>
-                    <td>{product.categoryName}</td>
-                    <td>{Number(product.price).toFixed(2)} DH</td>
-                    <td>
-                      <div className="stock-cell">
-                        <strong>{product.stockQuantity}</strong>
-                        <span className={`stock-badge ${stockBadge.className}`}>{stockBadge.label}</span>
-                      </div>
-                    </td>
-                    <td><span className={`status-pill status-${product.status.toLowerCase()}`}>{product.status}</span></td>
-                    <td className="table-actions">
-                      <button type="button" onClick={() => openEditModal(product)}>Modifier</button>
-                      <button type="button" onClick={() => changeStock(product)}>Stock</button>
-                      <button type="button" onClick={() => archiveProduct(product.id)}>Archiver</button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <AdminProductsTable
+          loading={loading}
+          onArchive={handleArchiveProduct}
+          onEdit={openEditModal}
+          onStockChange={handleStockChange}
+          products={paginatedProducts}
+        />
 
-        {!loading && filteredProducts.length > PAGE_SIZE ? (
+        {!loading && filteredProducts.length > ADMIN_PRODUCTS_PAGE_SIZE ? (
           <div className="pagination-bar">
-            <span>Page {safeCurrentPage} of {totalPages}</span>
+            <span>Page {currentPage} of {totalPages}</span>
             <div className="pagination-controls">
               <button
                 type="button"
                 onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-                disabled={safeCurrentPage === 1}
+                disabled={currentPage === 1}
               >
                 Previous
               </button>
               {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
                 <button
                   key={page}
-                  className={page === safeCurrentPage ? "pagination-active" : ""}
+                  className={page === currentPage ? "pagination-active" : ""}
                   type="button"
                   onClick={() => setCurrentPage(page)}
                 >
@@ -413,7 +236,7 @@ export default function AdminProductsPage() {
               <button
                 type="button"
                 onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
-                disabled={safeCurrentPage === totalPages}
+                disabled={currentPage === totalPages}
               >
                 Next
               </button>

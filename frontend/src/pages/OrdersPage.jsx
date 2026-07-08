@@ -1,41 +1,12 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import http from "../api/http";
+import { useOrders } from "../hooks/useOrders";
 
 function formatDate(value) {
   return value ? new Date(value).toLocaleString() : "-";
 }
 
 export default function OrdersPage() {
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    let mounted = true;
-
-    async function loadOrders() {
-      try {
-        const response = await http.get("/orders/my-orders");
-        if (mounted) {
-          setOrders(response.data);
-        }
-      } catch (exception) {
-        if (mounted) {
-          setError(exception.response?.data?.message ?? "Unable to load orders.");
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadOrders();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  const { orders, loading, error } = useOrders();
 
   return (
     <section className="page admin-page">

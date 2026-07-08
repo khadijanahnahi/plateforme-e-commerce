@@ -1,0 +1,172 @@
+import { useEffect, useMemo, useState } from "react";
+import { adminProductsApi, getApiErrorMessage } from "../api/adminProductsApi";
+
+export const productStatuses = ["DRAFT", "ACTIVE", "OUT_OF_STOCK", "ARCHIVED"];
+export const ADMIN_PRODUCTS_PAGE_SIZE = 10;
+
+export function toProductRequest(form) {
+  return {
+    name: form.name,
+    description: form.description || null,
+    price: Number(form.price),
+    stockQuantity: Number(form.stockQuantity),
+    imageUrl: form.imageUrl || null,
+    sku: form.sku || null,
+    status: form.status,
+    categoryId: Number(form.categoryId),
+  };
+}
+
+export function useAdminProducts() {
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  const filteredProducts = useMemo(() => products.filter((product) => {
+    const matchesStatus = statusFilter ? product.status === statusFilter : true;
+    const matchesCategory = categoryFilter ? String(product.categoryId) === categoryFilter : true;
+    return matchesStatus && matchesCategory;
+  }), [categoryFilter, products, statusFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / ADMIN_PRODUCTS_PAGE_SIZE));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const paginatedProducts = filteredProducts.slice(
+    (safeCurrentPage - 1) * ADMIN_PRODUCTS_PAGE_SIZE,
+    safeCurrentPage * ADMIN_PRODUCTS_PAGE_SIZE,
+  );
+
+  const productStats = useMemo(() => {
+    const lowStockProducts = products.filter((product) => Number(product.stockQuantity) > 0 && Number(product.stockQuantity) <= 5);
+
+    return {
+      total: products.length,
+      active: products.filter((product) => product.status === "ACTIVE").length,
+      lowStock: lowStockProducts.length,
+      outOfStock: products.filter((product) => Number(product.stockQuantity) === 0 || product.status === "OUT_OF_STOCK").length,
+    };
+  }, [products]);
+
+  async function loadProducts(nextSearch = search) {
+    const response = await adminProductsApi.getProducts(nextSearch);
+    setProducts(response.data);
+    return response.data;
+  }
+
+  async function loadInitialData() {
+    setLoading(true);
+    try {
+      const [productsResponse, categoriesResponse] = await Promise.all([
+        adminProductsApi.getProducts(),
+        adminProductsApi.getCategories(),
+      ]);
+      setProducts(productsResponse.data);
+      setCategories(categoriesResponse.data.filter((category) => category.active));
+      setError("");
+    } catch (exception) {
+      setError(getApiErrorMessage(exception, "Unable to load admin products."));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function searchProducts(event) {
+    event.preventDefault();
+    setLoading(true);
+    setCurrentPage(1);
+    try {
+      await loadProducts(search);
+      setError("");
+    } catch (exception) {
+      setError(getApiErrorMessage(exception, "Unable to search products."));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function resetFilters() {
+    setSearch("");
+    setStatusFilter("");
+    setCategoryFilter("");
+    setCurrentPage(1);
+    setLoading(true);
+    try {
+      await loadProducts("");
+      setError("");
+    } catch (exception) {
+      setError(getApiErrorMessage(exception, "Unable to reset filters."));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function saveProduct(editingId, form) {
+    if (editingId) {
+      await adminProductsApi.updateProduct(editingId, toProductRequest(form));
+      setMessage("Product updated.");
+    } else {
+      await adminProductsApi.createProduct(toProductRequest(form));
+      setMessage("Product created.");
+    }
+    await loadProducts();
+  }
+
+  async function archiveProduct(id) {
+    await adminProductsApi.archiveProduct(id);
+    setMessage("Product archived.");
+    await loadProducts();
+  }
+
+  async function updateStock(product, stockQuantity) {
+    await adminProductsApi.updateStock(product.id, stockQuantity);
+    setMessage("Stock updated.");
+    await loadProducts();
+  }
+
+  function updateStatusFilter(value) {
+    setStatusFilter(value);
+    setCurrentPage(1);
+  }
+
+  function updateCategoryFilter(value) {
+    setCategoryFilter(value);
+    setCurrentPage(1);
+  }
+
+  useEffect(() => {
+    loadInitialData();
+  }, []);
+
+  return {
+    categories,
+    categoryFilter,
+    currentPage: safeCurrentPage,
+    error,
+    filteredProducts,
+    loading,
+    message,
+    paginatedProducts,
+    productStats,
+    products,
+    search,
+    statusFilter,
+    totalPages,
+    archiveProduct,
+    loadProducts,
+    resetFilters,
+    saveProduct,
+    searchProducts,
+    setCurrentPage,
+    setError,
+    setMessage,
+    setSearch,
+    updateCategoryFilter,
+    updateStatusFilter,
+    updateStock,
+  };
+}
