@@ -16,6 +16,7 @@ import AdminCustomerDetailsPage from "../pages/AdminCustomerDetailsPage";
 import CategoriesPage from "../pages/CategoriesPage";
 import CartPage from "../pages/CartPage";
 import CheckoutPage from "../pages/CheckoutPage";
+import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 import HomePage from "../pages/HomePage";
 import LoginPage from "../pages/LoginPage";
 import NotFoundPage from "../pages/NotFoundPage";
@@ -26,6 +27,7 @@ import ProductDetailsPage from "../pages/ProductDetailsPage";
 import ProductsPage from "../pages/ProductsPage";
 import ProfilePage from "../pages/ProfilePage";
 import RegisterPage from "../pages/RegisterPage";
+import ResetPasswordPage from "../pages/ResetPasswordPage";
 import SupportPage from "../pages/SupportPage";
 import UnauthorizedPage from "../pages/UnauthorizedPage";
 import ServerErrorPage from "../pages/ServerErrorPage";
@@ -38,6 +40,8 @@ export default function AppRouter() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/categories" element={<CategoriesPage />} />
         <Route path="/products" element={<ProductsPage />} />
         <Route path="/products/:id" element={<ProductDetailsPage />} />

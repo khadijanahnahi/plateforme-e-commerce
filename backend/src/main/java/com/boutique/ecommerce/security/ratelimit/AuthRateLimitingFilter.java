@@ -69,7 +69,10 @@ public class AuthRateLimitingFilter extends OncePerRequestFilter {
         }
 
         String path = request.getRequestURI();
-        return path.endsWith("/api/auth/login") || path.endsWith("/api/auth/register");
+        return path.endsWith("/api/auth/login")
+                || path.endsWith("/api/auth/register")
+                || path.endsWith("/api/auth/forgot-password")
+                || path.endsWith("/api/auth/reset-password");
     }
 
     private String buildKey(HttpServletRequest request) {

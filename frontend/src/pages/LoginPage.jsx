@@ -161,7 +161,7 @@ export default function LoginPage() {
                 />
                 <span>Se souvenir de moi</span>
               </label>
-              <Link className="auth-text-link" to="/login">
+              <Link className="auth-text-link" to="/forgot-password">
                 Mot de passe oublié ?
               </Link>
             </div>
