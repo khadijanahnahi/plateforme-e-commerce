@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { productApi } from "../api/productApi";
 import { useAuth } from "../contexts/AuthContext";
 import { useCart } from "../hooks/useCart";
+import { useWishlist } from "../hooks/useWishlist";
 
 const DIRECT_CHECKOUT_KEY = "shopsphere_direct_checkout";
 
@@ -17,6 +18,7 @@ export default function ProductDetailsPage() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { addToCart: addProductToCart } = useCart();
+  const { isWishlisted, toggleWishlist } = useWishlist();
   const reviewsSectionRef = useRef(null);
   const [product, setProduct] = useState(null);
   const [reviews, setReviews] = useState([]);
@@ -120,6 +122,23 @@ export default function ProductDetailsPage() {
       setMessage("Product added to cart.");
     } catch (exception) {
       setError(exception.response?.data?.message ?? "Login required or product unavailable.");
+    }
+  }
+
+  async function handleToggleWishlist() {
+    setMessage("");
+    setError("");
+
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      const added = await toggleWishlist(product.id);
+      setMessage(added ? "Product added to wishlist." : "Product removed from wishlist.");
+    } catch (exception) {
+      setError(exception.response?.data?.message ?? "Unable to update wishlist.");
     }
   }
 
@@ -239,6 +258,13 @@ export default function ProductDetailsPage() {
           </div>
 
           <div className="details-actions">
+            <button
+              className={`button button-secondary wishlist-detail-button ${isWishlisted(product.id) ? "is-active" : ""}`}
+              type="button"
+              onClick={handleToggleWishlist}
+            >
+              {isWishlisted(product.id) ? "\u2665 Saved" : "\u2661 Save"}
+            </button>
             <button className="button button-primary" type="button" onClick={() => addToCart()} disabled={!canBuy}>
               Add to Cart
             </button>

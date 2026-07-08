@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { productApi } from "../api/productApi";
 import ProductCard from "../components/product/ProductCard";
+import { useAuth } from "../contexts/AuthContext";
 import { useCart } from "../hooks/useCart";
+import { useWishlist } from "../hooks/useWishlist";
 
 export default function ProductsPage() {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const querySearch = searchParams.get("search") ?? "";
   const queryCategoryId = searchParams.get("categoryId") ?? "";
@@ -15,7 +18,9 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const { isAuthenticated } = useAuth();
   const { addToCart } = useCart();
+  const { isWishlisted, toggleWishlist } = useWishlist();
 
   async function loadProducts(nextSearch = search, nextCategoryId = categoryId) {
     const response = await productApi.getProducts({
@@ -85,6 +90,23 @@ export default function ProductsPage() {
     }
   }
 
+  async function handleToggleWishlist(product) {
+    setMessage("");
+    setError("");
+
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      const added = await toggleWishlist(product.id);
+      setMessage(added ? "Produit ajoute a la wishlist." : "Produit retire de la wishlist.");
+    } catch (exception) {
+      setError(exception.response?.data?.message ?? "Unable to update wishlist.");
+    }
+  }
+
   return (
     <section className="page catalog-page">
       <div className="catalog-hero">
@@ -115,7 +137,13 @@ export default function ProductsPage() {
         ) : products.length === 0 ? (
           <div className="admin-panel">No products found.</div>
         ) : products.map((product) => (
-          <ProductCard product={product} onAddToCart={handleAddToCart} key={product.id} />
+          <ProductCard
+            isWishlisted={isWishlisted(product.id)}
+            product={product}
+            onAddToCart={handleAddToCart}
+            onToggleWishlist={handleToggleWishlist}
+            key={product.id}
+          />
         ))}
       </div>
     </section>

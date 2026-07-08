@@ -3,12 +3,14 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import ClientHeader from "../components/ClientHeader";
 import { useAuth } from "../contexts/AuthContext";
 import { useCart } from "../hooks/useCart";
+import { useWishlist } from "../hooks/useWishlist";
 
 export default function MainLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated, logout, user } = useAuth();
   const { cartCount } = useCart();
+  const { wishlistCount } = useWishlist();
   const [searchTerm, setSearchTerm] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isAdmin = user?.roles?.some((role) => role === "ADMIN" || role === "ROLE_ADMIN");
@@ -54,6 +56,7 @@ export default function MainLayout() {
         searchTerm={searchTerm}
         setMobileMenuOpen={setMobileMenuOpen}
         setSearchTerm={setSearchTerm}
+        wishlistCount={wishlistCount}
       />
       <main>
         <Outlet />

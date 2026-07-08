@@ -14,31 +14,32 @@ export default function ClientHeader({
   searchTerm,
   setMobileMenuOpen,
   setSearchTerm,
+  wishlistCount,
 }) {
   return (
     <header className="client-header">
       <div className="client-announcement" aria-label="Annonces ShopSphere">
         <div className="client-announcement-track">
-          <span>Éditions monochromes premium</span>
+          <span>Editions monochromes premium</span>
           <span>Nouveaux drops chaque semaine</span>
           <span>Livraison express 48h</span>
-          <span>Accès prioritaire membres</span>
-          <span>Éditions monochromes premium</span>
+          <span>Acces prioritaire membres</span>
+          <span>Editions monochromes premium</span>
           <span>Nouveaux drops chaque semaine</span>
           <span>Livraison express 48h</span>
-          <span>Accès prioritaire membres</span>
+          <span>Acces prioritaire membres</span>
         </div>
       </div>
 
       <div className="client-header-main">
         <NavLink className="client-logo" to="/" aria-label="Accueil ShopSphere">
-          Shop<span aria-hidden="true">•</span>Sphere
+          Shop<span aria-hidden="true">{"\u2022"}</span>Sphere
         </NavLink>
 
         <nav className="client-desktop-nav" aria-label="Navigation principale">
           <NavLink className={() => getProductNavClass(null)} to="/products">Boutique</NavLink>
-          <NavLink className={({ isActive }) => (isActive ? "active" : undefined)} to="/categories">Catégories</NavLink>
-          <NavLink className={() => getProductNavClass("new")} to="/products?sort=new">Nouveautés</NavLink>
+          <NavLink className={({ isActive }) => (isActive ? "active" : undefined)} to="/categories">Categories</NavLink>
+          <NavLink className={() => getProductNavClass("new")} to="/products?sort=new">Nouveautes</NavLink>
           <NavLink className={() => getProductNavClass("best")} to="/products?sort=best">Meilleures ventes</NavLink>
         </nav>
 
@@ -50,8 +51,9 @@ export default function ClientHeader({
             setSearchTerm={setSearchTerm}
           />
 
-          <NavLink className="client-icon-button" to="/" aria-label="Liste de souhaits">
-            <span aria-hidden="true">♡</span>
+          <NavLink className="client-icon-button client-wishlist-button" to="/wishlist" aria-label={`Wishlist avec ${wishlistCount} produit${wishlistCount > 1 ? "s" : ""}`}>
+            <span aria-hidden="true">{"\u2661"}</span>
+            {isAuthenticated && wishlistCount > 0 ? <strong>{wishlistCount}</strong> : null}
           </NavLink>
 
           <NavLink className="client-icon-button client-cart-button" to="/cart" aria-label={`Panier avec ${cartCount} article${cartCount > 1 ? "s" : ""}`}>
@@ -90,6 +92,7 @@ export default function ClientHeader({
           isAuthenticated={isAuthenticated}
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
+          wishlistCount={wishlistCount}
         />
       ) : null}
     </header>

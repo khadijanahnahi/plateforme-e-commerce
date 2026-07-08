@@ -1,12 +1,20 @@
 import { Link } from "react-router-dom";
 
-export default function ProductCard({ product, onAddToCart }) {
+export default function ProductCard({ isWishlisted = false, onAddToCart, onToggleWishlist, product }) {
   const displayPrice = product.effectivePrice ?? product.price;
 
   return (
     <article className="product-card reveal-card">
       <div className="product-image">
         <span className="favorite-chip">{product.promotionBadgeLabel || product.status}</span>
+        <button
+          className={`wishlist-heart-button ${isWishlisted ? "is-active" : ""}`}
+          type="button"
+          aria-label={isWishlisted ? "Supprimer de la wishlist" : "Ajouter a la wishlist"}
+          onClick={() => onToggleWishlist?.(product)}
+        >
+          {isWishlisted ? "\u2665" : "\u2661"}
+        </button>
         {product.imageUrl ? (
           <img className="catalog-image" src={product.imageUrl} alt={product.name} />
         ) : (

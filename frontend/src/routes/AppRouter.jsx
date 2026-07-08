@@ -29,6 +29,7 @@ import RegisterPage from "../pages/RegisterPage";
 import SupportPage from "../pages/SupportPage";
 import UnauthorizedPage from "../pages/UnauthorizedPage";
 import ServerErrorPage from "../pages/ServerErrorPage";
+import WishlistPage from "../pages/WishlistPage";
 
 export default function AppRouter() {
   return (
@@ -40,6 +41,7 @@ export default function AppRouter() {
         <Route path="/categories" element={<CategoriesPage />} />
         <Route path="/products" element={<ProductsPage />} />
         <Route path="/products/:id" element={<ProductDetailsPage />} />
+        <Route path="/wishlist" element={<WishlistPage />} />
         <Route path="/cart" element={<CartPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/order-success/:orderId" element={<OrderSuccessPage />} />
