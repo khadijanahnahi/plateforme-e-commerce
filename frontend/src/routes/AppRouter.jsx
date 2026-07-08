@@ -1,7 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 import AdminRoute from "./AdminRoute";
 import AdminOrderDetailsPage from "../pages/AdminOrderDetailsPage";
-import MainLayout from "../layouts/MainLayout";
+import ClientLayout from "../layouts/ClientLayout";
 import AdminLayout from "../layouts/AdminLayout";
 import AdminDashboardPage from "../pages/AdminDashboardPage";
 import AdminBannersPage from "../pages/AdminBannersPage";
@@ -33,7 +33,7 @@ import ServerErrorPage from "../pages/ServerErrorPage";
 export default function AppRouter() {
   return (
     <Routes>
-      <Route element={<MainLayout />}>
+      <Route element={<ClientLayout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
