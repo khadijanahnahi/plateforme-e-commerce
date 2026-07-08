@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import ClientHeader from "../components/ClientHeader";
+import ClientFooter from "../components/layout/ClientFooter";
 import { useAuth } from "../contexts/AuthContext";
 import { useCart } from "../hooks/useCart";
 import { useWishlist } from "../hooks/useWishlist";
@@ -61,6 +62,7 @@ export default function MainLayout() {
       <main>
         <Outlet />
       </main>
+      <ClientFooter />
     </div>
   );
 }

@@ -224,7 +224,7 @@ export default function SupportPage() {
         </div>
       </section>
 
-      <footer className="support-footer">
+      <footer className="support-footer support-local-footer">
         <div className="page support-footer-grid">
           <div className="support-footer-brand">
             <strong>ShopSphere</strong>
@@ -248,7 +248,9 @@ export default function SupportPage() {
             <h3>About</h3>
             <a href="/#about">Our Story</a>
             <a href="/#contact">Contact</a>
-            <a href="/#terms">Terms</a>
+            <Link to="/terms">Conditions</Link>
+            <Link to="/privacy-policy">ConfidentialitÃ©</Link>
+            <Link to="/return-policy">Retours</Link>
           </div>
           <form className="support-newsletter" onSubmit={(event) => event.preventDefault()}>
             <h3>Newsletter</h3>

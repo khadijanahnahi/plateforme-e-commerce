@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import http from "../api/http";
+import FlashSaleSection from "../components/product/FlashSaleSection";
 import heroMonochrome from "../../images/hero-monochrome.webp";
 
 const fallbackCategories = [
@@ -23,41 +24,6 @@ const fallbackCategories = [
     name: "Éditions limitées",
     description: "Drops saisonniers et pièces rares à forte identité.",
     itemCount: "11 nouveautés",
-  },
-];
-
-const flashProducts = [
-  {
-    name: "Graphite Hoodie",
-    price: "720 DH",
-    oldPrice: "1180 DH",
-    sold: 82,
-    sales: "82 ventes",
-    badge: "Hoodie",
-  },
-  {
-    name: "White Arc Sneakers",
-    price: "1240 DH",
-    oldPrice: "1790 DH",
-    sold: 64,
-    sales: "64 ventes",
-    badge: "Sneakers",
-  },
-  {
-    name: "Midnight Crossbody",
-    price: "890 DH",
-    oldPrice: "1340 DH",
-    sold: 73,
-    sales: "73 ventes",
-    badge: "Sac",
-  },
-  {
-    name: "Noir Ceramic Watch",
-    price: "1460 DH",
-    oldPrice: "2100 DH",
-    sold: 58,
-    sales: "58 ventes",
-    badge: "Montre",
   },
 ];
 
@@ -305,7 +271,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
       <section className="page section-block">
         <div className="section-heading">
           <div>
@@ -333,13 +298,15 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="page section-block">
+      {/*
+      <section className="page section-block flash-sale-section">
         <div className="section-heading flash-header">
           <div>
             <span className="section-kicker">Flash Sale</span>
             <h2>Drops limités, stocks en mouvement</h2>
           </div>
           <div className="flash-toolbar">
+            <span className="flash-toolbar-label">Fin dans</span>
             <div className="countdown">
               <span>08</span>
               <span>17</span>
@@ -358,12 +325,15 @@ export default function HomePage() {
         <div className="flash-grid">
           {flashProducts.map((product, index) => (
             <article
-              className="product-card reveal-card"
+              className={`product-card flash-product-card reveal-card flash-card-${index + 1}`}
               key={product.name}
               style={{ animationDelay: `${0.12 + index * 0.08}s` }}
             >
               <div className="product-image">
-                <span className="favorite-chip">Favori</span>
+                <span className="favorite-chip">Deal</span>
+                <span className="flash-discount">
+                  -{Math.max(15, 100 - Math.round((parseInt(product.price, 10) / parseInt(product.oldPrice, 10)) * 100))}%
+                </span>
                 <div className="product-placeholder">
                   <span>{product.badge}</span>
                 </div>
@@ -380,7 +350,7 @@ export default function HomePage() {
                 <div className="product-meta">
                   <small>{product.sales}</small>
                   <button className="inline-cart" type="button">
-                    Ajouter
+                    Ajouter au panier
                   </button>
                 </div>
               </div>
@@ -388,6 +358,9 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+      */}
+
+      <FlashSaleSection />
 
       <section className="page section-block">
         <div className="section-heading">
@@ -400,19 +373,23 @@ export default function HomePage() {
         <div className="recommended-grid">
           {recommendedProducts.map((product, index) => (
             <article
-              className="recommended-card reveal-card"
+              className="recommended-card editorial-pick-card reveal-card"
               key={product.name}
               style={{ animationDelay: `${0.1 + index * 0.1}s` }}
             >
               <div className="recommended-visual">
+                <small>0{index + 1}</small>
                 <span>{product.name.split(" ")[0]}</span>
               </div>
               <div className="recommended-copy">
+                <span className="editorial-tag">Edition quotidienne</span>
                 <h3>{product.name}</h3>
                 <p>{product.details}</p>
                 <div className="recommended-footer">
                   <strong>{product.price}</strong>
-                  <button type="button">Voir produit</button>
+                  <Link className="recommended-link" to="/products">
+                    Voir produit
+                  </Link>
                 </div>
               </div>
             </article>
@@ -463,7 +440,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <footer className="site-footer">
+      <footer className="site-footer home-local-footer">
         <div className="page footer-content">
           <div className="footer-brand">
             <strong>ShopSphere</strong>
@@ -495,7 +472,9 @@ export default function HomePage() {
             <div className="footer-links">
               <a href="/#about">À propos</a>
               <Link to="/support">Contact</Link>
-              <a href="/#terms">Conditions</a>
+              <Link to="/terms">Conditions</Link>
+              <Link to="/privacy-policy">ConfidentialitÃ©</Link>
+              <Link to="/return-policy">Retours</Link>
             </div>
           </div>
         </div>

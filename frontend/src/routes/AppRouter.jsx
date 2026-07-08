@@ -23,12 +23,15 @@ import NotFoundPage from "../pages/NotFoundPage";
 import OrdersPage from "../pages/OrdersPage";
 import OrderDetailsPage from "../pages/OrderDetailsPage";
 import OrderSuccessPage from "../pages/OrderSuccessPage";
+import PrivacyPolicyPage from "../pages/PrivacyPolicyPage";
 import ProductDetailsPage from "../pages/ProductDetailsPage";
 import ProductsPage from "../pages/ProductsPage";
 import ProfilePage from "../pages/ProfilePage";
 import RegisterPage from "../pages/RegisterPage";
 import ResetPasswordPage from "../pages/ResetPasswordPage";
+import ReturnPolicyPage from "../pages/ReturnPolicyPage";
 import SupportPage from "../pages/SupportPage";
+import TermsPage from "../pages/TermsPage";
 import UnauthorizedPage from "../pages/UnauthorizedPage";
 import ServerErrorPage from "../pages/ServerErrorPage";
 import WishlistPage from "../pages/WishlistPage";
@@ -53,6 +56,9 @@ export default function AppRouter() {
         <Route path="/orders/:id" element={<OrderDetailsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/support" element={<SupportPage />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+        <Route path="/return-policy" element={<ReturnPolicyPage />} />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
         <Route path="/500" element={<ServerErrorPage />} />
         <Route path="*" element={<NotFoundPage />} />
