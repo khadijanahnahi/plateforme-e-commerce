@@ -4,6 +4,8 @@ import com.boutique.ecommerce.order.entity.Order;
 import com.boutique.ecommerce.order.entity.OrderItem;
 import com.boutique.ecommerce.order.entity.OrderStatus;
 import com.boutique.ecommerce.order.repository.OrderRepository;
+import com.boutique.ecommerce.settings.entity.StoreSettings;
+import com.boutique.ecommerce.settings.repository.StoreSettingsRepository;
 import jakarta.mail.MessagingException;
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -21,19 +23,26 @@ public class OrderEmailService {
     private final OrderRepository orderRepository;
     private final EmailService emailService;
     private final AppEmailProperties emailProperties;
+    private final StoreSettingsRepository storeSettingsRepository;
 
     public OrderEmailService(
             OrderRepository orderRepository,
             EmailService emailService,
-            AppEmailProperties emailProperties
+            AppEmailProperties emailProperties,
+            StoreSettingsRepository storeSettingsRepository
     ) {
         this.orderRepository = orderRepository;
         this.emailService = emailService;
         this.emailProperties = emailProperties;
+        this.storeSettingsRepository = storeSettingsRepository;
     }
 
     @Transactional(readOnly = true)
     public void sendOrderConfirmation(Long orderId) {
+        if (!isStoreEmailEnabled(true)) {
+            log.info("Order confirmation email skipped by store settings. orderId={}", orderId);
+            return;
+        }
         sendOrderEmail(orderId, "confirmation", order -> new EmailContent(
                 "Votre commande " + emailProperties.getStoreName() + " " + order.getOrderNumber(),
                 buildOrderConfirmationHtml(order)
@@ -42,6 +51,10 @@ public class OrderEmailService {
 
     @Transactional(readOnly = true)
     public void sendOrderStatusUpdate(Long orderId, OrderStatus oldStatus, OrderStatus newStatus) {
+        if (!isStoreEmailEnabled(false)) {
+            log.info("Order status email skipped by store settings. orderId={} newStatus={}", orderId, newStatus);
+            return;
+        }
         if (oldStatus == newStatus) {
             log.info(
                     "Order status update email skipped: status did not change. orderId={} status={}",
@@ -103,6 +116,15 @@ public class OrderEmailService {
                     exception
             );
         }
+    }
+
+    private boolean isStoreEmailEnabled(boolean confirmationEmail) {
+        return storeSettingsRepository.findById(StoreSettings.GLOBAL_SETTINGS_ID)
+                .map(settings -> settings.isEmailNotificationsEnabled()
+                        && (confirmationEmail
+                        ? settings.isOrderConfirmationEmailEnabled()
+                        : settings.isOrderStatusEmailEnabled()))
+                .orElse(true);
     }
 
     private boolean isCustomerFacingStatus(OrderStatus status) {

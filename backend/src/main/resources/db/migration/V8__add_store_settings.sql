@@ -1,0 +1,67 @@
+CREATE TABLE IF NOT EXISTS store_settings (
+    id BIGINT PRIMARY KEY,
+    store_name VARCHAR(120) NOT NULL,
+    support_email VARCHAR(190) NOT NULL,
+    support_phone VARCHAR(40),
+    store_address TEXT,
+    currency VARCHAR(3) NOT NULL DEFAULT 'MAD',
+    delivery_fee NUMERIC(12, 2) NOT NULL DEFAULT 0,
+    free_delivery_threshold NUMERIC(12, 2) NOT NULL DEFAULT 0,
+    estimated_delivery_text VARCHAR(240) NOT NULL,
+    cash_on_delivery_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    email_notifications_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    order_confirmation_email_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    order_status_email_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    invoice_email_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    low_stock_threshold INTEGER NOT NULL DEFAULT 5,
+    invoice_prefix VARCHAR(20) NOT NULL DEFAULT 'INV',
+    invoice_footer_note VARCHAR(500),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT chk_store_settings_singleton CHECK (id = 1),
+    CONSTRAINT chk_store_settings_currency CHECK (char_length(currency) = 3),
+    CONSTRAINT chk_store_settings_delivery_fee CHECK (delivery_fee >= 0),
+    CONSTRAINT chk_store_settings_free_delivery CHECK (free_delivery_threshold >= 0),
+    CONSTRAINT chk_store_settings_low_stock CHECK (low_stock_threshold >= 0)
+);
+
+INSERT INTO store_settings (
+    id,
+    store_name,
+    support_email,
+    support_phone,
+    store_address,
+    currency,
+    delivery_fee,
+    free_delivery_threshold,
+    estimated_delivery_text,
+    cash_on_delivery_enabled,
+    email_notifications_enabled,
+    order_confirmation_email_enabled,
+    order_status_email_enabled,
+    invoice_email_enabled,
+    low_stock_threshold,
+    invoice_prefix,
+    invoice_footer_note
+)
+VALUES (
+    1,
+    'ShopSphere',
+    'support@shopsphere.ma',
+    '+212 6 00 00 00 00',
+    'Fès, Maroc',
+    'MAD',
+    0,
+    0,
+    'Livraison sous 2 à 5 jours ouvrables.',
+    TRUE,
+    TRUE,
+    TRUE,
+    TRUE,
+    TRUE,
+    5,
+    'INV',
+    'Merci pour votre achat chez ShopSphere.'
+)
+ON CONFLICT (id) DO NOTHING;

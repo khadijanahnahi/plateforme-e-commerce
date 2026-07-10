@@ -1,9 +1,9 @@
+import { lazy, Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import AdminRoute from "./AdminRoute";
 import AdminOrderDetailsPage from "../pages/AdminOrderDetailsPage";
 import ClientLayout from "../layouts/ClientLayout";
 import AdminLayout from "../layouts/AdminLayout";
-import AdminDashboardPage from "../pages/AdminDashboardPage";
 import AdminBannersPage from "../pages/AdminBannersPage";
 import AdminCouponsPage from "../pages/AdminCouponsPage";
 import AdminOrdersPage from "../pages/AdminOrdersPage";
@@ -13,6 +13,7 @@ import AdminReviewsPage from "../pages/AdminReviewsPage";
 import AdminPromotionsPage from "../pages/AdminPromotionsPage";
 import AdminCustomersPage from "../pages/AdminCustomersPage";
 import AdminCustomerDetailsPage from "../pages/AdminCustomerDetailsPage";
+import AdminSettingsPage from "../pages/AdminSettingsPage";
 import CategoriesPage from "../pages/CategoriesPage";
 import CartPage from "../pages/CartPage";
 import CheckoutPage from "../pages/CheckoutPage";
@@ -35,6 +36,8 @@ import TermsPage from "../pages/TermsPage";
 import UnauthorizedPage from "../pages/UnauthorizedPage";
 import ServerErrorPage from "../pages/ServerErrorPage";
 import WishlistPage from "../pages/WishlistPage";
+
+const AdminDashboardPage = lazy(() => import("../pages/AdminDashboardPage"));
 
 export default function AppRouter() {
   return (
@@ -65,7 +68,14 @@ export default function AppRouter() {
       </Route>
       <Route element={<AdminRoute />}>
         <Route element={<AdminLayout />}>
-          <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+          <Route
+            path="/admin/dashboard"
+            element={(
+              <Suspense fallback={<div className="dashboard-route-loading">Chargement du tableau de bord...</div>}>
+                <AdminDashboardPage />
+              </Suspense>
+            )}
+          />
           <Route path="/admin/banners" element={<AdminBannersPage />} />
           <Route path="/admin/promotions" element={<AdminPromotionsPage />} />
           <Route path="/admin/categories" element={<AdminCategoriesPage />} />
@@ -76,6 +86,7 @@ export default function AppRouter() {
           <Route path="/admin/products" element={<AdminProductsPage />} />
           <Route path="/admin/orders" element={<AdminOrdersPage />} />
           <Route path="/admin/orders/:id" element={<AdminOrderDetailsPage />} />
+          <Route path="/admin/settings" element={<AdminSettingsPage />} />
         </Route>
       </Route>
     </Routes>

@@ -16,17 +16,30 @@ jobs:
   security:
     name: Security scan
     runs-on: ubuntu-latest
+    env:
+      TRIVY_DISABLE_VEX_NOTICE: "true"
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set up Java for Maven cache
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Resolve backend dependencies before scan
+        working-directory: backend
+        run: mvn -B -q -DskipTests dependency:resolve
 
       - name: Scan dependencies, config and secrets with Trivy
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scan-ref: .
-          scanners: vuln,secret,config
+          scanners: vuln,secret,misconfig
           severity: HIGH,CRITICAL
           ignore-unfixed: true
           exit-code: "1"

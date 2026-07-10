@@ -15,6 +15,8 @@ import com.boutique.ecommerce.order.entity.PaymentStatus;
 import com.boutique.ecommerce.order.repository.OrderRepository;
 import com.boutique.ecommerce.user.entity.AppUser;
 import com.boutique.ecommerce.user.repository.UserRepository;
+import com.boutique.ecommerce.settings.entity.StoreSettings;
+import com.boutique.ecommerce.settings.repository.StoreSettingsRepository;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,19 +41,22 @@ public class InvoiceService {
     private final UserRepository userRepository;
     private final InvoicePdfService invoicePdfService;
     private final InvoiceFileStorageService invoiceFileStorageService;
+    private final StoreSettingsRepository storeSettingsRepository;
 
     public InvoiceService(
             InvoiceRepository invoiceRepository,
             OrderRepository orderRepository,
             UserRepository userRepository,
             InvoicePdfService invoicePdfService,
-            InvoiceFileStorageService invoiceFileStorageService
+            InvoiceFileStorageService invoiceFileStorageService,
+            StoreSettingsRepository storeSettingsRepository
     ) {
         this.invoiceRepository = invoiceRepository;
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
         this.invoicePdfService = invoicePdfService;
         this.invoiceFileStorageService = invoiceFileStorageService;
+        this.storeSettingsRepository = storeSettingsRepository;
     }
 
     @Transactional
@@ -190,10 +195,17 @@ public class InvoiceService {
     private String generateInvoiceNumber() {
         String invoiceNumber;
         do {
-            invoiceNumber = "INV-" + LocalDateTime.now().getYear() + "-"
+            invoiceNumber = resolveInvoicePrefix() + "-" + LocalDateTime.now().getYear() + "-"
                     + UUID.randomUUID().toString().replace("-", "").substring(0, 10).toUpperCase();
         } while (invoiceRepository.existsByInvoiceNumber(invoiceNumber));
         return invoiceNumber;
+    }
+
+    private String resolveInvoicePrefix() {
+        return storeSettingsRepository.findById(StoreSettings.GLOBAL_SETTINGS_ID)
+                .map(StoreSettings::getInvoicePrefix)
+                .filter(prefix -> !prefix.isBlank())
+                .orElse("INV");
     }
 
     private AppUser getCurrentUser() {

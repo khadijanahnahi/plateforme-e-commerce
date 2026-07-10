@@ -7,6 +7,7 @@ export default function UserMenu({ isAdmin, onLogout }) {
       <div className="client-account-dropdown">
         <NavLink to="/profile">Profil</NavLink>
         <NavLink to="/orders">Mes commandes</NavLink>
+        <NavLink to="/wishlist">Wishlist</NavLink>
         {isAdmin ? <NavLink to="/admin/dashboard">Admin Dashboard</NavLink> : null}
         <button type="button" onClick={onLogout}>Déconnexion</button>
       </div>

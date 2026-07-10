@@ -2,6 +2,8 @@ package com.boutique.ecommerce.invoice.service;
 
 import com.boutique.ecommerce.invoice.entity.Invoice;
 import com.boutique.ecommerce.invoice.entity.InvoiceItem;
+import com.boutique.ecommerce.settings.entity.StoreSettings;
+import com.boutique.ecommerce.settings.repository.StoreSettingsRepository;
 import com.lowagie.text.Document;
 import com.lowagie.text.DocumentException;
 import com.lowagie.text.Element;
@@ -37,9 +39,14 @@ public class InvoicePdfService {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     private final InvoiceFileStorageService invoiceFileStorageService;
+    private final StoreSettingsRepository storeSettingsRepository;
 
-    public InvoicePdfService(InvoiceFileStorageService invoiceFileStorageService) {
+    public InvoicePdfService(
+            InvoiceFileStorageService invoiceFileStorageService,
+            StoreSettingsRepository storeSettingsRepository
+    ) {
         this.invoiceFileStorageService = invoiceFileStorageService;
+        this.storeSettingsRepository = storeSettingsRepository;
     }
 
     public String generatePdf(Invoice invoice) {
@@ -230,10 +237,16 @@ public class InvoicePdfService {
     }
 
     private Paragraph buildFooter() {
+        StoreSettings settings = storeSettingsRepository.findById(StoreSettings.GLOBAL_SETTINGS_ID).orElse(null);
+        String storeName = settings == null ? "ShopSphere" : settings.getStoreName();
+        String supportEmail = settings == null ? "support@shopsphere.ma" : settings.getSupportEmail();
+        String footerNote = settings == null || settings.getInvoiceFooterNote() == null
+                ? "Merci pour votre achat."
+                : settings.getInvoiceFooterNote();
         Paragraph footer = new Paragraph(
-                "Merci pour votre achat.\n"
-                        + "Cette facture a ete generee automatiquement par ShopSphere.\n"
-                        + "Pour toute question : support@shopsphere.ma",
+                footerNote + "\n"
+                        + "Cette facture a ete generee automatiquement par " + storeName + ".\n"
+                        + "Pour toute question : " + supportEmail,
                 mutedFont()
         );
         footer.setSpacingBefore(28);

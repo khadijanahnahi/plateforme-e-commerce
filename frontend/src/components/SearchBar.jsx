@@ -3,7 +3,7 @@ export default function SearchBar({
   onSubmit,
   searchTerm,
   setSearchTerm,
-  placeholder = "Rechercher un produit...",
+  placeholder = "Rechercher...",
 }) {
   return (
     <form className={`client-search ${className}`.trim()} onSubmit={onSubmit} role="search">

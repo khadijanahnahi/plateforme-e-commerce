@@ -22,8 +22,8 @@ export default function MobileMenu({
 
       <nav className="client-mobile-nav" aria-label="Navigation mobile">
         <NavLink className={() => getProductNavClass(null)} to="/products">Boutique</NavLink>
-        <NavLink className={({ isActive }) => (isActive ? "active" : undefined)} to="/categories">Categories</NavLink>
-        <NavLink className={() => getProductNavClass("new")} to="/products?sort=new">Nouveautes</NavLink>
+        <NavLink className={({ isActive }) => (isActive ? "active" : undefined)} to="/categories">Catégories</NavLink>
+        <NavLink className={() => getProductNavClass("new")} to="/products?sort=new">Nouveautés</NavLink>
         <NavLink className={() => getProductNavClass("best")} to="/products?sort=best">Meilleures ventes</NavLink>
         <NavLink to="/wishlist">Wishlist {wishlistCount > 0 ? `(${wishlistCount})` : ""}</NavLink>
         <NavLink to="/cart">Panier</NavLink>
@@ -34,12 +34,12 @@ export default function MobileMenu({
             <NavLink to="/profile">Profil</NavLink>
             <NavLink to="/orders">Mes commandes</NavLink>
             {isAdmin ? <NavLink to="/admin/dashboard">Admin Dashboard</NavLink> : null}
-            <button type="button" onClick={handleLogout}>Deconnexion</button>
+            <button type="button" onClick={handleLogout}>Déconnexion</button>
           </>
         ) : (
           <>
             <NavLink to="/login">Connexion</NavLink>
-            <NavLink to="/register">Creer un compte</NavLink>
+            <NavLink to="/register">Créer un compte</NavLink>
           </>
         )}
       </nav>

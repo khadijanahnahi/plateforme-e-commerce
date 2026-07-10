@@ -13,6 +13,7 @@ const adminLinks = [
   { label: "Reviews", to: "/admin/reviews" },
   { label: "Customers", to: "/admin/customers" },
   { label: "Orders", to: "/admin/orders" },
+  { label: "Settings", to: "/admin/settings" },
 ];
 
 export default function AdminLayout() {
@@ -44,7 +45,6 @@ export default function AdminLayout() {
               {link.label}
             </NavLink>
           ))}
-          <span className="admin-sidebar-disabled">Settings</span>
         </nav>
       </aside>
 

@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
-import DashboardRevenueCard from "../components/dashboard/DashboardRevenueCard";
-import DashboardStatsGrid from "../components/dashboard/DashboardStatsGrid";
+import DashboardCharts from "../components/dashboard/DashboardCharts";
+import DashboardKpiGrid from "../components/dashboard/DashboardKpiGrid";
+import DashboardSkeleton from "../components/dashboard/DashboardSkeleton";
+import DashboardTables from "../components/dashboard/DashboardTables";
 import AdminPageHeader from "../components/layout/AdminPageHeader";
 import { dashboardPeriods, useAdminDashboard } from "../hooks/useAdminDashboard";
 
@@ -9,34 +11,53 @@ export default function AdminDashboardPage() {
     cards,
     error,
     loading,
+    lowStockProducts,
+    ordersByStatus,
+    partialWarning,
+    pendingReviews,
     period,
-    stats,
+    recentOrders,
+    revenueByDay,
+    topProducts,
     updatePeriod,
   } = useAdminDashboard();
 
   return (
-    <section className="page admin-page">
+    <section className="page admin-page admin-dashboard-page">
       <AdminPageHeader
-        kicker="Admin command center"
+        kicker="Centre de pilotage"
         title="ShopSphere Dashboard"
-        description="Vue rapide sur les produits, commandes, clients et revenu non annule."
+        description="Suivez les ventes, les commandes, les clients et les opérations prioritaires de la boutique."
       />
 
-      <div className="admin-actions">
+      <div className="admin-actions dashboard-toolbar">
+        <span>Période</span>
         <select className="dashboard-period-select" value={period} onChange={(event) => updatePeriod(event.target.value)}>
           {dashboardPeriods.map((option) => (
             <option key={option.value} value={option.value}>{option.label}</option>
           ))}
         </select>
-        <Link className="button button-secondary" to="/admin/categories">Manage Categories</Link>
-        <Link className="button button-secondary" to="/admin/products">Manage Products</Link>
-        <Link className="button button-primary" to="/admin/orders">View Orders</Link>
+        <Link className="button button-secondary" to="/admin/products">Gérer les produits</Link>
+        <Link className="button button-primary" to="/admin/orders">Voir les commandes</Link>
       </div>
 
       {error ? <div className="admin-alert">{error}</div> : null}
+      {partialWarning ? <div className="admin-alert dashboard-partial-warning">{partialWarning}</div> : null}
 
-      <DashboardRevenueCard loading={loading} totalRevenue={stats.totalRevenue} />
-      <DashboardStatsGrid cards={cards} loading={loading} />
+      {loading ? <DashboardSkeleton /> : (
+        <>
+          <DashboardKpiGrid cards={cards} />
+          <DashboardCharts ordersByStatus={ordersByStatus} revenueByDay={revenueByDay} topProducts={topProducts} />
+
+          <Link className="dashboard-review-callout reveal-card" to="/admin/reviews">
+            <div><span>Modération</span><strong>{pendingReviews}</strong></div>
+            <p>{pendingReviews ? `${pendingReviews} avis en attente de validation.` : "Aucun avis en attente de validation."}</p>
+            <b>Ouvrir les avis →</b>
+          </Link>
+
+          <DashboardTables lowStockProducts={lowStockProducts} recentOrders={recentOrders} />
+        </>
+      )}
     </section>
   );
 }

@@ -20,14 +20,14 @@ export default function ClientHeader({
     <header className="client-header">
       <div className="client-announcement" aria-label="Annonces ShopSphere">
         <div className="client-announcement-track">
-          <span>Editions monochromes premium</span>
+          <span>Éditions monochromes premium</span>
           <span>Nouveaux drops chaque semaine</span>
           <span>Livraison express 48h</span>
-          <span>Acces prioritaire membres</span>
-          <span>Editions monochromes premium</span>
+          <span>Accès prioritaire membres</span>
+          <span>Éditions monochromes premium</span>
           <span>Nouveaux drops chaque semaine</span>
           <span>Livraison express 48h</span>
-          <span>Acces prioritaire membres</span>
+          <span>Accès prioritaire membres</span>
         </div>
       </div>
 
@@ -38,8 +38,8 @@ export default function ClientHeader({
 
         <nav className="client-desktop-nav" aria-label="Navigation principale">
           <NavLink className={() => getProductNavClass(null)} to="/products">Boutique</NavLink>
-          <NavLink className={({ isActive }) => (isActive ? "active" : undefined)} to="/categories">Categories</NavLink>
-          <NavLink className={() => getProductNavClass("new")} to="/products?sort=new">Nouveautes</NavLink>
+          <NavLink className={({ isActive }) => (isActive ? "active" : undefined)} to="/categories">Catégories</NavLink>
+          <NavLink className={() => getProductNavClass("new")} to="/products?sort=new">Nouveautés</NavLink>
           <NavLink className={() => getProductNavClass("best")} to="/products?sort=best">Meilleures ventes</NavLink>
         </nav>
 
