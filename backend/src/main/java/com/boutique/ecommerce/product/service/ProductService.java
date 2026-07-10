@@ -15,6 +15,7 @@ import com.boutique.ecommerce.promotion.service.PromotionService;
 import com.boutique.ecommerce.promotion.service.PromotionService.EffectivePriceResult;
 import com.boutique.ecommerce.review.entity.ReviewStatus;
 import com.boutique.ecommerce.review.repository.ProductReviewRepository;
+import com.boutique.ecommerce.stock.service.StockMovementService;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,17 +32,20 @@ public class ProductService {
     private final CategoryRepository categoryRepository;
     private final ProductReviewRepository reviewRepository;
     private final PromotionService promotionService;
+    private final StockMovementService stockMovementService;
 
     public ProductService(
             ProductRepository productRepository,
             CategoryRepository categoryRepository,
             ProductReviewRepository reviewRepository,
-            PromotionService promotionService
+            PromotionService promotionService,
+            StockMovementService stockMovementService
     ) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
         this.reviewRepository = reviewRepository;
         this.promotionService = promotionService;
+        this.stockMovementService = stockMovementService;
     }
 
     @Transactional(readOnly = true)
@@ -105,6 +109,7 @@ public class ProductService {
     @Transactional
     public ProductResponse update(Long id, ProductRequest request) {
         Product product = findProduct(id);
+        int stockBefore = product.getStockQuantity();
         Category category = findActiveCategory(request.categoryId());
         String sku = normalizeOptional(request.sku());
         validateUniqueSku(sku, id);
@@ -117,6 +122,7 @@ public class ProductService {
         product.setSku(sku);
         product.setStatus(resolveStatus(request.status(), request.stockQuantity()));
         product.setCategory(category);
+        stockMovementService.recordManualAdjustment(product, stockBefore, request.stockQuantity());
 
         return toResponse(product);
     }
@@ -124,6 +130,7 @@ public class ProductService {
     @Transactional
     public ProductResponse updateStock(Long id, UpdateProductStockRequest request) {
         Product product = findProduct(id);
+        int stockBefore = product.getStockQuantity();
         product.setStockQuantity(request.stockQuantity());
 
         if (request.stockQuantity() == 0 && product.getStatus() == ProductStatus.ACTIVE) {
@@ -131,6 +138,8 @@ public class ProductService {
         } else if (request.stockQuantity() > 0 && product.getStatus() == ProductStatus.OUT_OF_STOCK) {
             product.setStatus(ProductStatus.ACTIVE);
         }
+
+        stockMovementService.recordManualAdjustment(product, stockBefore, request.stockQuantity());
 
         return toResponse(product);
     }

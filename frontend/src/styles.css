@@ -10306,6 +10306,66 @@ button.ui-button-danger:hover:not(:disabled) { background: #6f1d2c; box-shadow: 
   transform: translate(-50%, 0);
 }
 
+/* Admin stock movement history */
+.admin-stock-page {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.stock-movement-filters {
+  display: grid;
+  grid-template-columns: minmax(210px, 1.2fr) minmax(190px, 1fr) minmax(130px, 0.55fr) minmax(155px, 0.7fr) minmax(155px, 0.7fr) auto;
+  align-items: end;
+  gap: 0.85rem;
+}
+
+.stock-filter-actions {
+  display: flex;
+  gap: 0.55rem;
+}
+
+.stock-movement-panel {
+  min-width: 0;
+}
+
+.stock-movement-table th,
+.stock-movement-table td {
+  vertical-align: middle;
+}
+
+.stock-movement-table td > small,
+.stock-movement-table td > strong + small {
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.stock-movement-badge {
+  width: fit-content;
+  padding: 0.42rem 0.65rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  display: inline-flex;
+  font: 750 0.68rem/1 "Segoe UI", sans-serif;
+  white-space: nowrap;
+}
+
+.stock-movement-negative { color: #79283a; border-color: #e5c8cf; background: #f5e5e8; }
+.stock-movement-positive { color: #205b3d; border-color: #c9ded2; background: #eaf3ed; }
+.stock-movement-neutral { color: #59534d; border-color: #ddd8d1; background: #f0ede8; }
+.stock-change-positive { color: #205b3d; }
+.stock-change-negative { color: #8b2638; }
+.stock-reason-cell { min-width: 220px; max-width: 320px; color: var(--ui-muted); line-height: 1.45; }
+
+@media (max-width: 1380px) {
+  .stock-movement-filters { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .stock-filter-actions { align-self: end; }
+}
+
+@media (max-width: 760px) {
+  .stock-movement-filters { grid-template-columns: 1fr; }
+  .stock-filter-actions .ui-button { flex: 1; }
+}
+
 @media (max-width: 1120px) {
   .client-icon-button[data-tooltip]::after { display: none; }
 }

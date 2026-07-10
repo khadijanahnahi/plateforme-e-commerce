@@ -25,9 +25,11 @@ import com.boutique.ecommerce.product.entity.ProductStatus;
 import com.boutique.ecommerce.product.repository.ProductRepository;
 import com.boutique.ecommerce.promotion.service.PromotionService;
 import com.boutique.ecommerce.promotion.service.PromotionService.EffectivePriceResult;
+import com.boutique.ecommerce.stock.service.StockMovementService;
 import com.boutique.ecommerce.user.entity.AppUser;
 import com.boutique.ecommerce.user.repository.UserRepository;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.context.ApplicationEventPublisher;
@@ -46,6 +48,7 @@ public class OrderService {
     private final CouponService couponService;
     private final PromotionService promotionService;
     private final ApplicationEventPublisher eventPublisher;
+    private final StockMovementService stockMovementService;
 
     public OrderService(
             OrderRepository orderRepository,
@@ -54,7 +57,8 @@ public class OrderService {
             UserRepository userRepository,
             CouponService couponService,
             PromotionService promotionService,
-            ApplicationEventPublisher eventPublisher
+            ApplicationEventPublisher eventPublisher,
+            StockMovementService stockMovementService
     ) {
         this.orderRepository = orderRepository;
         this.cartItemRepository = cartItemRepository;
@@ -63,6 +67,7 @@ public class OrderService {
         this.couponService = couponService;
         this.promotionService = promotionService;
         this.eventPublisher = eventPublisher;
+        this.stockMovementService = stockMovementService;
     }
 
     @Transactional
@@ -85,6 +90,7 @@ public class OrderService {
         );
 
         BigDecimal subtotalAmount = BigDecimal.ZERO;
+        List<StockChange> stockChanges = new ArrayList<>();
         for (CartItem cartItem : cartItems) {
             Product product = cartItem.getProduct();
             validateProductForOrder(product);
@@ -95,8 +101,10 @@ public class OrderService {
             order.addItem(orderItem);
             subtotalAmount = subtotalAmount.add(orderItem.getSubtotal());
 
-            int remainingStock = product.getStockQuantity() - cartItem.getQuantity();
+            int stockBefore = product.getStockQuantity();
+            int remainingStock = stockBefore - cartItem.getQuantity();
             product.setStockQuantity(remainingStock);
+            stockChanges.add(new StockChange(product, stockBefore, remainingStock));
             if (remainingStock == 0) {
                 product.setStatus(ProductStatus.OUT_OF_STOCK);
             }
@@ -105,6 +113,8 @@ public class OrderService {
         CouponCalculation couponCalculation = couponService.calculateDiscount(request.couponCode(), subtotalAmount, user);
         applyTotals(order, subtotalAmount, couponCalculation);
         Order savedOrder = orderRepository.save(order);
+        stockChanges.forEach(change -> stockMovementService.recordOrderCreated(
+                change.product(), savedOrder, change.stockBefore(), change.stockAfter()));
         couponService.registerUsage(couponCalculation.coupon(), user, savedOrder);
         cartItemRepository.deleteByUserId(user.getId());
         eventPublisher.publishEvent(new OrderCreatedEvent(savedOrder.getId()));
@@ -137,13 +147,15 @@ public class OrderService {
         CouponCalculation couponCalculation = couponService.calculateDiscount(request.couponCode(), orderItem.getSubtotal(), user);
         applyTotals(order, orderItem.getSubtotal(), couponCalculation);
 
-        int remainingStock = product.getStockQuantity() - request.quantity();
+        int stockBefore = product.getStockQuantity();
+        int remainingStock = stockBefore - request.quantity();
         product.setStockQuantity(remainingStock);
         if (remainingStock == 0) {
             product.setStatus(ProductStatus.OUT_OF_STOCK);
         }
 
         Order savedOrder = orderRepository.save(order);
+        stockMovementService.recordOrderCreated(product, savedOrder, stockBefore, remainingStock);
         couponService.registerUsage(couponCalculation.coupon(), user, savedOrder);
         eventPublisher.publishEvent(new OrderCreatedEvent(savedOrder.getId()));
         return mapToOrderResponse(savedOrder);
@@ -267,10 +279,13 @@ public class OrderService {
     private void restoreStock(Order order) {
         for (OrderItem item : order.getItems()) {
             Product product = item.getProduct();
-            product.setStockQuantity(product.getStockQuantity() + item.getQuantity());
+            int stockBefore = product.getStockQuantity();
+            int stockAfter = stockBefore + item.getQuantity();
+            product.setStockQuantity(stockAfter);
             if (product.getStatus() == ProductStatus.OUT_OF_STOCK && product.getStockQuantity() > 0) {
                 product.setStatus(ProductStatus.ACTIVE);
             }
+            stockMovementService.recordOrderCancelled(product, order, stockBefore, stockAfter);
         }
     }
 
@@ -413,5 +428,8 @@ public class OrderService {
                 price.promotionActive() ? price.discountAmount() : BigDecimal.ZERO,
                 price.promotionActive() ? price.promotionTitle() : null
         );
+    }
+
+    private record StockChange(Product product, int stockBefore, int stockAfter) {
     }
 }
