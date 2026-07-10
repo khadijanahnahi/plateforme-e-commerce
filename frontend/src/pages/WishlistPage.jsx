@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { AsyncState, Button, EmptyState } from "../components/ui";
 import { useAuth } from "../contexts/AuthContext";
 import { useCart } from "../hooks/useCart";
 import { useWishlist } from "../hooks/useWishlist";
@@ -14,22 +15,37 @@ function renderStars(rating) {
 
 export default function WishlistPage() {
   const { isAuthenticated } = useAuth();
-  const { addToCart } = useCart();
-  const { items, loading, removeFromWishlist } = useWishlist();
+  const { addToCart, isCartActionPending } = useCart();
+  const {
+    error,
+    items,
+    isWishlistActionPending,
+    loadWishlist,
+    loading,
+    removeFromWishlist,
+  } = useWishlist();
 
   async function handleAddToCart(item) {
-    await addToCart(item.productId, 1);
+    try {
+      await addToCart(item.productId, 1);
+    } catch { /* Le contexte affiche l'erreur. */ }
+  }
+
+  async function handleRemove(productId) {
+    try {
+      await removeFromWishlist(productId);
+    } catch { /* Le contexte affiche l'erreur. */ }
   }
 
   if (!isAuthenticated) {
     return (
       <section className="page wishlist-page">
-        <div className="wishlist-empty admin-panel">
-          <span className="section-kicker">Wishlist</span>
-          <h1>Connectez-vous pour voir votre wishlist</h1>
-          <p>Votre liste de souhaits est liee a votre compte ShopSphere.</p>
-          <Link className="button button-primary" to="/login">Connexion</Link>
-        </div>
+        <EmptyState
+          title="Connectez-vous pour voir votre wishlist"
+          description="Votre liste de souhaits est liée à votre compte ShopSphere."
+          action={<Link className="button button-primary" to="/login">Connexion</Link>}
+          icon={<span aria-hidden="true">♡</span>}
+        />
       </section>
     );
   }
@@ -39,33 +55,28 @@ export default function WishlistPage() {
       <div className="catalog-hero">
         <div>
           <span className="section-kicker">Wishlist</span>
-          <h1>Vos produits sauvegardes</h1>
-          <p>Retrouvez vos pieces preferees, comparez les prix et ajoutez-les au panier quand vous etes pret.</p>
+          <h1>Vos produits sauvegardés</h1>
+          <p>Retrouvez vos pièces préférées et ajoutez-les au panier lorsque vous êtes prêt.</p>
         </div>
       </div>
 
-      {loading ? (
-        <div className="admin-panel">Chargement de la wishlist...</div>
-      ) : items.length === 0 ? (
-        <div className="wishlist-empty admin-panel">
-          <h2>Votre wishlist est vide.</h2>
-          <p>Decouvrez les produits ShopSphere et sauvegardez vos favoris.</p>
-          <Link className="button button-primary" to="/products">Decouvrir les produits</Link>
-        </div>
-      ) : (
+      <AsyncState
+        empty={items.length === 0}
+        emptyAction={<Link className="button button-primary" to="/products">Découvrir les produits</Link>}
+        emptyDescription="Sauvegardez vos favoris depuis le catalogue pour les retrouver ici."
+        emptyTitle="Votre wishlist est vide"
+        error={error}
+        loading={loading}
+        onRetry={loadWishlist}
+      >
         <div className="wishlist-grid">
           {items.map((item) => {
             const displayPrice = item.effectivePrice ?? item.price;
             const canAddToCart = item.status === "ACTIVE" && Number(item.stockQuantity) > 0;
-
             return (
               <article className="wishlist-card reveal-card" key={item.id}>
                 <div className="wishlist-card-image">
-                  {item.imageUrl ? (
-                    <img src={item.imageUrl} alt={item.productName} />
-                  ) : (
-                    <span>{item.categoryName}</span>
-                  )}
+                  {item.imageUrl ? <img src={item.imageUrl} alt={item.productName} /> : <span>{item.categoryName}</span>}
                 </div>
                 <div className="wishlist-card-copy">
                   <span className="section-kicker">{item.categoryName}</span>
@@ -74,32 +85,32 @@ export default function WishlistPage() {
                   <div className="wishlist-meta">
                     <strong>{formatPrice(displayPrice)}</strong>
                     {item.promotionActive ? <small>{formatPrice(item.originalPrice)}</small> : null}
-                    <span>{item.status === "ACTIVE" ? `Stock: ${item.stockQuantity}` : item.status}</span>
+                    <span>{item.status === "ACTIVE" ? `Stock : ${item.stockQuantity}` : item.status}</span>
                   </div>
-                  <div className="wishlist-rating">
-                    <span>{renderStars(item.averageRating)}</span>
-                    <small>{item.reviewCount ?? 0} avis</small>
-                  </div>
+                  <div className="wishlist-rating"><span>{renderStars(item.averageRating)}</span><small>{item.reviewCount ?? 0} avis</small></div>
                   <div className="wishlist-actions">
-                    <Link className="button button-secondary" to={`/products/${item.productId}`}>Voir produit</Link>
-                    <button
-                      className="button button-primary"
-                      type="button"
+                    <Link className="button button-secondary" to={`/products/${item.productId}`}>Voir le produit</Link>
+                    <Button
                       disabled={!canAddToCart}
+                      loading={isCartActionPending(`add:${item.productId}`)}
                       onClick={() => handleAddToCart(item)}
                     >
                       Ajouter au panier
-                    </button>
-                    <button className="button button-secondary" type="button" onClick={() => removeFromWishlist(item.productId)}>
+                    </Button>
+                    <Button
+                      loading={isWishlistActionPending(item.productId)}
+                      variant="outline"
+                      onClick={() => handleRemove(item.productId)}
+                    >
                       Supprimer
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </article>
             );
           })}
         </div>
-      )}
+      </AsyncState>
     </section>
   );
 }

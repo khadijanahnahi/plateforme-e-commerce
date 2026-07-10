@@ -1,5 +1,6 @@
 import AdminPageHeader from "../components/layout/AdminPageHeader";
 import { useAdminSettings } from "../hooks/useAdminSettings";
+import useFeedbackToast from "../hooks/useFeedbackToast";
 
 function SettingsSwitch({ checked, description, disabled = false, label, name, onChange }) {
   return (
@@ -21,6 +22,7 @@ function SettingsSkeleton() {
 
 export default function AdminSettingsPage() {
   const { error, form, loading, message, saveSettings, saving, updatedAt, updateField } = useAdminSettings();
+  useFeedbackToast(message, error);
 
   return (
     <section className="page admin-page admin-settings-page">
@@ -30,7 +32,6 @@ export default function AdminSettingsPage() {
         description="Gérez les informations publiques et les règles métier de ShopSphere. Les secrets techniques restent protégés dans l’environnement serveur."
       />
 
-      {message ? <div className="admin-alert admin-success">{message}</div> : null}
       {error ? <div className="admin-alert">{error}</div> : null}
 
       {loading ? <SettingsSkeleton /> : (

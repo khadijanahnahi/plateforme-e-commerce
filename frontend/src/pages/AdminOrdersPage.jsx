@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import AdminPageHeader from "../components/layout/AdminPageHeader";
 import AdminOrdersTable from "../components/order/AdminOrdersTable";
 import AdminStatsCard from "../components/ui/AdminStatsCard";
+import { ErrorState } from "../components/ui";
 import {
   ADMIN_ORDERS_PAGE_SIZE,
   orderStatuses,
@@ -27,6 +28,8 @@ export default function AdminOrdersPage() {
     totalPages,
     handleMarkAsPaid,
     handleUpdateStatus,
+    isOrderActionPending,
+    loadOrders,
     resetFilters,
     setCurrentPage,
     updatePaymentFilter,
@@ -54,7 +57,7 @@ export default function AdminOrdersPage() {
       />
 
       {message ? <div className="admin-alert admin-success">{message}</div> : null}
-      {error ? <div className="admin-alert">{error}</div> : null}
+      {error ? <ErrorState description={error} onRetry={loadOrders} /> : null}
 
       <div className="admin-panel">
         <div className="admin-orders-summary">
@@ -82,6 +85,7 @@ export default function AdminOrdersPage() {
         </div>
 
         <AdminOrdersTable
+          isActionPending={isOrderActionPending}
           loading={loading}
           onMarkAsPaid={handleMarkAsPaid}
           onSelectedStatusChange={updateSelectedStatus}

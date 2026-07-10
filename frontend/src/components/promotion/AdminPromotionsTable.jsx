@@ -4,6 +4,7 @@ import {
   formatPromotionMoney,
 } from "../../hooks/useAdminPromotions";
 import PromotionStatusBadge from "./PromotionStatusBadge";
+import { AsyncState } from "../ui";
 
 export default function AdminPromotionsTable({
   loading,
@@ -17,7 +18,14 @@ export default function AdminPromotionsTable({
   }, [products]);
 
   return (
-    <div className="admin-table-wrap">
+    <AsyncState
+      empty={promotions.length === 0}
+      emptyDescription="Créez une promotion ou ajustez les filtres."
+      emptyTitle="Aucune promotion trouvée"
+      loading={loading}
+      skeletonVariant="table"
+    >
+      <div className="admin-table-wrap">
       <table className="admin-table promotions-table">
         <thead>
           <tr>
@@ -32,11 +40,7 @@ export default function AdminPromotionsTable({
           </tr>
         </thead>
         <tbody>
-          {loading ? (
-            <tr><td colSpan="8">Loading promotions...</td></tr>
-          ) : promotions.length === 0 ? (
-            <tr><td colSpan="8">No promotions found.</td></tr>
-          ) : promotions.map((promotion) => {
+          {promotions.map((promotion) => {
             const product = productMap.get(Number(promotion.productId));
             const imageUrl = promotion.productImageUrl ?? product?.imageUrl;
             const productName = promotion.productName ?? product?.name ?? "-";
@@ -95,6 +99,7 @@ export default function AdminPromotionsTable({
           })}
         </tbody>
       </table>
-    </div>
+      </div>
+    </AsyncState>
   );
 }

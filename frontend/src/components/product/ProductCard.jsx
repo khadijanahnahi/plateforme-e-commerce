@@ -1,6 +1,14 @@
 import { Link } from "react-router-dom";
+import { Button } from "../ui";
 
-export default function ProductCard({ isWishlisted = false, onAddToCart, onToggleWishlist, product }) {
+export default function ProductCard({
+  addPending = false,
+  isWishlisted = false,
+  onAddToCart,
+  onToggleWishlist,
+  product,
+  wishlistPending = false,
+}) {
   const displayPrice = product.effectivePrice ?? product.price;
 
   return (
@@ -10,7 +18,8 @@ export default function ProductCard({ isWishlisted = false, onAddToCart, onToggl
         <button
           className={`wishlist-heart-button ${isWishlisted ? "is-active" : ""}`}
           type="button"
-          aria-label={isWishlisted ? "Supprimer de la wishlist" : "Ajouter a la wishlist"}
+          aria-label={isWishlisted ? "Supprimer de la wishlist" : "Ajouter à la wishlist"}
+          disabled={wishlistPending}
           onClick={() => onToggleWishlist?.(product)}
         >
           {isWishlisted ? "\u2665" : "\u2661"}
@@ -26,18 +35,17 @@ export default function ProductCard({ isWishlisted = false, onAddToCart, onToggl
         <p>{product.description ?? "Article premium ShopSphere."}</p>
         <div className="price-row">
           <strong>{Number(displayPrice).toFixed(2)} DH</strong>
-          <small>Stock: {product.stockQuantity}</small>
+          <small>Stock : {product.stockQuantity}</small>
         </div>
         <div className="catalog-card-actions">
           <Link className="button button-secondary" to={`/products/${product.id}`}>Voir détails</Link>
-          <button
-            className="button button-primary"
-            type="button"
+          <Button
+            loading={addPending}
             onClick={() => onAddToCart?.(product)}
             disabled={product.status !== "ACTIVE"}
           >
             Ajouter
-          </button>
+          </Button>
         </div>
       </div>
     </article>

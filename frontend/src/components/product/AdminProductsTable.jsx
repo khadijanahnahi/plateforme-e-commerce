@@ -1,14 +1,14 @@
-import AdminStatusBadge from "../ui/AdminStatusBadge";
+import { Button, EmptyState, Skeleton, StatusBadge } from "../ui";
 
 function getStockBadge(product) {
   const stock = Number(product.stockQuantity);
   if (stock === 0) {
-    return { label: "Out of stock", className: "stock-out" };
+    return { label: "Rupture", className: "stock-out" };
   }
   if (stock <= 5) {
-    return { label: "Low stock", className: "stock-low" };
+    return { label: "Stock faible", className: "stock-low" };
   }
-  return { label: "In stock", className: "stock-in" };
+  return { label: "En stock", className: "stock-in" };
 }
 
 export default function AdminProductsTable({
@@ -25,7 +25,7 @@ export default function AdminProductsTable({
           <tr>
             <th>Image</th>
             <th>Nom produit</th>
-            <th>Categorie</th>
+            <th>Catégorie</th>
             <th>Prix</th>
             <th>Stock</th>
             <th>Statut</th>
@@ -34,9 +34,9 @@ export default function AdminProductsTable({
         </thead>
         <tbody>
           {loading ? (
-            <tr><td colSpan="7">Loading products...</td></tr>
+            <tr className="ui-table-loading-row"><td colSpan="7"><Skeleton height="72px" width="100%" /></td></tr>
           ) : products.length === 0 ? (
-            <tr><td colSpan="7">No products found.</td></tr>
+            <tr><td colSpan="7"><EmptyState className="ui-table-empty-state" title="Aucun produit trouvé" description="Modifiez les filtres ou ajoutez un nouveau produit." /></td></tr>
           ) : products.map((product) => {
             const stockBadge = getStockBadge(product);
 
@@ -46,7 +46,7 @@ export default function AdminProductsTable({
                   {product.imageUrl ? (
                     <img className="admin-product-thumb" src={product.imageUrl} alt={product.name} />
                   ) : (
-                    <span className="admin-product-thumb admin-product-thumb-empty">No image</span>
+                    <span className="admin-product-thumb admin-product-thumb-empty">Sans image</span>
                   )}
                 </td>
                 <td>
@@ -61,11 +61,11 @@ export default function AdminProductsTable({
                     <span className={`stock-badge ${stockBadge.className}`}>{stockBadge.label}</span>
                   </div>
                 </td>
-                <td><AdminStatusBadge status={product.status} /></td>
+                <td><StatusBadge type="product" value={product.status} /></td>
                 <td className="table-actions">
-                  <button type="button" onClick={() => onEdit(product)}>Modifier</button>
-                  <button type="button" onClick={() => onStockChange(product)}>Stock</button>
-                  <button type="button" onClick={() => onArchive(product.id)}>Archiver</button>
+                  <Button size="sm" variant="ghost" onClick={() => onEdit(product)}>Modifier</Button>
+                  <Button size="sm" variant="outline" onClick={() => onStockChange(product)}>Stock</Button>
+                  <Button size="sm" variant="danger" onClick={() => onArchive(product.id)}>Archiver</Button>
                 </td>
               </tr>
             );

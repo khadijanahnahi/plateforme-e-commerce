@@ -1,4 +1,5 @@
 import BannerStatusBadge from "./BannerStatusBadge";
+import { AsyncState } from "../ui";
 
 export default function AdminBannersList({
   banners,
@@ -8,12 +9,15 @@ export default function AdminBannersList({
   onToggleStatus,
 }) {
   return (
-    <div className="banner-admin-list">
-      {loading ? (
-        <div className="banner-admin-empty">Loading banners...</div>
-      ) : banners.length === 0 ? (
-        <div className="banner-admin-empty">No banners found.</div>
-      ) : banners.map((banner) => (
+    <AsyncState
+      empty={banners.length === 0}
+      emptyDescription="Créez une bannière pour alimenter les emplacements marketing."
+      emptyTitle="Aucune bannière trouvée"
+      loading={loading}
+      skeletonCount={3}
+    >
+      <div className="banner-admin-list">
+      {banners.map((banner) => (
         <article className="banner-admin-card" key={banner.id}>
           <div className="banner-admin-thumb">
             {banner.imageUrl ? (
@@ -44,6 +48,7 @@ export default function AdminBannersList({
           </div>
         </article>
       ))}
-    </div>
+      </div>
+    </AsyncState>
   );
 }

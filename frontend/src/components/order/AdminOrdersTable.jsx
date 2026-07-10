@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { allowedTransitions } from "../../hooks/useAdminOrders";
 import AdminStatusBadge from "../ui/AdminStatusBadge";
 import PaymentStatusBadge from "./PaymentStatusBadge";
+import { AsyncState, Button } from "../ui";
 
 function formatDate(value) {
   return value ? new Date(value).toLocaleString() : "-";
@@ -9,6 +10,7 @@ function formatDate(value) {
 
 export default function AdminOrdersTable({
   loading,
+  isActionPending,
   onMarkAsPaid,
   onSelectedStatusChange,
   onUpdateStatus,
@@ -16,7 +18,14 @@ export default function AdminOrdersTable({
   selectedStatuses,
 }) {
   return (
-    <div className="admin-table-wrap">
+    <AsyncState
+      empty={orders.length === 0}
+      emptyDescription="Les commandes correspondant à vos filtres apparaîtront ici."
+      emptyTitle="Aucune commande trouvée"
+      loading={loading}
+      skeletonVariant="table"
+    >
+      <div className="admin-table-wrap">
       <table className="admin-table">
         <thead>
           <tr>
@@ -31,14 +40,12 @@ export default function AdminOrdersTable({
           </tr>
         </thead>
         <tbody>
-          {loading ? (
-            <tr><td colSpan="8">Loading orders...</td></tr>
-          ) : orders.length === 0 ? (
-            <tr><td colSpan="8">No orders found.</td></tr>
-          ) : orders.map((order) => {
+          {orders.map((order) => {
             const transitions = allowedTransitions[order.status] ?? [];
             const selectedStatus = selectedStatuses[order.id] ?? "";
             const canMarkAsPaid = order.paymentStatus === "UNPAID" && order.status !== "CANCELLED";
+            const paymentPending = isActionPending?.(`payment:${order.id}`) ?? false;
+            const statusPending = isActionPending?.(`status:${order.id}`) ?? false;
 
             return (
               <tr key={order.id}>
@@ -56,14 +63,15 @@ export default function AdminOrdersTable({
                     {order.paymentStatus === "PAID" ? (
                       <span className="paid-note">Paid</span>
                     ) : (
-                      <button
+                      <Button
                         className="payment-action"
-                        type="button"
+                        loading={paymentPending}
+                        size="sm"
                         disabled={!canMarkAsPaid}
                         onClick={() => onMarkAsPaid(order.id)}
                       >
-                        Mark as Paid
-                      </button>
+                        Marquer payé
+                      </Button>
                     )}
                   </div>
                 </td>
@@ -71,19 +79,20 @@ export default function AdminOrdersTable({
                   <div className="order-update-control">
                     <select
                       value={selectedStatus}
-                      disabled={transitions.length === 0}
+                      disabled={transitions.length === 0 || statusPending}
                       onChange={(event) => onSelectedStatusChange(order.id, event.target.value)}
                     >
                       <option value="">{transitions.length === 0 ? "No updates" : "Choose status"}</option>
                       {transitions.map((status) => <option key={status} value={status}>{status}</option>)}
                     </select>
-                    <button
-                      type="button"
+                    <Button
+                      loading={statusPending}
+                      size="sm"
                       disabled={!selectedStatus}
                       onClick={() => onUpdateStatus(order.id, selectedStatus)}
                     >
-                      Apply
-                    </button>
+                      Appliquer
+                    </Button>
                   </div>
                 </td>
                 <td>
@@ -94,6 +103,7 @@ export default function AdminOrdersTable({
           })}
         </tbody>
       </table>
-    </div>
+      </div>
+    </AsyncState>
   );
 }

@@ -1,6 +1,7 @@
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { cartApi } from "../api/cartApi";
 import { useAuth } from "./AuthContext";
+import { useToastContext } from "./ToastContext";
 
 const emptyCart = {
   items: [],
@@ -12,8 +13,11 @@ const CartContext = createContext(null);
 
 export function CartProvider({ children }) {
   const { isAuthenticated } = useAuth();
+  const toast = useToastContext();
   const [cart, setCart] = useState(emptyCart);
   const [loading, setLoading] = useState(false);
+  const [pendingActions, setPendingActions] = useState(new Set());
+  const inFlightActions = useRef(new Map());
 
   const loadCart = useCallback(async () => {
     if (!isAuthenticated) {
@@ -37,25 +41,63 @@ export function CartProvider({ children }) {
     return nextCart ?? emptyCart;
   }, []);
 
+  const runLockedAction = useCallback((key, action, successMessage) => {
+    if (inFlightActions.current.has(key)) {
+      return inFlightActions.current.get(key);
+    }
+
+    const promise = (async () => {
+      setPendingActions((current) => new Set(current).add(key));
+      try {
+        const result = await action();
+        if (successMessage) toast.success(successMessage);
+        return result;
+      } catch (exception) {
+        toast.error(exception.response?.data?.message ?? "L'action sur le panier a échoué.");
+        throw exception;
+      } finally {
+        inFlightActions.current.delete(key);
+        setPendingActions((current) => {
+          const next = new Set(current);
+          next.delete(key);
+          return next;
+        });
+      }
+    })();
+
+    inFlightActions.current.set(key, promise);
+    return promise;
+  }, [toast]);
+
   async function addToCart(productId, quantity = 1) {
-    const response = await cartApi.addItem({ productId, quantity });
-    return syncCart(response.data);
+    return runLockedAction(`add:${productId}`, async () => {
+      const response = await cartApi.addItem({ productId, quantity });
+      return syncCart(response.data);
+    }, "Produit ajouté au panier.");
   }
 
   async function updateCartItem(itemId, quantity) {
-    const response = await cartApi.updateItem(itemId, { quantity });
-    return syncCart(response.data);
+    return runLockedAction(`update:${itemId}`, async () => {
+      const response = await cartApi.updateItem(itemId, { quantity });
+      return syncCart(response.data);
+    }, "Quantité mise à jour.");
   }
 
   async function removeCartItem(itemId) {
-    const response = await cartApi.removeItem(itemId);
-    return syncCart(response.data);
+    return runLockedAction(`remove:${itemId}`, async () => {
+      const response = await cartApi.removeItem(itemId);
+      return syncCart(response.data);
+    }, "Produit retiré du panier.");
   }
 
   async function clearCart() {
-    const response = await cartApi.clearCart();
-    return syncCart(response.data);
+    return runLockedAction("clear", async () => {
+      const response = await cartApi.clearCart();
+      return syncCart(response.data);
+    }, "Panier vidé.");
   }
+
+  const isCartActionPending = useCallback((key) => pendingActions.has(key), [pendingActions]);
 
   useEffect(() => {
     loadCart().catch(() => setCart(emptyCart));
@@ -72,6 +114,8 @@ export function CartProvider({ children }) {
         cart,
         cartCount: cart.totalItems ?? 0,
         loading,
+        pendingActions,
+        isCartActionPending,
         loadCart,
         addToCart,
         updateCartItem,

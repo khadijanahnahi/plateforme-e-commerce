@@ -2,11 +2,10 @@ import { useState } from "react";
 import { adminProductsApi, getApiErrorMessage } from "../api/adminProductsApi";
 import AdminPageHeader from "../components/layout/AdminPageHeader";
 import AdminProductsTable from "../components/product/AdminProductsTable";
-import AdminFilterBar from "../components/ui/AdminFilterBar";
 import AdminStatsCard from "../components/ui/AdminStatsCard";
+import { Button, ConfirmDialog, Input, Pagination, Select, Textarea, Toast } from "../components/ui";
 import {
   ADMIN_PRODUCTS_PAGE_SIZE,
-  productStatuses,
   useAdminProducts,
 } from "../hooks/useAdminProducts";
 
@@ -20,6 +19,13 @@ const emptyForm = {
   status: "ACTIVE",
   categoryId: "",
 };
+
+const productStatusOptions = [
+  { value: "ACTIVE", label: "Actif" },
+  { value: "DRAFT", label: "Brouillon" },
+  { value: "OUT_OF_STOCK", label: "Rupture" },
+  { value: "ARCHIVED", label: "Archivé" },
+];
 
 export default function AdminProductsPage() {
   const {
@@ -52,6 +58,8 @@ export default function AdminProductsPage() {
   const [editingId, setEditingId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
+  const [archiveTargetId, setArchiveTargetId] = useState(null);
+  const [archiving, setArchiving] = useState(false);
 
   function updateField(event) {
     const { name, value } = event.target;
@@ -98,34 +106,34 @@ export default function AdminProductsPage() {
       await saveProduct(editingId, form);
       closeModal();
     } catch (exception) {
-      setError(getApiErrorMessage(exception, "Unable to save product."));
+      setError(getApiErrorMessage(exception, "Impossible d’enregistrer le produit."));
     }
   }
 
-  async function handleArchiveProduct(id) {
-    const confirmed = window.confirm("Archive this product? It will no longer be visible to customers.");
-    if (!confirmed) {
-      return;
-    }
-
+  async function handleArchiveProduct() {
+    if (!archiveTargetId) return;
+    setArchiving(true);
     setMessage("");
     setError("");
     try {
-      await archiveProduct(id);
+      await archiveProduct(archiveTargetId);
+      setArchiveTargetId(null);
     } catch (exception) {
-      setError(getApiErrorMessage(exception, "Unable to archive product."));
+      setError(getApiErrorMessage(exception, "Impossible d’archiver le produit."));
+    } finally {
+      setArchiving(false);
     }
   }
 
   async function handleStockChange(product) {
-    const value = window.prompt("New stock quantity", product.stockQuantity);
+    const value = window.prompt("Nouvelle quantité en stock", product.stockQuantity);
     if (value === null) {
       return;
     }
 
     const stockQuantity = Number(value);
     if (!Number.isInteger(stockQuantity) || stockQuantity < 0) {
-      setError("Stock must be a positive integer or zero.");
+      setError("Le stock doit être un entier positif ou égal à zéro.");
       return;
     }
 
@@ -134,7 +142,7 @@ export default function AdminProductsPage() {
     try {
       await updateStock(product, stockQuantity);
     } catch (exception) {
-      setError(getApiErrorMessage(exception, "Unable to update stock."));
+      setError(getApiErrorMessage(exception, "Impossible de modifier le stock."));
     }
   }
 
@@ -154,9 +162,9 @@ export default function AdminProductsPage() {
     try {
       const response = await adminProductsApi.uploadProductImage(formData);
       setForm((current) => ({ ...current, imageUrl: response.data.imageUrl }));
-      setMessage("Image uploaded.");
+      setMessage("Image importée avec succès.");
     } catch (exception) {
-      setError(getApiErrorMessage(exception, "Unable to upload image."));
+      setError(getApiErrorMessage(exception, "Impossible d’importer l’image."));
     } finally {
       setImageUploading(false);
       event.target.value = "";
@@ -169,79 +177,58 @@ export default function AdminProductsPage() {
   return (
     <section className="page admin-page">
       <AdminPageHeader
-        kicker="Admin inventory"
+        kicker="Inventaire admin"
         title="Gestion des produits"
-        description="Creer, modifier, archiver et gerer le stock des produits ShopSphere."
+        description="Créer, modifier, archiver et gérer le stock des produits ShopSphere."
         actionLabel="+ Ajouter un produit"
         onAction={openCreateModal}
       />
 
-      {message ? <div className="admin-alert admin-success">{message}</div> : null}
+      <Toast message={message} open={Boolean(message)} onClose={() => setMessage("")} />
       {error ? <div className="admin-alert">{error}</div> : null}
 
       <div className="admin-product-stats">
-        <AdminStatsCard label="Total Products" value={productStats.total} />
-        <AdminStatsCard label="Active" value={productStats.active} />
-        <AdminStatsCard label="Low Stock" value={productStats.lowStock} />
-        <AdminStatsCard label="Out of Stock" value={productStats.outOfStock} />
+        <AdminStatsCard label="Total produits" value={productStats.total} />
+        <AdminStatsCard label="Actifs" value={productStats.active} />
+        <AdminStatsCard label="Stock faible" value={productStats.lowStock} />
+        <AdminStatsCard label="Rupture de stock" value={productStats.outOfStock} />
       </div>
 
       <div className="admin-panel">
-        <AdminFilterBar
-          categories={categories}
-          categoryFilter={categoryFilter}
-          onCategoryChange={updateCategoryFilter}
-          onReset={resetFilters}
-          onSearchChange={setSearch}
-          onStatusChange={updateStatusFilter}
-          onSubmit={searchProducts}
-          search={search}
-          statusFilter={statusFilter}
-          statuses={productStatuses}
-        />
+        <form className="admin-search admin-product-toolbar ui-product-filterbar" onSubmit={searchProducts}>
+          <Input aria-label="Rechercher un produit" fullWidth placeholder="Rechercher un produit..." value={search} onChange={(event) => setSearch(event.target.value)} />
+          <Select
+            aria-label="Filtrer par statut"
+            options={productStatusOptions}
+            placeholder="Tous les statuts"
+            value={statusFilter}
+            onChange={(event) => updateStatusFilter(event.target.value)}
+          />
+          <Select
+            aria-label="Filtrer par catégorie"
+            options={categories.map((category) => ({ value: category.id, label: category.name }))}
+            placeholder="Toutes les catégories"
+            value={categoryFilter}
+            onChange={(event) => updateCategoryFilter(event.target.value)}
+          />
+          <Button type="submit" variant="outline">Rechercher</Button>
+          <Button type="button" variant="ghost" onClick={resetFilters}>Réinitialiser</Button>
+        </form>
 
         <div className="admin-list-summary">
-          Showing {firstShown}-{lastShown} of {filteredProducts.length} products
+          Affichage de {firstShown} à {lastShown} sur {filteredProducts.length} produits
         </div>
 
         <AdminProductsTable
           loading={loading}
-          onArchive={handleArchiveProduct}
+          onArchive={setArchiveTargetId}
           onEdit={openEditModal}
           onStockChange={handleStockChange}
           products={paginatedProducts}
         />
 
         {!loading && filteredProducts.length > ADMIN_PRODUCTS_PAGE_SIZE ? (
-          <div className="pagination-bar">
-            <span>Page {currentPage} of {totalPages}</span>
-            <div className="pagination-controls">
-              <button
-                type="button"
-                onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-                disabled={currentPage === 1}
-              >
-                Previous
-              </button>
-              {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
-                <button
-                  key={page}
-                  className={page === currentPage ? "pagination-active" : ""}
-                  type="button"
-                  onClick={() => setCurrentPage(page)}
-                >
-                  {page}
-                </button>
-              ))}
-              <button
-                type="button"
-                onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
-                disabled={currentPage === totalPages}
-              >
-                Next
-              </button>
-            </div>
-          </div>
+          <div className="pagination-bar"><Pagination page={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} /></div>
         ) : null}
       </div>
 
@@ -250,57 +237,59 @@ export default function AdminProductsPage() {
           <div className="product-modal" role="dialog" aria-modal="true" aria-labelledby="product-modal-title" onMouseDown={(event) => event.stopPropagation()}>
             <div className="modal-header">
               <div>
-                <span className="section-kicker">Product form</span>
+                <span className="section-kicker">Formulaire produit</span>
                 <h2 id="product-modal-title">{editingId ? "Modifier le produit" : "Ajouter un produit"}</h2>
               </div>
-              <button className="modal-close" type="button" onClick={closeModal}>Close</button>
+              <Button size="sm" variant="ghost" onClick={closeModal}>Fermer</Button>
             </div>
 
             <form className="admin-form" onSubmit={handleSubmit}>
-              <input name="name" value={form.name} onChange={updateField} placeholder="Nom du produit" required />
-              <textarea name="description" value={form.description} onChange={updateField} placeholder="Description" />
+              <Input fullWidth label="Nom du produit" name="name" value={form.name} onChange={updateField} placeholder="Ex. T-shirt oversize noir" required />
+              <Textarea fullWidth label="Description" name="description" value={form.description} onChange={updateField} placeholder="Description du produit" />
               <div className="admin-form-row">
-                <input name="price" value={form.price} onChange={updateField} type="number" min="0" step="0.01" placeholder="Prix" required />
-                <input name="stockQuantity" value={form.stockQuantity} onChange={updateField} type="number" min="0" placeholder="Quantite en stock" required />
+                <Input fullWidth label="Prix (DH)" name="price" value={form.price} onChange={updateField} type="number" min="0" step="0.01" required />
+                <Input fullWidth label="Quantité en stock" name="stockQuantity" value={form.stockQuantity} onChange={updateField} type="number" min="0" required />
               </div>
               <div className="admin-form-row">
-                <input name="sku" value={form.sku} onChange={updateField} placeholder="SKU" />
-                <select name="status" value={form.status} onChange={updateField}>
-                  {productStatuses.map((status) => <option key={status} value={status}>{status}</option>)}
-                </select>
+                <Input fullWidth label="SKU" name="sku" value={form.sku} onChange={updateField} placeholder="Ex. TSHIRT-BLK-001" />
+                <Select fullWidth label="Statut" name="status" value={form.status} onChange={updateField} options={productStatusOptions} />
               </div>
               <div className="product-image-upload">
                 <label>
                   <span>Image locale</span>
                   <input type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" onChange={uploadProductImage} />
                 </label>
-                {imageUploading ? <small>Uploading image...</small> : null}
+                {imageUploading ? <small>Importation de l’image...</small> : null}
                 {form.imageUrl ? (
-                  <img className="product-image-preview" src={form.imageUrl} alt="Product preview" />
+                  <img className="product-image-preview" src={form.imageUrl} alt="Aperçu du produit" />
                 ) : (
-                  <div className="product-image-preview product-image-preview-empty">No image selected</div>
+                  <div className="product-image-preview product-image-preview-empty">Aucune image sélectionnée</div>
                 )}
               </div>
-              <input name="imageUrl" value={form.imageUrl} onChange={updateField} placeholder="Image URL" />
-              <select name="categoryId" value={form.categoryId} onChange={updateField} required>
-                <option value="">Categorie</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>{category.name}</option>
-                ))}
-              </select>
+              <Input fullWidth label="URL de l’image" name="imageUrl" value={form.imageUrl} onChange={updateField} placeholder="https://..." />
+              <Select fullWidth label="Catégorie" name="categoryId" value={form.categoryId} onChange={updateField} placeholder="Sélectionner une catégorie" options={categories.map((category) => ({ value: category.id, label: category.name }))} required />
               {categories.length === 0 ? (
-                <small className="admin-muted">Aucune categorie active disponible. Cree ou reactive une categorie avant d'ajouter un produit.</small>
+                <small className="admin-muted">Aucune catégorie active disponible. Créez ou réactivez une catégorie avant d’ajouter un produit.</small>
               ) : null}
               <div className="admin-form-actions">
-                <button className="button button-primary" type="submit">
-                  {editingId ? "Enregistrer" : "Ajouter le produit"}
-                </button>
-                <button className="button button-secondary" type="button" onClick={closeModal}>Annuler</button>
+                <Button type="submit">{editingId ? "Enregistrer" : "Ajouter le produit"}</Button>
+                <Button type="button" variant="outline" onClick={closeModal}>Annuler</Button>
               </div>
             </form>
           </div>
         </div>
       ) : null}
+
+      <ConfirmDialog
+        confirmLabel="Archiver"
+        description="Ce produit ne sera plus visible par les clients. Les anciennes commandes resteront intactes."
+        loading={archiving}
+        open={Boolean(archiveTargetId)}
+        title="Archiver ce produit ?"
+        variant="danger"
+        onClose={() => !archiving && setArchiveTargetId(null)}
+        onConfirm={handleArchiveProduct}
+      />
     </section>
   );
 }

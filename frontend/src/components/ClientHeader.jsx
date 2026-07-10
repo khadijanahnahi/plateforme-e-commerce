@@ -51,13 +51,28 @@ export default function ClientHeader({
             setSearchTerm={setSearchTerm}
           />
 
-          <NavLink className="client-icon-button client-wishlist-button" to="/wishlist" aria-label={`Wishlist avec ${wishlistCount} produit${wishlistCount > 1 ? "s" : ""}`}>
-            <span aria-hidden="true">{"\u2661"}</span>
+          <NavLink
+            className={({ isActive }) => `client-icon-button client-wishlist-button ${isActive ? "is-active" : ""} ${wishlistCount > 0 ? "has-items" : ""}`}
+            data-tooltip="Wishlist"
+            to="/wishlist"
+            aria-label={`Wishlist avec ${wishlistCount} produit${wishlistCount > 1 ? "s" : ""}`}
+          >
+            <svg className="client-action-icon client-heart-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z" />
+            </svg>
             {isAuthenticated && wishlistCount > 0 ? <strong>{wishlistCount}</strong> : null}
           </NavLink>
 
-          <NavLink className="client-icon-button client-cart-button" to="/cart" aria-label={`Panier avec ${cartCount} article${cartCount > 1 ? "s" : ""}`}>
-            <span className="client-cart-glyph" aria-hidden="true" />
+          <NavLink
+            className={({ isActive }) => `client-icon-button client-cart-button ${isActive ? "is-active" : ""} ${cartCount > 0 ? "has-items" : ""}`}
+            data-tooltip="Panier"
+            to="/cart"
+            aria-label={`Panier avec ${cartCount} article${cartCount > 1 ? "s" : ""}`}
+          >
+            <svg className="client-action-icon client-bag-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M5.5 8.5h13l-.8 11H6.3l-.8-11Z" />
+              <path d="M9 9V6.75a3 3 0 0 1 6 0V9" />
+            </svg>
             {isAuthenticated && cartCount > 0 ? <strong>{cartCount}</strong> : null}
           </NavLink>
 

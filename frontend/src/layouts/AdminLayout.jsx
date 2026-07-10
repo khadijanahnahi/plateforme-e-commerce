@@ -1,30 +1,33 @@
 import { useEffect, useState } from "react";
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import AdminSidebar from "../components/layout/AdminSidebar";
+import AdminTopbar from "../components/layout/AdminTopbar";
 import { useAuth } from "../contexts/AuthContext";
-import profileImage from "../../images/profile.webp";
 
-const adminLinks = [
-  { label: "Dashboard", to: "/admin/dashboard" },
-  { label: "Banners", to: "/admin/banners" },
-  { label: "Promotions", to: "/admin/promotions" },
-  { label: "Products", to: "/admin/products" },
-  { label: "Categories", to: "/admin/categories" },
-  { label: "Coupons", to: "/admin/coupons" },
-  { label: "Reviews", to: "/admin/reviews" },
-  { label: "Customers", to: "/admin/customers" },
-  { label: "Orders", to: "/admin/orders" },
-  { label: "Settings", to: "/admin/settings" },
-];
+const ADMIN_SIDEBAR_STORAGE_KEY = "shopsphere_admin_sidebar_collapsed";
+
+function readCollapsedPreference() {
+  return localStorage.getItem(ADMIN_SIDEBAR_STORAGE_KEY) === "true";
+}
 
 export default function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout, user } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(readCollapsedPreference);
 
   useEffect(() => {
-    setSidebarOpen(false);
+    setMobileOpen(false);
   }, [location.pathname]);
+
+  function toggleCollapsed() {
+    setCollapsed((current) => {
+      const next = !current;
+      localStorage.setItem(ADMIN_SIDEBAR_STORAGE_KEY, String(next));
+      return next;
+    });
+  }
 
   function handleLogout() {
     logout();
@@ -32,66 +35,31 @@ export default function AdminLayout() {
   }
 
   return (
-    <div className="admin-dashboard-shell">
-      <aside className={`admin-sidebar ${sidebarOpen ? "admin-sidebar-open" : ""}`}>
-        <div className="admin-sidebar-brand">
-          <NavLink to="/admin/dashboard">ShopSphere Admin</NavLink>
-          <span>Commerce Console</span>
-        </div>
+    <div className={`admin-dashboard-shell ${collapsed ? "admin-shell-collapsed" : ""}`}>
+      <AdminSidebar
+        collapsed={collapsed}
+        mobileOpen={mobileOpen}
+        onNavigate={() => setMobileOpen(false)}
+        onToggleCollapsed={toggleCollapsed}
+      />
 
-        <nav className="admin-sidebar-nav" aria-label="Admin navigation">
-          {adminLinks.map((link) => (
-            <NavLink key={link.to} to={link.to}>
-              {link.label}
-            </NavLink>
-          ))}
-        </nav>
-      </aside>
-
-      {sidebarOpen ? (
+      {mobileOpen ? (
         <button
           className="admin-sidebar-backdrop"
           type="button"
           aria-label="Close admin navigation"
-          onClick={() => setSidebarOpen(false)}
+          onClick={() => setMobileOpen(false)}
         />
       ) : null}
 
       <div className="admin-dashboard-main">
-        <header className="admin-dashboard-topbar">
-          <button
-            className="admin-sidebar-toggle"
-            type="button"
-            aria-label="Open admin navigation"
-            aria-expanded={sidebarOpen}
-            onClick={() => setSidebarOpen((current) => !current)}
-          >
-            <span />
-            <span />
-            <span />
-          </button>
-
-          <div className="admin-topbar-title">
-            <span>Admin Workspace</span>
-            <strong>{user?.fullName ?? "Administrator"}</strong>
-          </div>
-
-          <div className="admin-topbar-actions">
-            <NavLink className="auth-button signup-button" to="/">
-              View Store
-            </NavLink>
-            <NavLink className="profile-avatar-link admin-profile-link" to="/profile" aria-label="Open admin profile">
-              <img src={profileImage} alt={user?.fullName ?? "Admin profile"} />
-            </NavLink>
-            <button className="auth-button logout-button" type="button" onClick={handleLogout}>
-              Logout
-            </button>
-          </div>
-        </header>
-
-        <main className="admin-dashboard-content">
-          <Outlet />
-        </main>
+        <AdminTopbar
+          mobileOpen={mobileOpen}
+          user={user}
+          onLogout={handleLogout}
+          onToggleMobile={() => setMobileOpen((current) => !current)}
+        />
+        <main className="admin-dashboard-content"><Outlet /></main>
       </div>
     </div>
   );

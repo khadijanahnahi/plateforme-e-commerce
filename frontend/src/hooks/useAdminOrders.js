@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { adminOrdersApi } from "../api/adminOrdersApi";
+import { useToast } from "./useToast";
 
 export const orderStatuses = ["PENDING", "CONFIRMED", "SHIPPED", "DELIVERED", "CANCELLED"];
 export const paymentStatuses = ["UNPAID", "PAID", "FAILED"];
@@ -14,6 +15,7 @@ export const allowedTransitions = {
 };
 
 export function useAdminOrders(initialSearch = "") {
+  const toast = useToast();
   const [orders, setOrders] = useState([]);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -23,6 +25,8 @@ export function useAdminOrders(initialSearch = "") {
   const [paymentFilter, setPaymentFilter] = useState("");
   const [selectedStatuses, setSelectedStatuses] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
+  const [pendingOrderActions, setPendingOrderActions] = useState(new Set());
+  const inFlightActions = useRef(new Map());
 
   const filteredOrders = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
@@ -77,31 +81,55 @@ export function useAdminOrders(initialSearch = "") {
   }
 
   async function handleUpdateStatus(id, status) {
-    if (!status) {
-      return;
-    }
-
-    setMessage("");
-    setError("");
-    try {
-      await adminOrdersApi.updateOrderStatus(id, status);
-      setMessage("Order status updated.");
-      await refreshOrders();
-    } catch (exception) {
-      setError(exception.response?.data?.message ?? "Invalid status transition.");
-    }
+    if (!status) return;
+    return runOrderAction(
+      `status:${id}`,
+      () => adminOrdersApi.updateOrderStatus(id, status),
+      "Statut de la commande mis à jour.",
+      "Transition de statut invalide.",
+    );
   }
 
   async function handleMarkAsPaid(id) {
-    setMessage("");
-    setError("");
-    try {
-      await adminOrdersApi.markAsPaid(id);
-      setMessage("Payment marked as paid.");
-      await refreshOrders();
-    } catch (exception) {
-      setError(exception.response?.data?.message ?? "Unable to update payment status.");
-    }
+    return runOrderAction(
+      `payment:${id}`,
+      () => adminOrdersApi.markAsPaid(id),
+      "Paiement marqué comme payé.",
+      "Impossible de mettre à jour le paiement.",
+    );
+  }
+
+  function runOrderAction(key, action, successMessage, fallbackError) {
+    if (inFlightActions.current.has(key)) return inFlightActions.current.get(key);
+
+    const promise = (async () => {
+      setPendingOrderActions((current) => new Set(current).add(key));
+      setMessage("");
+      setError("");
+      try {
+        await action();
+        toast.success(successMessage);
+        await refreshOrders();
+      } catch (exception) {
+        const nextError = exception.response?.data?.message ?? fallbackError;
+        setError(nextError);
+        toast.error(nextError);
+      } finally {
+        inFlightActions.current.delete(key);
+        setPendingOrderActions((current) => {
+          const next = new Set(current);
+          next.delete(key);
+          return next;
+        });
+      }
+    })();
+
+    inFlightActions.current.set(key, promise);
+    return promise;
+  }
+
+  function isOrderActionPending(key) {
+    return pendingOrderActions.has(key);
   }
 
   function updateSearch(value) {
@@ -150,6 +178,8 @@ export function useAdminOrders(initialSearch = "") {
     totalPages,
     handleMarkAsPaid,
     handleUpdateStatus,
+    isOrderActionPending,
+    loadOrders,
     refreshOrders,
     resetFilters,
     setCurrentPage,

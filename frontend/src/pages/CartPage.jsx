@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { AsyncState, Button } from "../components/ui";
 import { useCart } from "../hooks/useCart";
 
 export default function CartPage() {
@@ -8,156 +9,134 @@ export default function CartPage() {
     loadCart,
     updateCartItem,
     removeCartItem,
-    clearCart: clearCartContext,
+    clearCart,
+    isCartActionPending,
   } = useCart();
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    let mounted = true;
-
-    async function loadData() {
-      try {
-        await loadCart();
-      } catch (exception) {
-        if (mounted) {
-          setError(exception.response?.data?.message ?? "Login required to view your cart.");
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
-      }
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      await loadCart();
+    } catch (exception) {
+      setError(exception.response?.data?.message ?? "Connectez-vous pour consulter votre panier.");
+    } finally {
+      setLoading(false);
     }
+  }, [loadCart]);
 
+  useEffect(() => {
     loadData();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  }, [loadData]);
 
   async function updateQuantity(item, nextQuantity) {
-    if (nextQuantity < 1 || nextQuantity > item.availableStock) {
-      return;
-    }
-
-    setMessage("");
-    setError("");
-
+    if (nextQuantity < 1 || nextQuantity > item.availableStock) return;
     try {
       await updateCartItem(item.id, nextQuantity);
-    } catch (exception) {
-      setError(exception.response?.data?.message ?? "Unable to update cart item.");
-    }
+    } catch { /* Le contexte affiche l'erreur. */ }
   }
 
   async function removeItem(itemId) {
-    setMessage("");
-    setError("");
-
     try {
       await removeCartItem(itemId);
-      setMessage("Item removed.");
-    } catch (exception) {
-      setError(exception.response?.data?.message ?? "Unable to remove cart item.");
-    }
+    } catch { /* Le contexte affiche l'erreur. */ }
   }
 
-  async function clearCart() {
-    setMessage("");
-    setError("");
-
+  async function handleClearCart() {
     try {
-      await clearCartContext();
-      setMessage("Cart cleared.");
-    } catch (exception) {
-      setError(exception.response?.data?.message ?? "Unable to clear cart.");
-    }
+      await clearCart();
+    } catch { /* Le contexte affiche l'erreur. */ }
   }
 
   return (
     <section className="page cart-page">
       <div className="catalog-hero">
         <div>
-          <span className="section-kicker">Shopping bag</span>
-          <h1>Your Cart</h1>
-          <p>Review your selected products, adjust quantities and continue to checkout.</p>
+          <span className="section-kicker">Votre sélection</span>
+          <h1>Votre panier</h1>
+          <p>Vérifiez vos produits, ajustez les quantités puis passez à la commande.</p>
         </div>
       </div>
 
-      {message ? <div className="admin-alert admin-success">{message}</div> : null}
-      {error ? <div className="admin-alert">{error}</div> : null}
-
-      {loading ? (
-        <div className="admin-panel">Loading cart...</div>
-      ) : cart.items.length === 0 ? (
-        <div className="cart-empty admin-panel">
-          <h2>Your cart is empty.</h2>
-          <p>Add products from the catalog to start a checkout.</p>
-          <Link className="button button-primary" to="/products">Go shopping</Link>
-        </div>
-      ) : (
+      <AsyncState
+        empty={cart.items.length === 0}
+        emptyAction={<Link className="button button-primary" to="/products">Découvrir les produits</Link>}
+        emptyDescription="Ajoutez des produits depuis le catalogue pour commencer une commande."
+        emptyTitle="Votre panier est vide"
+        error={error}
+        loading={loading}
+        onRetry={loadData}
+      >
         <div className="cart-grid">
           <div className="cart-items-panel">
-            {cart.items.map((item) => (
-              <article className="cart-item-card reveal-card" key={item.id}>
-                {item.imageUrl ? (
-                  <img className="cart-item-image" src={item.imageUrl} alt={item.productName} />
-                ) : (
-                  <div className="cart-item-image cart-item-placeholder">No image</div>
-                )}
+            {cart.items.map((item) => {
+              const updating = isCartActionPending(`update:${item.id}`);
+              const removing = isCartActionPending(`remove:${item.id}`);
+              return (
+                <article className="cart-item-card reveal-card" key={item.id} aria-busy={updating || removing}>
+                  {item.imageUrl ? (
+                    <img className="cart-item-image" src={item.imageUrl} alt={item.productName} />
+                  ) : (
+                    <div className="cart-item-image cart-item-placeholder">Sans image</div>
+                  )}
 
-                <div className="cart-item-info">
-                  <h2>{item.productName}</h2>
-                  <span>{Number(item.unitPrice).toFixed(2)} DH</span>
-                  <small>Available stock: {item.availableStock}</small>
-                </div>
+                  <div className="cart-item-info">
+                    <h2>{item.productName}</h2>
+                    <span>{Number(item.unitPrice).toFixed(2)} DH</span>
+                    <small>Stock disponible : {item.availableStock}</small>
+                  </div>
 
-                <div className="quantity-stepper cart-stepper">
-                  <button
-                    type="button"
-                    onClick={() => updateQuantity(item, item.quantity - 1)}
-                    disabled={item.quantity <= 1}
+                  <div className="quantity-stepper cart-stepper">
+                    <button
+                      type="button"
+                      onClick={() => updateQuantity(item, item.quantity - 1)}
+                      disabled={updating || removing || item.quantity <= 1}
+                    >
+                      -
+                    </button>
+                    <strong>{item.quantity}</strong>
+                    <button
+                      type="button"
+                      onClick={() => updateQuantity(item, item.quantity + 1)}
+                      disabled={updating || removing || item.quantity >= item.availableStock}
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  <strong className="cart-item-subtotal">{Number(item.subtotal).toFixed(2)} DH</strong>
+                  <Button
+                    className="cart-remove-button"
+                    loading={removing}
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => removeItem(item.id)}
                   >
-                    -
-                  </button>
-                  <strong>{item.quantity}</strong>
-                  <button
-                    type="button"
-                    onClick={() => updateQuantity(item, item.quantity + 1)}
-                    disabled={item.quantity >= item.availableStock}
-                  >
-                    +
-                  </button>
-                </div>
-
-                <strong className="cart-item-subtotal">{Number(item.subtotal).toFixed(2)} DH</strong>
-                <button className="cart-remove-button" type="button" onClick={() => removeItem(item.id)}>
-                  Remove
-                </button>
-              </article>
-            ))}
+                    Supprimer
+                  </Button>
+                </article>
+              );
+            })}
           </div>
 
           <aside className="cart-summary admin-panel">
-            <span className="section-kicker">Order summary</span>
-            <h2>Cart total</h2>
-            <div className="checkout-total">
-              <span>Total items</span>
-              <strong>{cart.totalItems}</strong>
-            </div>
-            <div className="checkout-total">
-              <span>Total amount</span>
-              <strong>{Number(cart.totalAmount).toFixed(2)} DH</strong>
-            </div>
-            <Link className="button button-primary" to="/checkout">Proceed to checkout</Link>
-            <button className="button button-secondary" type="button" onClick={clearCart}>
-              Clear cart
-            </button>
+            <span className="section-kicker">Résumé</span>
+            <h2>Total du panier</h2>
+            <div className="checkout-total"><span>Articles</span><strong>{cart.totalItems}</strong></div>
+            <div className="checkout-total"><span>Montant total</span><strong>{Number(cart.totalAmount).toFixed(2)} DH</strong></div>
+            <Link className="button button-primary" to="/checkout">Passer la commande</Link>
+            <Button
+              loading={isCartActionPending("clear")}
+              variant="outline"
+              onClick={handleClearCart}
+            >
+              Vider le panier
+            </Button>
           </aside>
         </div>
-      )}
+      </AsyncState>
     </section>
   );
 }

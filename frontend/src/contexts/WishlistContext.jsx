@@ -1,13 +1,18 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { wishlistApi } from "../api/wishlistApi";
 import { useAuth } from "./AuthContext";
+import { useToastContext } from "./ToastContext";
 
 const WishlistContext = createContext(null);
 
 export function WishlistProvider({ children }) {
   const { isAuthenticated } = useAuth();
+  const toast = useToastContext();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [pendingProductIds, setPendingProductIds] = useState(new Set());
+  const inFlightActions = useRef(new Map());
 
   const wishlistProductIds = useMemo(() => {
     return new Set(items.map((item) => Number(item.productId)));
@@ -20,10 +25,14 @@ export function WishlistProvider({ children }) {
     }
 
     setLoading(true);
+    setError("");
     try {
       const response = await wishlistApi.getWishlist();
       setItems(response.data);
       return response.data;
+    } catch (exception) {
+      setError(exception.response?.data?.message ?? "Impossible de charger la wishlist.");
+      throw exception;
     } finally {
       setLoading(false);
     }
@@ -33,14 +42,45 @@ export function WishlistProvider({ children }) {
     return wishlistProductIds.has(Number(productId));
   }
 
+  const runLockedAction = useCallback((productId, action, successMessage) => {
+    const key = Number(productId);
+    if (inFlightActions.current.has(key)) return inFlightActions.current.get(key);
+
+    const promise = (async () => {
+      setPendingProductIds((current) => new Set(current).add(key));
+      try {
+        const result = await action();
+        toast.success(successMessage);
+        return result;
+      } catch (exception) {
+        toast.error(exception.response?.data?.message ?? "La wishlist n'a pas pu être mise à jour.");
+        throw exception;
+      } finally {
+        inFlightActions.current.delete(key);
+        setPendingProductIds((current) => {
+          const next = new Set(current);
+          next.delete(key);
+          return next;
+        });
+      }
+    })();
+
+    inFlightActions.current.set(key, promise);
+    return promise;
+  }, [toast]);
+
   async function addToWishlist(productId) {
-    await wishlistApi.addProduct(productId);
-    return loadWishlist();
+    return runLockedAction(productId, async () => {
+      await wishlistApi.addProduct(productId);
+      return loadWishlist();
+    }, "Produit ajouté à la wishlist.");
   }
 
   async function removeFromWishlist(productId) {
-    await wishlistApi.removeProduct(productId);
-    setItems((current) => current.filter((item) => Number(item.productId) !== Number(productId)));
+    return runLockedAction(productId, async () => {
+      await wishlistApi.removeProduct(productId);
+      setItems((current) => current.filter((item) => Number(item.productId) !== Number(productId)));
+    }, "Produit retiré de la wishlist.");
   }
 
   async function toggleWishlist(productId) {
@@ -53,6 +93,11 @@ export function WishlistProvider({ children }) {
     return true;
   }
 
+  const isWishlistActionPending = useCallback(
+    (productId) => pendingProductIds.has(Number(productId)),
+    [pendingProductIds],
+  );
+
   useEffect(() => {
     loadWishlist().catch(() => setItems([]));
   }, [loadWishlist]);
@@ -61,7 +106,10 @@ export function WishlistProvider({ children }) {
     <WishlistContext.Provider
       value={{
         items,
+        error,
         loading,
+        pendingProductIds,
+        isWishlistActionPending,
         wishlistCount: items.length,
         addToWishlist,
         isWishlisted,

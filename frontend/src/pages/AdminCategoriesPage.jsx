@@ -7,6 +7,7 @@ import {
   emptyCategoryForm,
   useAdminCategories,
 } from "../hooks/useAdminCategories";
+import useFeedbackToast from "../hooks/useFeedbackToast";
 
 export default function AdminCategoriesPage() {
   const {
@@ -24,6 +25,7 @@ export default function AdminCategoriesPage() {
     setStatusFilter,
     uploadCategoryImage,
   } = useAdminCategories();
+  useFeedbackToast(message, error);
 
   const [form, setForm] = useState(emptyCategoryForm);
   const [editingId, setEditingId] = useState(null);
@@ -75,7 +77,6 @@ export default function AdminCategoriesPage() {
         onAction={resetForm}
       />
 
-      {message ? <div className="admin-alert admin-success">{message}</div> : null}
       {error ? <div className="admin-alert">{error}</div> : null}
 
       <div className="admin-panel-grid">

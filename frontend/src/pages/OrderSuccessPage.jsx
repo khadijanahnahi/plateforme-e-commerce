@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import http from "../api/http";
+import { ErrorState, Skeleton } from "../components/ui";
 
 const statusLabels = {
   PENDING: "En attente",
@@ -73,14 +74,15 @@ export default function OrderSuccessPage() {
             Votre commande a bien été enregistrée. Un email de confirmation vous a été envoyé.
           </p>
 
-          {loading ? <div className="order-success-state">Chargement de la confirmation...</div> : null}
-          {error ? (
-            <div className="admin-alert">
-              {error}
-              <div className="order-success-error-action">
-                <Link className="table-link" to="/orders">Retour aux commandes</Link>
-              </div>
+          {loading ? (
+            <div className="order-success-state" aria-label="Chargement de la confirmation" role="status">
+              <Skeleton height={24} width="62%" />
+              <Skeleton height={92} />
+              <Skeleton height={48} width="45%" radius={999} />
             </div>
+          ) : null}
+          {error ? (
+            <ErrorState description={error} onRetry={() => window.location.reload()} title="Confirmation indisponible" />
           ) : null}
 
           {order ? (

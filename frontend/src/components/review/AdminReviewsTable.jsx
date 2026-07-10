@@ -3,6 +3,7 @@ import {
   renderReviewStars,
 } from "../../hooks/useAdminReviews";
 import ReviewStatusBadge from "./ReviewStatusBadge";
+import { AsyncState } from "../ui";
 
 export default function AdminReviewsTable({
   loading,
@@ -12,7 +13,14 @@ export default function AdminReviewsTable({
   reviews,
 }) {
   return (
-    <div className="admin-table-wrap">
+    <AsyncState
+      empty={reviews.length === 0}
+      emptyDescription="Les avis correspondant aux filtres apparaîtront ici."
+      emptyTitle="Aucun avis trouvé"
+      loading={loading}
+      skeletonVariant="table"
+    >
+      <div className="admin-table-wrap">
       <table className="admin-table">
         <thead>
           <tr>
@@ -27,11 +35,7 @@ export default function AdminReviewsTable({
           </tr>
         </thead>
         <tbody>
-          {loading ? (
-            <tr><td colSpan="8">Loading reviews...</td></tr>
-          ) : reviews.length === 0 ? (
-            <tr><td colSpan="8">No reviews found.</td></tr>
-          ) : reviews.map((review) => (
+          {reviews.map((review) => (
             <tr key={review.id}>
               <td>
                 <strong>{review.productName}</strong>
@@ -60,6 +64,7 @@ export default function AdminReviewsTable({
           ))}
         </tbody>
       </table>
-    </div>
+      </div>
+    </AsyncState>
   );
 }

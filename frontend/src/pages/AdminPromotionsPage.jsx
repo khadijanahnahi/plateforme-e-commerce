@@ -9,6 +9,7 @@ import {
   toPromotionInputDateTime,
   useAdminPromotions,
 } from "../hooks/useAdminPromotions";
+import useFeedbackToast from "../hooks/useFeedbackToast";
 
 export default function AdminPromotionsPage() {
   const {
@@ -28,6 +29,7 @@ export default function AdminPromotionsPage() {
     savePromotion,
     updateFilter,
   } = useAdminPromotions();
+  useFeedbackToast(message, error);
 
   const [form, setForm] = useState(emptyPromotionForm);
   const [editingId, setEditingId] = useState(null);
@@ -104,7 +106,6 @@ export default function AdminPromotionsPage() {
         onAction={openCreateModal}
       />
 
-      {message ? <div className="admin-alert admin-success">{message}</div> : null}
       {error ? <div className="admin-alert">{error}</div> : null}
 
       <div className="admin-panel promotions-panel">

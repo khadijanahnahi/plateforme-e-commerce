@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { productApi } from "../api/productApi";
 import ProductCard from "../components/product/ProductCard";
+import { AsyncState, Button } from "../components/ui";
 import { useAuth } from "../contexts/AuthContext";
 import { useCart } from "../hooks/useCart";
 import { useWishlist } from "../hooks/useWishlist";
@@ -16,18 +17,25 @@ export default function ProductsPage() {
   const [search, setSearch] = useState(querySearch);
   const [categoryId, setCategoryId] = useState(queryCategoryId);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const { isAuthenticated } = useAuth();
-  const { addToCart } = useCart();
-  const { isWishlisted, toggleWishlist } = useWishlist();
+  const { addToCart, isCartActionPending } = useCart();
+  const { isWishlisted, isWishlistActionPending, toggleWishlist } = useWishlist();
 
   async function loadProducts(nextSearch = search, nextCategoryId = categoryId) {
-    const response = await productApi.getProducts({
-      search: nextSearch || undefined,
-      categoryId: nextCategoryId || undefined,
-    });
-    setProducts(response.data);
+    setLoading(true);
+    setError("");
+    try {
+      const response = await productApi.getProducts({
+        search: nextSearch || undefined,
+        categoryId: nextCategoryId || undefined,
+      });
+      setProducts(response.data);
+    } catch (exception) {
+      setError(exception.response?.data?.message ?? "Impossible de charger les produits.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -36,6 +44,8 @@ export default function ProductsPage() {
     setCategoryId(queryCategoryId);
 
     async function loadInitialData() {
+      setLoading(true);
+      setError("");
       try {
         const [productsResponse, categoriesResponse] = await Promise.all([
           productApi.getProducts({
@@ -49,102 +59,79 @@ export default function ProductsPage() {
           setCategories(categoriesResponse.data);
         }
       } catch (exception) {
-        if (mounted) {
-          setError(exception.response?.data?.message ?? "Unable to load products.");
-        }
+        if (mounted) setError(exception.response?.data?.message ?? "Impossible de charger le catalogue.");
       } finally {
-        if (mounted) {
-          setLoading(false);
-        }
+        if (mounted) setLoading(false);
       }
     }
 
     loadInitialData();
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, [querySearch, queryCategoryId]);
 
   async function handleFilter(event) {
     event.preventDefault();
-    setLoading(true);
-    setMessage("");
-    setError("");
-    try {
-      await loadProducts(search, categoryId);
-    } catch (exception) {
-      setError(exception.response?.data?.message ?? "Unable to filter products.");
-    } finally {
-      setLoading(false);
-    }
+    await loadProducts(search, categoryId);
   }
 
   async function handleAddToCart(product) {
-    setMessage("");
-    setError("");
     try {
       await addToCart(product.id, 1);
-      setMessage("Product added to cart.");
-    } catch (exception) {
-      setError(exception.response?.data?.message ?? "Login required or product unavailable.");
-    }
+    } catch { /* Le contexte affiche une notification compréhensible. */ }
   }
 
   async function handleToggleWishlist(product) {
-    setMessage("");
-    setError("");
-
     if (!isAuthenticated) {
       navigate("/login");
       return;
     }
-
     try {
-      const added = await toggleWishlist(product.id);
-      setMessage(added ? "Produit ajoute a la wishlist." : "Produit retire de la wishlist.");
-    } catch (exception) {
-      setError(exception.response?.data?.message ?? "Unable to update wishlist.");
-    }
+      await toggleWishlist(product.id);
+    } catch { /* Le contexte affiche une notification compréhensible. */ }
   }
 
   return (
     <section className="page catalog-page">
       <div className="catalog-hero">
         <div>
-          <span className="section-kicker">ShopSphere catalog</span>
-          <h1>Products</h1>
-          <p>Explore monochrome essentials, filter by category and add available items to your cart.</p>
+          <span className="section-kicker">Catalogue ShopSphere</span>
+          <h1>Produits</h1>
+          <p>Explorez nos essentiels monochromes et filtrez-les par catégorie.</p>
         </div>
       </div>
 
       <form className="catalog-filters" onSubmit={handleFilter}>
-        <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search product" />
+        <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Rechercher un produit" />
         <select value={categoryId} onChange={(event) => setCategoryId(event.target.value)}>
-          <option value="">All categories</option>
+          <option value="">Toutes les catégories</option>
           {categories.map((category) => (
             <option key={category.id} value={category.id}>{category.name}</option>
           ))}
         </select>
-        <button className="button button-primary" type="submit">Apply</button>
+        <Button loading={loading} type="submit">Appliquer</Button>
       </form>
 
-      {message ? <div className="admin-alert admin-success">{message}</div> : null}
-      {error ? <div className="admin-alert">{error}</div> : null}
-
       <div className="catalog-grid">
-        {loading ? (
-          <div className="admin-panel">Loading products...</div>
-        ) : products.length === 0 ? (
-          <div className="admin-panel">No products found.</div>
-        ) : products.map((product) => (
-          <ProductCard
-            isWishlisted={isWishlisted(product.id)}
-            product={product}
-            onAddToCart={handleAddToCart}
-            onToggleWishlist={handleToggleWishlist}
-            key={product.id}
-          />
-        ))}
+        <AsyncState
+          empty={products.length === 0}
+          emptyDescription="Essayez une autre recherche ou consultez toutes les catégories."
+          emptyTitle="Aucun produit trouvé"
+          error={error}
+          loading={loading}
+          onRetry={() => loadProducts(search, categoryId)}
+        >
+          {products.map((product) => (
+            <ProductCard
+              addPending={isCartActionPending(`add:${product.id}`)}
+              isWishlisted={isWishlisted(product.id)}
+              product={product}
+              onAddToCart={handleAddToCart}
+              onToggleWishlist={handleToggleWishlist}
+              wishlistPending={isWishlistActionPending(product.id)}
+              key={product.id}
+            />
+          ))}
+        </AsyncState>
       </div>
     </section>
   );

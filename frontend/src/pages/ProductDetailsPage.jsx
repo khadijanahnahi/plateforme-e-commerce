@@ -4,6 +4,9 @@ import { productApi } from "../api/productApi";
 import { useAuth } from "../contexts/AuthContext";
 import { useCart } from "../hooks/useCart";
 import { useWishlist } from "../hooks/useWishlist";
+import { Button, ErrorState, Skeleton } from "../components/ui";
+import useAsyncAction from "../hooks/useAsyncAction";
+import { useToast } from "../hooks/useToast";
 
 const DIRECT_CHECKOUT_KEY = "shopsphere_direct_checkout";
 
@@ -17,8 +20,10 @@ export default function ProductDetailsPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
-  const { addToCart: addProductToCart } = useCart();
-  const { isWishlisted, toggleWishlist } = useWishlist();
+  const { addToCart: addProductToCart, isCartActionPending } = useCart();
+  const { isWishlisted, isWishlistActionPending, toggleWishlist } = useWishlist();
+  const toast = useToast();
+  const reviewAction = useAsyncAction();
   const reviewsSectionRef = useRef(null);
   const [product, setProduct] = useState(null);
   const [reviews, setReviews] = useState([]);
@@ -26,7 +31,6 @@ export default function ProductDetailsPage() {
   const [reviewForm, setReviewForm] = useState({ rating: 5, comment: "" });
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [reviewError, setReviewError] = useState("");
   const [reviewMessage, setReviewMessage] = useState("");
@@ -109,7 +113,6 @@ export default function ProductDetailsPage() {
   }
 
   async function addToCart() {
-    setMessage("");
     setError("");
 
     if (!canBuy) {
@@ -119,14 +122,10 @@ export default function ProductDetailsPage() {
 
     try {
       await addProductToCart(product.id, quantity);
-      setMessage("Product added to cart.");
-    } catch (exception) {
-      setError(exception.response?.data?.message ?? "Login required or product unavailable.");
-    }
+    } catch { /* Le contexte affiche l'erreur. */ }
   }
 
   async function handleToggleWishlist() {
-    setMessage("");
     setError("");
 
     if (!isAuthenticated) {
@@ -135,15 +134,11 @@ export default function ProductDetailsPage() {
     }
 
     try {
-      const added = await toggleWishlist(product.id);
-      setMessage(added ? "Product added to wishlist." : "Product removed from wishlist.");
-    } catch (exception) {
-      setError(exception.response?.data?.message ?? "Unable to update wishlist.");
-    }
+      await toggleWishlist(product.id);
+    } catch { /* Le contexte affiche l'erreur. */ }
   }
 
   function buyNow() {
-    setMessage("");
     setError("");
 
     if (!canBuy) {
@@ -170,27 +165,34 @@ export default function ProductDetailsPage() {
 
   async function submitReview(event) {
     event.preventDefault();
-    setReviewError("");
-    setReviewMessage("");
-
-    try {
-      await productApi.createReview(product.id, {
-        rating: Number(reviewForm.rating),
-        comment: reviewForm.comment,
-      });
-      setReviewForm({ rating: 5, comment: "" });
-      setReviewMessage("Review submitted for admin approval.");
-      const eligibilityResponse = await productApi.getReviewEligibility(product.id);
-      setEligibility(eligibilityResponse.data);
-    } catch (exception) {
-      setReviewError(exception.response?.data?.message ?? "Unable to submit review.");
-    }
+    return reviewAction.run(async () => {
+      setReviewError("");
+      setReviewMessage("");
+      try {
+        await productApi.createReview(product.id, {
+          rating: Number(reviewForm.rating),
+          comment: reviewForm.comment,
+        });
+        setReviewForm({ rating: 5, comment: "" });
+        setReviewMessage("Avis envoyé pour modération.");
+        toast.success("Avis envoyé pour modération.");
+        const eligibilityResponse = await productApi.getReviewEligibility(product.id);
+        setEligibility(eligibilityResponse.data);
+      } catch (exception) {
+        const nextError = exception.response?.data?.message ?? "Impossible d'envoyer votre avis.";
+        setReviewError(nextError);
+        toast.error(nextError);
+      }
+    });
   }
 
   if (loading) {
     return (
       <section className="page product-details-page">
-        <div className="admin-panel">Loading product...</div>
+        <div className="details-shell" aria-label="Chargement du produit" role="status">
+          <Skeleton height={520} radius={24} />
+          <div className="admin-panel"><Skeleton height={34} width="70%" /><Skeleton height={20} width="45%" /><Skeleton height={120} /></div>
+        </div>
       </section>
     );
   }
@@ -198,8 +200,8 @@ export default function ProductDetailsPage() {
   if (!product) {
     return (
       <section className="page product-details-page">
-        <div className="admin-alert">{error || "Product not found."}</div>
-        <Link className="button button-secondary" to="/products">Back to products</Link>
+        <ErrorState description={error || "Ce produit est introuvable."} onRetry={() => window.location.reload()} title="Produit indisponible" />
+        <Link className="button button-secondary" to="/products">Retour aux produits</Link>
       </section>
     );
   }
@@ -208,7 +210,6 @@ export default function ProductDetailsPage() {
     <section className="page product-details-page">
       <Link className="details-back-link" to="/products">Back to products</Link>
 
-      {message ? <div className="admin-alert admin-success">{message}</div> : null}
       {error ? <div className="admin-alert">{error}</div> : null}
 
       <div className="details-shell">
@@ -258,19 +259,20 @@ export default function ProductDetailsPage() {
           </div>
 
           <div className="details-actions">
-            <button
-              className={`button button-secondary wishlist-detail-button ${isWishlisted(product.id) ? "is-active" : ""}`}
-              type="button"
+            <Button
+              className={`wishlist-detail-button ${isWishlisted(product.id) ? "is-active" : ""}`}
+              loading={isWishlistActionPending(product.id)}
+              variant="outline"
               onClick={handleToggleWishlist}
             >
               {isWishlisted(product.id) ? "\u2665 Saved" : "\u2661 Save"}
-            </button>
-            <button className="button button-primary" type="button" onClick={() => addToCart()} disabled={!canBuy}>
+            </Button>
+            <Button loading={isCartActionPending(`add:${product.id}`)} onClick={() => addToCart()} disabled={!canBuy}>
               Add to Cart
-            </button>
-            <button className="button button-primary" type="button" onClick={buyNow} disabled={!canBuy}>
+            </Button>
+            <Button onClick={buyNow} disabled={!canBuy}>
               Buy Now
-            </button>
+            </Button>
           </div>
         </article>
       </div>
@@ -333,7 +335,7 @@ export default function ProductDetailsPage() {
                     required
                   />
                 </label>
-                <button className="button button-primary" type="submit">Submit Review</button>
+                <Button loading={reviewAction.loading} type="submit">Envoyer l'avis</Button>
               </form>
             ) : (
               <p>{eligibility?.reason ?? "Review available after delivered purchase."}</p>

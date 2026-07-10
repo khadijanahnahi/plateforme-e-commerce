@@ -1,4 +1,5 @@
 import CategoryStatusBadge from "./CategoryStatusBadge";
+import { AsyncState } from "../ui";
 
 export default function AdminCategoriesTable({
   categories,
@@ -7,7 +8,14 @@ export default function AdminCategoriesTable({
   onToggleStatus,
 }) {
   return (
-    <div className="admin-table-wrap">
+    <AsyncState
+      empty={categories.length === 0}
+      emptyDescription="Créez une catégorie ou modifiez vos filtres."
+      emptyTitle="Aucune catégorie trouvée"
+      loading={loading}
+      skeletonVariant="table"
+    >
+      <div className="admin-table-wrap">
       <table className="admin-table">
         <thead>
           <tr>
@@ -20,11 +28,7 @@ export default function AdminCategoriesTable({
           </tr>
         </thead>
         <tbody>
-          {loading ? (
-            <tr><td colSpan="6">Loading categories...</td></tr>
-          ) : categories.length === 0 ? (
-            <tr><td colSpan="6">No categories found.</td></tr>
-          ) : categories.map((category) => (
+          {categories.map((category) => (
             <tr key={category.id}>
               <td>
                 {category.imageUrl ? (
@@ -47,6 +51,7 @@ export default function AdminCategoriesTable({
           ))}
         </tbody>
       </table>
-    </div>
+      </div>
+    </AsyncState>
   );
 }

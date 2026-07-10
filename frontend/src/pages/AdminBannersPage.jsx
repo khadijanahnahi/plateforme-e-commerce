@@ -8,6 +8,7 @@ import {
   toBannerInputDateTime,
   useAdminBanners,
 } from "../hooks/useAdminBanners";
+import useFeedbackToast from "../hooks/useFeedbackToast";
 
 function labelPlacementFilter(placement) {
   if (placement === "ALL") return "Placement: All";
@@ -31,6 +32,7 @@ export default function AdminBannersPage() {
     setPlacementFilter,
     uploadBannerImage,
   } = useAdminBanners();
+  useFeedbackToast(message, error);
 
   const [form, setForm] = useState(emptyBannerForm);
   const [editingId, setEditingId] = useState(null);
@@ -93,7 +95,6 @@ export default function AdminBannersPage() {
         description="Manage internal homepage campaigns and promotional placements."
       />
 
-      {message ? <div className="admin-alert admin-success">{message}</div> : null}
       {error ? <div className="admin-alert">{error}</div> : null}
 
       <div className="admin-banners-layout">

@@ -1,6 +1,7 @@
 import AdminPageHeader from "../components/layout/AdminPageHeader";
 import AdminReviewsTable from "../components/review/AdminReviewsTable";
 import { reviewStatuses, useAdminReviews } from "../hooks/useAdminReviews";
+import useFeedbackToast from "../hooks/useFeedbackToast";
 
 export default function AdminReviewsPage() {
   const {
@@ -14,6 +15,7 @@ export default function AdminReviewsPage() {
     rejectReview,
     updateStatusFilter,
   } = useAdminReviews();
+  useFeedbackToast(message, error);
 
   return (
     <section className="page admin-page">
@@ -23,7 +25,6 @@ export default function AdminReviewsPage() {
         description="Moderer les avis produits verifies avant publication dans la boutique."
       />
 
-      {message ? <div className="admin-alert admin-success">{message}</div> : null}
       {error ? <div className="admin-alert">{error}</div> : null}
 
       <div className="admin-panel">

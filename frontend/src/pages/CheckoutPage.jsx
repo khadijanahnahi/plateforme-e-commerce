@@ -1,7 +1,10 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import http from "../api/http";
 import { useAuth } from "../contexts/AuthContext";
+import { AsyncState, Button } from "../components/ui";
+import useAsyncAction from "../hooks/useAsyncAction";
+import { useToast } from "../hooks/useToast";
 
 const DIRECT_CHECKOUT_KEY = "shopsphere_direct_checkout";
 const DELIVERY_FEE = 0;
@@ -61,6 +64,10 @@ export default function CheckoutPage() {
   const [couponValidation, setCouponValidation] = useState(null);
   const [couponMessage, setCouponMessage] = useState("");
   const [error, setError] = useState("");
+  const [loadError, setLoadError] = useState("");
+  const couponAction = useAsyncAction();
+  const confirmAction = useAsyncAction();
+  const toast = useToast();
 
   const checkoutSummary = directCheckout
     ? {
@@ -88,43 +95,30 @@ export default function CheckoutPage() {
     }));
   }, [user]);
 
-  useEffect(() => {
-    let mounted = true;
-
-    async function loadCheckout() {
-      if (isDirectCheckout) {
-        const direct = readDirectCheckout();
-        if (mounted) {
-          setDirectCheckout(direct);
-          if (!direct) {
-            setError("Direct checkout expired. Please select Buy Now again.");
-          }
-          setLoading(false);
-        }
-        return;
-      }
-
-      try {
-        const response = await http.get("/cart");
-        if (mounted) {
-          setCart(response.data);
-        }
-      } catch (exception) {
-        if (mounted) {
-          setError(exception.response?.data?.message ?? "Unable to load cart.");
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
-      }
+  const loadCheckout = useCallback(async () => {
+    setLoading(true);
+    setLoadError("");
+    if (isDirectCheckout) {
+      const direct = readDirectCheckout();
+      setDirectCheckout(direct);
+      if (!direct) setLoadError("Ce checkout direct a expiré. Sélectionnez de nouveau Acheter maintenant.");
+      setLoading(false);
+      return;
     }
 
-    loadCheckout();
-    return () => {
-      mounted = false;
-    };
+    try {
+      const response = await http.get("/cart");
+      setCart(response.data);
+    } catch (exception) {
+      setLoadError(exception.response?.data?.message ?? "Impossible de charger le panier.");
+    } finally {
+      setLoading(false);
+    }
   }, [isDirectCheckout]);
+
+  useEffect(() => {
+    loadCheckout();
+  }, [loadCheckout]);
 
   function updateField(event) {
     const { name, value } = event.target;
@@ -132,59 +126,68 @@ export default function CheckoutPage() {
   }
 
   async function applyCoupon() {
-    setError("");
-    setCouponMessage("");
-    setCouponValidation(null);
+    return couponAction.run(async () => {
+      setError("");
+      setCouponMessage("");
+      setCouponValidation(null);
 
-    if (!couponCode.trim()) {
-      setCouponMessage("Enter a coupon code.");
-      return;
-    }
+      if (!couponCode.trim()) {
+        setCouponMessage("Saisissez un code promo.");
+        return;
+      }
 
-    try {
-      const response = directCheckout
-        ? await http.post("/coupons/validate-direct", {
-            code: couponCode.trim(),
-            productId: directCheckout.productId,
-            quantity: directCheckout.quantity,
-          })
-        : await http.post("/coupons/validate", { code: couponCode.trim() });
-      setCouponValidation(response.data);
-      setCouponCode(response.data.code);
-      setCouponMessage("Coupon applied.");
-    } catch (exception) {
-      setCouponMessage(getApiErrorMessage(exception, "Invalid coupon."));
-    }
+      try {
+        const response = directCheckout
+          ? await http.post("/coupons/validate-direct", {
+              code: couponCode.trim(),
+              productId: directCheckout.productId,
+              quantity: directCheckout.quantity,
+            })
+          : await http.post("/coupons/validate", { code: couponCode.trim() });
+        setCouponValidation(response.data);
+        setCouponCode(response.data.code);
+        setCouponMessage("Code promo appliqué.");
+        toast.success("Code promo appliqué.");
+      } catch (exception) {
+        const message = getApiErrorMessage(exception, "Code promo invalide.");
+        setCouponMessage(message);
+        toast.error(message);
+      }
+    });
   }
 
   async function confirmOrder(event) {
     event.preventDefault();
-    setError("");
+    return confirmAction.run(async () => {
+      setError("");
+      const payload = {
+        ...form,
+        shippingAddress: buildShippingAddress(form),
+        couponCode: couponCode.trim() || null,
+      };
 
-    const payload = {
-      ...form,
-      shippingAddress: buildShippingAddress(form),
-      couponCode: couponCode.trim() || null,
-    };
-
-    try {
-      let createdOrder;
-      if (directCheckout) {
-        const response = await http.post("/orders/direct", {
-          productId: directCheckout.productId,
-          quantity: directCheckout.quantity,
-          ...payload,
-        });
-        createdOrder = response.data;
-        sessionStorage.removeItem(DIRECT_CHECKOUT_KEY);
-      } else {
-        const response = await http.post("/orders", payload);
-        createdOrder = response.data;
+      try {
+        let createdOrder;
+        if (directCheckout) {
+          const response = await http.post("/orders/direct", {
+            productId: directCheckout.productId,
+            quantity: directCheckout.quantity,
+            ...payload,
+          });
+          createdOrder = response.data;
+          sessionStorage.removeItem(DIRECT_CHECKOUT_KEY);
+        } else {
+          const response = await http.post("/orders", payload);
+          createdOrder = response.data;
+        }
+        toast.success("Commande enregistrée avec succès.");
+        navigate(`/order-success/${createdOrder.id}`, { replace: true });
+      } catch (exception) {
+        const message = getApiErrorMessage(exception, "Impossible de créer la commande.");
+        setError(message);
+        toast.error(message);
       }
-      navigate(`/order-success/${createdOrder.id}`, { replace: true });
-    } catch (exception) {
-      setError(getApiErrorMessage(exception, "Unable to create order."));
-    }
+    });
   }
 
   return (
@@ -199,15 +202,15 @@ export default function CheckoutPage() {
 
       {error ? <div className="admin-alert">{error}</div> : null}
 
-      {loading ? (
-        <div className="admin-panel">Loading checkout...</div>
-      ) : !hasItems ? (
-        <div className="cart-empty admin-panel">
-          <h2>Your cart is empty.</h2>
-          <p>Add products before checkout.</p>
-          <Link className="button button-primary" to="/products">Go to products</Link>
-        </div>
-      ) : (
+      <AsyncState
+        empty={!hasItems}
+        emptyAction={<Link className="button button-primary" to="/products">Découvrir les produits</Link>}
+        emptyDescription="Ajoutez des produits avant de passer une commande."
+        emptyTitle="Votre panier est vide"
+        error={loadError}
+        loading={loading}
+        onRetry={loadCheckout}
+      >
         <div className="checkout-grid">
           <div className="admin-panel">
             <h2>{directCheckout ? "Buy Now summary" : "Cart summary"}</h2>
@@ -238,9 +241,7 @@ export default function CheckoutPage() {
                   }}
                   placeholder="Promo code"
                 />
-                <button className="button button-secondary" type="button" onClick={applyCoupon}>
-                  Apply
-                </button>
+                <Button loading={couponAction.loading} variant="outline" onClick={applyCoupon}>Appliquer</Button>
               </div>
               {couponMessage ? <p className={couponValidation ? "coupon-message coupon-success" : "coupon-message"}>{couponMessage}</p> : null}
               <div>
@@ -288,13 +289,11 @@ export default function CheckoutPage() {
 
             <div className="checkout-actions">
               <Link className="button button-secondary" to="/cart">Back to cart</Link>
-              <button className="button button-primary" type="submit">
-                Confirm order
-              </button>
+              <Button loading={confirmAction.loading} type="submit">Confirmer la commande</Button>
             </div>
           </form>
         </div>
-      )}
+      </AsyncState>
     </section>
   );
 }
