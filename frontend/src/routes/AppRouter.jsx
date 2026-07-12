@@ -15,6 +15,7 @@ import AdminCustomersPage from "../pages/AdminCustomersPage";
 import AdminCustomerDetailsPage from "../pages/AdminCustomerDetailsPage";
 import AdminSettingsPage from "../pages/AdminSettingsPage";
 import AdminStockMovementsPage from "../pages/AdminStockMovementsPage";
+import AdminSupportMessagesPage from "../pages/AdminSupportMessagesPage";
 import CategoriesPage from "../pages/CategoriesPage";
 import CartPage from "../pages/CartPage";
 import CheckoutPage from "../pages/CheckoutPage";
@@ -86,6 +87,7 @@ export default function AppRouter() {
           <Route path="/admin/customers/:id" element={<AdminCustomerDetailsPage />} />
           <Route path="/admin/products" element={<AdminProductsPage />} />
           <Route path="/admin/stock-movements" element={<AdminStockMovementsPage />} />
+          <Route path="/admin/support-messages" element={<AdminSupportMessagesPage />} />
           <Route path="/admin/orders" element={<AdminOrdersPage />} />
           <Route path="/admin/orders/:id" element={<AdminOrderDetailsPage />} />
           <Route path="/admin/settings" element={<AdminSettingsPage />} />

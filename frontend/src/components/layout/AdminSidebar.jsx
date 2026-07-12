@@ -1,17 +1,48 @@
 import { NavLink } from "react-router-dom";
 
-const adminLinks = [
-  { icon: "dashboard", label: "Dashboard", to: "/admin/dashboard" },
-  { icon: "banner", label: "Banners", to: "/admin/banners" },
-  { icon: "promotion", label: "Promotions", to: "/admin/promotions" },
-  { icon: "product", label: "Products", to: "/admin/products" },
-  { icon: "stock", label: "Stock History", to: "/admin/stock-movements" },
-  { icon: "category", label: "Categories", to: "/admin/categories" },
-  { icon: "coupon", label: "Coupons", to: "/admin/coupons" },
-  { icon: "review", label: "Reviews", to: "/admin/reviews" },
-  { icon: "customer", label: "Customers", to: "/admin/customers" },
-  { icon: "order", label: "Orders", to: "/admin/orders" },
-  { icon: "settings", label: "Settings", to: "/admin/settings" },
+const adminSections = [
+  {
+    title: "Overview",
+    links: [
+      { icon: "dashboard", label: "Dashboard", to: "/admin/dashboard" },
+    ],
+  },
+  {
+    title: "Sales",
+    links: [
+      { icon: "order", label: "Orders", to: "/admin/orders" },
+      { icon: "stock", label: "Stock History", to: "/admin/stock-movements" },
+    ],
+  },
+  {
+    title: "Catalog",
+    links: [
+      { icon: "product", label: "Products", to: "/admin/products" },
+      { icon: "category", label: "Categories", to: "/admin/categories" },
+      { icon: "review", label: "Reviews", to: "/admin/reviews" },
+    ],
+  },
+  {
+    title: "Marketing",
+    links: [
+      { icon: "banner", label: "Banners", to: "/admin/banners" },
+      { icon: "promotion", label: "Promotions", to: "/admin/promotions" },
+      { icon: "coupon", label: "Coupons", to: "/admin/coupons" },
+    ],
+  },
+  {
+    title: "Customers",
+    links: [
+      { icon: "customer", label: "Customers", to: "/admin/customers" },
+      { icon: "support", label: "Support", to: "/admin/support-messages" },
+    ],
+  },
+  {
+    title: "System",
+    links: [
+      { icon: "settings", label: "Settings", to: "/admin/settings" },
+    ],
+  },
 ];
 
 function AdminNavIcon({ name }) {
@@ -24,6 +55,7 @@ function AdminNavIcon({ name }) {
     category: <><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" /></>,
     coupon: <><path d="M4 7a2 2 0 0 0 2-2h12a2 2 0 0 0 2 2v2a3 3 0 0 0 0 6v2a2 2 0 0 0-2 2H6a2 2 0 0 0-2-2v-2a3 3 0 0 0 0-6V7Z" /><path d="M12 7v2M12 11v2M12 15v2" /></>,
     review: <><path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z" /></>,
+    support: <><path d="M4 6h16v12H4z" /><path d="m4 7 8 6 8-6" /><path d="m4 18 5.5-5M20 18l-5.5-5" /></>,
     customer: <><circle cx="9" cy="8" r="3" /><path d="M3.5 20a5.5 5.5 0 0 1 11 0M16 6.5a3 3 0 0 1 0 5.8M16.5 15a5 5 0 0 1 4 5" /></>,
     order: <><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z" /><path d="M9 8h6M9 12h6M9 16h3" /></>,
     settings: <><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z" /></>,
@@ -52,18 +84,25 @@ export default function AdminSidebar({ collapsed, mobileOpen, onNavigate, onTogg
       </div>
 
       <nav className="admin-sidebar-nav" aria-label="Admin navigation">
-        {adminLinks.map((link) => (
-          <NavLink
-            aria-label={link.label}
-            data-tooltip={link.label}
-            key={link.to}
-            title={collapsed ? link.label : undefined}
-            to={link.to}
-            onClick={onNavigate}
-          >
-            <AdminNavIcon name={link.icon} />
-            <span className="admin-sidebar-link-label">{link.label}</span>
-          </NavLink>
+        {adminSections.map((section) => (
+          <div className="admin-sidebar-section" key={section.title}>
+            <span className="admin-sidebar-section-title">{section.title}</span>
+            <div className="admin-sidebar-section-links">
+              {section.links.map((link) => (
+                <NavLink
+                  aria-label={link.label}
+                  data-tooltip={link.label}
+                  key={link.to}
+                  title={collapsed ? link.label : undefined}
+                  to={link.to}
+                  onClick={onNavigate}
+                >
+                  <AdminNavIcon name={link.icon} />
+                  <span className="admin-sidebar-link-label">{link.label}</span>
+                </NavLink>
+              ))}
+            </div>
+          </div>
         ))}
       </nav>
     </aside>

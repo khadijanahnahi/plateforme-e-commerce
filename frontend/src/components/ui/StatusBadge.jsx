@@ -3,19 +3,22 @@ const labels = {
   INACTIVE: "Inactif",
   DRAFT: "Brouillon",
   OUT_OF_STOCK: "Rupture",
-  ARCHIVED: "Archivé",
+  ARCHIVED: "Archive",
   PENDING: "En attente",
-  CONFIRMED: "Confirmée",
-  SHIPPED: "Expédiée",
-  DELIVERED: "Livrée",
-  CANCELLED: "Annulée",
-  PAID: "Payé",
-  UNPAID: "Non payé",
-  FAILED: "Échec",
-  APPROVED: "Approuvé",
-  REJECTED: "Rejeté",
-  EXPIRED: "Expiré",
-  SCHEDULED: "Planifiée",
+  CONFIRMED: "Confirmee",
+  SHIPPED: "Expediee",
+  DELIVERED: "Livree",
+  CANCELLED: "Annulee",
+  PAID: "Paye",
+  UNPAID: "Non paye",
+  FAILED: "Echec",
+  APPROVED: "Approuve",
+  REJECTED: "Rejete",
+  EXPIRED: "Expire",
+  SCHEDULED: "Planifiee",
+  NEW: "Nouveau",
+  IN_PROGRESS: "En cours",
+  RESOLVED: "Resolu",
 };
 
 const tones = {
@@ -23,10 +26,13 @@ const tones = {
   APPROVED: "success",
   PAID: "success",
   DELIVERED: "success",
+  RESOLVED: "success",
   CONFIRMED: "info",
   SHIPPED: "info",
+  IN_PROGRESS: "info",
   PENDING: "warning",
   SCHEDULED: "warning",
+  NEW: "warning",
   OUT_OF_STOCK: "danger",
   CANCELLED: "danger",
   FAILED: "danger",
@@ -38,7 +44,7 @@ const tones = {
 };
 
 export default function StatusBadge({ className = "", type = "status", value }) {
-  if (!value) return <span className={`ui-status-badge ui-status-neutral ${className}`}>—</span>;
+  if (!value) return <span className={`ui-status-badge ui-status-neutral ${className}`}>-</span>;
   const normalized = String(value).toUpperCase();
   return (
     <span className={`ui-status-badge ui-status-${tones[normalized] ?? "neutral"} ui-status-${type} ${className}`}>

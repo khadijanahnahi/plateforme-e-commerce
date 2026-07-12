@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { getSupportApiError, supportApi } from "../api/supportApi";
 
 const quickHelpLinks = [
   "Order Tracking",
@@ -77,10 +78,33 @@ export default function SupportPage() {
   const [imageFailed, setImageFailed] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState(0);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
-    setSubmitted(true);
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const payload = {
+      fullName: String(formData.get("fullName") ?? "").trim(),
+      email: String(formData.get("email") ?? "").trim(),
+      subject: String(formData.get("subject") ?? "").trim(),
+      orderNumber: String(formData.get("orderNumber") ?? "").trim() || null,
+      message: String(formData.get("message") ?? "").trim(),
+    };
+
+    setSubmitting(true);
+    setSubmitted(false);
+    setSubmitError("");
+    try {
+      await supportApi.createMessage(payload);
+      setSubmitted(true);
+      form.reset();
+    } catch (exception) {
+      setSubmitError(getSupportApiError(exception));
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -132,8 +156,11 @@ export default function SupportPage() {
           </select>
           <input name="orderNumber" placeholder="Order Number (optional)" />
           <textarea name="message" placeholder="Message" required />
-          <button className="button button-primary support-submit" type="submit">Send Request</button>
-          {submitted ? <p className="support-success">Request received. Our team will contact you soon.</p> : null}
+          <button className="button button-primary support-submit" disabled={submitting} type="submit">
+            {submitting ? "Envoi en cours..." : "Envoyer la demande"}
+          </button>
+          {submitted ? <p className="support-success">Message recu. Notre equipe vous contactera rapidement.</p> : null}
+          {submitError ? <p className="support-error">{submitError}</p> : null}
           <small>Your information is secure and will only be used to assist you.</small>
         </form>
 

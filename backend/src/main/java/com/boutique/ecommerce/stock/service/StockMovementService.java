@@ -11,6 +11,8 @@ import com.boutique.ecommerce.user.entity.RoleName;
 import com.boutique.ecommerce.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.List;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -39,7 +41,30 @@ public class StockMovementService {
         if (dateFrom != null && dateTo != null && dateFrom.isAfter(dateTo)) {
             throw new IllegalArgumentException("dateFrom must be before dateTo.");
         }
-        return movementRepository.findForAdmin(productId, movementType, orderId, dateFrom, dateTo)
+        Specification<StockMovement> specification = (root, query, criteriaBuilder) -> criteriaBuilder.conjunction();
+        if (productId != null) {
+            specification = specification.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.equal(root.get("product").get("id"), productId));
+        }
+        if (movementType != null) {
+            specification = specification.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.equal(root.get("movementType"), movementType));
+        }
+        if (orderId != null) {
+            specification = specification.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.equal(root.get("order").get("id"), orderId));
+        }
+        if (dateFrom != null) {
+            specification = specification.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.greaterThanOrEqualTo(root.get("createdAt"), dateFrom));
+        }
+        if (dateTo != null) {
+            specification = specification.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.lessThanOrEqualTo(root.get("createdAt"), dateTo));
+        }
+
+        Sort sort = Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id"));
+        return movementRepository.findAll(specification, sort)
                 .stream()
                 .map(this::toResponse)
                 .toList();
