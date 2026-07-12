@@ -21,11 +21,9 @@ export default function ClientHeader({
       <div className="client-announcement" aria-label="Annonces ShopSphere">
         <div className="client-announcement-track">
           <span>Éditions monochromes premium</span>
-          <span>Nouveaux drops chaque semaine</span>
           <span>Livraison express 48h</span>
           <span>Accès prioritaire membres</span>
           <span>Éditions monochromes premium</span>
-          <span>Nouveaux drops chaque semaine</span>
           <span>Livraison express 48h</span>
           <span>Accès prioritaire membres</span>
         </div>
@@ -47,6 +45,7 @@ export default function ClientHeader({
           <SearchBar
             className="client-desktop-search"
             onSubmit={handleSearchSubmit}
+            placeholder="Rechercher un produit..."
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
           />
@@ -80,14 +79,19 @@ export default function ClientHeader({
             <UserMenu isAdmin={isAdmin} onLogout={handleLogout} />
           ) : (
             <div className="client-auth-actions">
-              <NavLink className="client-auth-button client-login-button" to="/login">Connexion</NavLink>
+              <NavLink className="client-auth-button client-login-button" to="/login">
+                Connexion
+              </NavLink>
+              <NavLink className="client-auth-button client-register-button" to="/register">
+                Créer un compte
+              </NavLink>
             </div>
           )}
 
           <button
-            className="client-menu-toggle"
+            className={`client-menu-toggle ${mobileMenuOpen ? "is-open" : ""}`}
             type="button"
-            aria-label="Ouvrir le menu"
+            aria-label={mobileMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
             aria-expanded={mobileMenuOpen}
             onClick={() => setMobileMenuOpen((current) => !current)}
           >

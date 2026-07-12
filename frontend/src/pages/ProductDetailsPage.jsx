@@ -10,6 +10,21 @@ import { useToast } from "../hooks/useToast";
 
 const DIRECT_CHECKOUT_KEY = "shopsphere_direct_checkout";
 
+function getProductDisplayPrice(product) {
+  return Number(product?.effectivePrice ?? product?.promotionalPrice ?? product?.price ?? 0);
+}
+
+function getProductOriginalPrice(product) {
+  return Number(product?.originalPrice ?? product?.price ?? 0);
+}
+
+function hasActivePromotion(product) {
+  const displayPrice = getProductDisplayPrice(product);
+  const originalPrice = getProductOriginalPrice(product);
+
+  return Boolean(product?.promotionActive) && originalPrice > displayPrice;
+}
+
 function renderStars(rating) {
   const safeRating = Math.max(0, Math.min(5, Math.round(Number(rating) || 0)));
   return `${"★".repeat(safeRating)}${"☆".repeat(5 - safeRating)}`;
@@ -37,6 +52,9 @@ export default function ProductDetailsPage() {
 
   const availableStock = product?.stockQuantity ?? 0;
   const canBuy = product?.status === "ACTIVE" && availableStock > 0;
+  const displayPrice = getProductDisplayPrice(product);
+  const originalPrice = getProductOriginalPrice(product);
+  const promotionActive = hasActivePromotion(product);
 
   useEffect(() => {
     let mounted = true;
@@ -150,9 +168,9 @@ export default function ProductDetailsPage() {
       productId: product.id,
       productName: product.name,
       imageUrl: product.imageUrl,
-      unitPrice: Number(product.price),
+      unitPrice: displayPrice,
       quantity,
-      subtotal: Number(product.price) * quantity,
+      subtotal: displayPrice * quantity,
       availableStock,
     }));
     navigate("/checkout?mode=direct");
@@ -233,7 +251,26 @@ export default function ProductDetailsPage() {
             <span>{product.reviewCount ?? 0} Reviews</span>
           </div>
 
-          <strong className="details-price">{Number(product.price).toFixed(2)} DH</strong>
+          <div className="details-price-stack">
+            <div className="details-price-line">
+              <strong className="details-price">{displayPrice.toFixed(2)} DH</strong>
+              {promotionActive ? (
+                <span className="details-old-price">{originalPrice.toFixed(2)} DH</span>
+              ) : null}
+            </div>
+            {promotionActive ? (
+              <div className="details-promo-row">
+                <span className="details-promo-badge">
+                  {product.promotionBadgeLabel || "Promotion"}
+                </span>
+                {product.discountPercentage !== undefined && product.discountPercentage !== null ? (
+                  <span className="details-discount-badge">
+                    -{Math.round(Number(product.discountPercentage))}%
+                  </span>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
 
           <div className="details-stock">
             {canBuy ? `In Stock (${availableStock})` : product.status === "OUT_OF_STOCK" ? "Out of stock" : "Unavailable"}
