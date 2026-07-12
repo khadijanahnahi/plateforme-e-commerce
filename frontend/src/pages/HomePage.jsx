@@ -470,7 +470,7 @@ export default function HomePage() {
           <div className="footer-column">
             <h3>Marque</h3>
             <div className="footer-links">
-              <a href="/#about">À propos</a>
+              <Link to="/about">À propos</Link>
               <Link to="/support">Contact</Link>
               <Link to="/terms">Conditions</Link>
               <Link to="/privacy-policy">ConfidentialitÃ©</Link>

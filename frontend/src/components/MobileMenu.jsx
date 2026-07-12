@@ -28,6 +28,7 @@ export default function MobileMenu({
         <NavLink to="/wishlist">Wishlist {wishlistCount > 0 ? `(${wishlistCount})` : ""}</NavLink>
         <NavLink to="/cart">Panier</NavLink>
         <NavLink to="/support">Support</NavLink>
+        <NavLink to="/about">À propos</NavLink>
 
         {isAuthenticated ? (
           <>

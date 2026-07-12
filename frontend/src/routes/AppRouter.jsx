@@ -16,6 +16,7 @@ import AdminCustomerDetailsPage from "../pages/AdminCustomerDetailsPage";
 import AdminSettingsPage from "../pages/AdminSettingsPage";
 import AdminStockMovementsPage from "../pages/AdminStockMovementsPage";
 import AdminSupportMessagesPage from "../pages/AdminSupportMessagesPage";
+import AboutPage from "../pages/AboutPage";
 import CategoriesPage from "../pages/CategoriesPage";
 import CartPage from "../pages/CartPage";
 import CheckoutPage from "../pages/CheckoutPage";
@@ -61,6 +62,7 @@ export default function AppRouter() {
         <Route path="/orders/:id" element={<OrderDetailsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/support" element={<SupportPage />} />
+        <Route path="/about" element={<AboutPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
         <Route path="/return-policy" element={<ReturnPolicyPage />} />

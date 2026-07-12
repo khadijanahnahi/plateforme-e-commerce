@@ -15,6 +15,7 @@ const customerLinks = [
 ];
 
 const legalLinks = [
+  { label: "À propos", to: "/about" },
   { label: "Conditions", to: "/terms" },
   { label: "Confidentialité", to: "/privacy-policy" },
   { label: "Retours", to: "/return-policy" },
@@ -63,7 +64,7 @@ export default function ClientFooter() {
         </nav>
 
         <nav className="footer-column footer-reveal" style={{ "--delay": "0.24s" }}>
-          <h3>Légal</h3>
+          <h3>Marque & légal</h3>
           <div className="footer-links">
             {legalLinks.map((link) => (
               <Link key={link.to} to={link.to}>{link.label}</Link>

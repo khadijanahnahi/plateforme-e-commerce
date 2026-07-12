@@ -75,17 +75,19 @@ export default function LoginPage() {
   }
 
   return (
-    <section className="auth-page">
-      <div className="page auth-shell">
-        <div className="auth-aside">
+    <section className="auth-page login-page">
+      <div className="page auth-shell login-shell">
+        <div className="auth-aside login-aside">
           <Link className="auth-logo" to="/">
             ShopSphere
           </Link>
-          <span className="section-kicker">Espace client</span>
-          <h1>Votre espace ShopSphere</h1>
-          <p>
-            Accédez à vos commandes, vos produits sauvegardés et vos avantages membres.
-          </p>
+          <div className="login-aside-copy">
+            <span className="section-kicker">Espace client</span>
+            <h1>Votre espace ShopSphere</h1>
+            <p>
+              Accédez à vos commandes, vos produits sauvegardés et vos avantages membres.
+            </p>
+          </div>
           <div className="auth-stat-list">
             <div>
               <strong>24h</strong>
@@ -102,7 +104,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <div className="auth-card auth-fade-up">
+        <div className="auth-card login-card">
           <div className="auth-card-header">
             <Link className="auth-mini-logo" to="/">
               ShopSphere
@@ -119,6 +121,8 @@ export default function LoginPage() {
                 name="email"
                 type="email"
                 placeholder="you@example.com"
+                autoComplete="email"
+                aria-invalid={Boolean(errors.email)}
                 value={form.email}
                 onChange={handleChange}
               />
@@ -133,6 +137,8 @@ export default function LoginPage() {
                   name="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Entrez votre mot de passe"
+                  autoComplete="current-password"
+                  aria-invalid={Boolean(errors.password)}
                   value={form.password}
                   onChange={handleChange}
                 />
@@ -168,9 +174,8 @@ export default function LoginPage() {
 
             {submitMessage ? (
               <div
-                className={`form-status ${
-                  Object.keys(errors).length > 0 ? "status-error" : "status-success"
-                }`}
+                className="form-status status-error"
+                role="alert"
               >
                 {submitMessage}
               </div>
@@ -182,7 +187,14 @@ export default function LoginPage() {
               style={{ "--delay": "0.32s" }}
               type="submit"
             >
-              {isSubmitting ? "Connexion..." : "Se connecter"}
+              {isSubmitting ? (
+                <>
+                  <span className="login-submit-spinner" aria-hidden="true" />
+                  Connexion en cours...
+                </>
+              ) : (
+                "Se connecter"
+              )}
             </button>
           </form>
 
