@@ -7,6 +7,10 @@ function validateEmail(email) {
   return /\S+@\S+\.\S+/.test(email);
 }
 
+function hasAdminRole(user) {
+  return user?.roles?.some((role) => role === "ADMIN" || role === "ROLE_ADMIN");
+}
+
 export default function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -63,7 +67,7 @@ export default function LoginPage() {
       });
 
       login(response.data);
-      navigate("/", { replace: true });
+      navigate(hasAdminRole(response.data.user) ? "/admin/dashboard" : "/", { replace: true });
     } catch (error) {
       const message =
         error.response?.data?.message ??

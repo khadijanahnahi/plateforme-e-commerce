@@ -16,6 +16,7 @@ export default function MobileMenu({
       <SearchBar
         className="client-mobile-search"
         onSubmit={handleSearchSubmit}
+        placeholder="Rechercher..."
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
       />
@@ -25,18 +26,30 @@ export default function MobileMenu({
         <NavLink className={({ isActive }) => (isActive ? "active" : undefined)} to="/categories">Catégories</NavLink>
         <NavLink className={() => getProductNavClass("new")} to="/products?sort=new">Nouveautés</NavLink>
         <NavLink className={() => getProductNavClass("best")} to="/products?sort=best">Meilleures ventes</NavLink>
-        <NavLink to="/wishlist">Wishlist {wishlistCount > 0 ? `(${wishlistCount})` : ""}</NavLink>
-        <NavLink to="/cart">Panier</NavLink>
+        {!isAdmin ? (
+          <>
+            <NavLink to="/wishlist">Wishlist {wishlistCount > 0 ? `(${wishlistCount})` : ""}</NavLink>
+            <NavLink to="/cart">Panier</NavLink>
+          </>
+        ) : null}
         <NavLink to="/support">Support</NavLink>
         <NavLink to="/about">À propos</NavLink>
 
         {isAuthenticated ? (
-          <>
-            <NavLink to="/profile">Profil</NavLink>
-            <NavLink to="/orders">Mes commandes</NavLink>
-            {isAdmin ? <NavLink to="/admin/dashboard">Admin Dashboard</NavLink> : null}
-            <button type="button" onClick={handleLogout}>Déconnexion</button>
-          </>
+          isAdmin ? (
+            <>
+              <NavLink to="/admin/dashboard">Admin Dashboard</NavLink>
+              <NavLink to="/">Voir la boutique</NavLink>
+              <NavLink to="/profile">Profil</NavLink>
+              <button type="button" onClick={handleLogout}>Déconnexion</button>
+            </>
+          ) : (
+            <>
+              <NavLink to="/profile">Profil</NavLink>
+              <NavLink to="/orders">Mes commandes</NavLink>
+              <button type="button" onClick={handleLogout}>Déconnexion</button>
+            </>
+          )
         ) : (
           <>
             <NavLink to="/login">Connexion</NavLink>

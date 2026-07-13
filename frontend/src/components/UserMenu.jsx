@@ -5,10 +5,19 @@ export default function UserMenu({ isAdmin, onLogout }) {
     <details className="client-user-menu">
       <summary className="client-account-button">Compte</summary>
       <div className="client-account-dropdown">
-        <NavLink to="/profile">Profil</NavLink>
-        <NavLink to="/orders">Mes commandes</NavLink>
-        <NavLink to="/wishlist">Wishlist</NavLink>
-        {isAdmin ? <NavLink to="/admin/dashboard">Admin Dashboard</NavLink> : null}
+        {isAdmin ? (
+          <>
+            <NavLink to="/admin/dashboard">Admin Dashboard</NavLink>
+            <NavLink to="/">Voir la boutique</NavLink>
+            <NavLink to="/profile">Profil</NavLink>
+          </>
+        ) : (
+          <>
+            <NavLink to="/profile">Profil</NavLink>
+            <NavLink to="/orders">Mes commandes</NavLink>
+            <NavLink to="/wishlist">Wishlist</NavLink>
+          </>
+        )}
         <button type="button" onClick={onLogout}>Déconnexion</button>
       </div>
     </details>
