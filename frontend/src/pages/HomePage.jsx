@@ -1,72 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import http from "../api/http";
+import HomeCategoriesCarousel from "../components/category/HomeCategoriesCarousel";
 import FlashSaleSection from "../components/product/FlashSaleSection";
+import BestSellersSection from "../features/products/BestSellersSection";
+import VerifiedReviewsSection from "../features/reviews/VerifiedReviewsSection";
 import heroMonochrome from "../../images/hero-monochrome.webp";
-
-const fallbackCategories = [
-  {
-    name: "Essentiels monochromes",
-    description: "Pièces nettes, textures propres et coupes contemporaines.",
-    itemCount: "42 pièces",
-  },
-  {
-    name: "Sneakers minimalistes",
-    description: "Silhouettes blanches, gris graphite et détails premium.",
-    itemCount: "18 modèles",
-  },
-  {
-    name: "Accessoires",
-    description: "Sacs, montres et essentiels au rendu soigné.",
-    itemCount: "27 sélections",
-  },
-  {
-    name: "Éditions limitées",
-    description: "Drops saisonniers et pièces rares à forte identité.",
-    itemCount: "11 nouveautés",
-  },
-];
-
-const recommendedProducts = [
-  {
-    name: "Clean Line Tee",
-    price: "340 DH",
-    details: "Coton organique, coupe régulière, blanc pierre.",
-  },
-  {
-    name: "Tailored Track Pants",
-    price: "680 DH",
-    details: "Profil relax avec finition noire mate.",
-  },
-  {
-    name: "Studio Tote",
-    price: "920 DH",
-    details: "Sac structure en texture grain doux.",
-  },
-  {
-    name: "Frame Shades",
-    price: "560 DH",
-    details: "Lunettes monochromes nettes pour le quotidien.",
-  },
-];
-
-const stores = [
-  {
-    name: "Atelier Noir",
-    tagline: "Essentiels fashion",
-    rating: "4.9",
-  },
-  {
-    name: "North Form",
-    tagline: "Basics urbains premium",
-    rating: "4.8",
-  },
-  {
-    name: "Silver Thread",
-    tagline: "Pièces minimalistes",
-    rating: "4.7",
-  },
-];
 
 const heroHeadline = ["Élevez votre", "allure"];
 
@@ -134,7 +73,6 @@ export default function HomePage() {
   const [heroBanners, setHeroBanners] = useState([]);
   const [activeHeroIndex, setActiveHeroIndex] = useState(0);
   const [heroLoaded, setHeroLoaded] = useState(false);
-  const [homeCategories, setHomeCategories] = useState(fallbackCategories);
 
   useEffect(() => {
     let mounted = true;
@@ -157,29 +95,6 @@ export default function HomePage() {
     }
 
     loadHeroBanner();
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    let mounted = true;
-
-    async function loadCategories() {
-      try {
-        const response = await http.get("/categories");
-        const categories = normalizeListResponse(response.data);
-        if (mounted && categories.length) {
-          setHomeCategories(categories.slice(0, 4));
-        }
-      } catch {
-        if (mounted) {
-          setHomeCategories(fallbackCategories);
-        }
-      }
-    }
-
-    loadCategories();
     return () => {
       mounted = false;
     };
@@ -271,32 +186,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-      <section className="page section-block">
-        <div className="section-heading">
-          <div>
-            <span className="section-kicker">Catégories</span>
-            <h2>Une garde-robe pensée pièce par pièce</h2>
-          </div>
-          <p>Des univers courts, lisibles et orientés conversion pour une boutique premium.</p>
-        </div>
-        <div className="category-grid">
-          {homeCategories.map((category, index) => (
-            <Link
-              className="category-card reveal-card"
-              key={category.id ?? category.name}
-              to={category.id ? `/products?categoryId=${category.id}` : "/categories"}
-              style={{ animationDelay: `${0.1 + index * 0.1}s` }}
-            >
-              <span className="category-index">0{index + 1}</span>
-              <h3>{category.name}</h3>
-              <p>{category.description ?? "Essentiels premium sélectionnés pour une garde-robe nette."}</p>
-              <strong>
-                {category.productCount !== undefined ? `${category.productCount} produits` : category.itemCount}
-              </strong>
-            </Link>
-          ))}
-        </div>
-      </section>
+      <HomeCategoriesCarousel />
 
       {/*
       <section className="page section-block flash-sale-section">
@@ -361,67 +251,8 @@ export default function HomePage() {
       */}
 
       <FlashSaleSection />
-
-      <section className="page section-block">
-        <div className="section-heading">
-          <div>
-            <span className="section-kicker">Sélection</span>
-            <h2>Des pièces choisies pour votre quotidien</h2>
-          </div>
-          <p>Une sélection éditoriale pour garder la boutique claire, premium et orientée achat.</p>
-        </div>
-        <div className="recommended-grid">
-          {recommendedProducts.map((product, index) => (
-            <article
-              className="recommended-card editorial-pick-card reveal-card"
-              key={product.name}
-              style={{ animationDelay: `${0.1 + index * 0.1}s` }}
-            >
-              <div className="recommended-visual">
-                <small>0{index + 1}</small>
-                <span>{product.name.split(" ")[0]}</span>
-              </div>
-              <div className="recommended-copy">
-                <span className="editorial-tag">Edition quotidienne</span>
-                <h3>{product.name}</h3>
-                <p>{product.details}</p>
-                <div className="recommended-footer">
-                  <strong>{product.price}</strong>
-                  <Link className="recommended-link" to="/products">
-                    Voir produit
-                  </Link>
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="page section-block">
-        <div className="section-heading">
-          <div>
-            <span className="section-kicker">Boutiques</span>
-            <h2>Des marques avec une vraie identité visuelle</h2>
-          </div>
-          <p>Des univers partenaires cohérents avec l'ambiance premium ShopSphere.</p>
-        </div>
-        <div className="stores-grid">
-          {stores.map((store, index) => (
-            <article
-              className="store-card reveal-card"
-              key={store.name}
-              style={{ animationDelay: `${0.1 + index * 0.1}s` }}
-            >
-              <div className="store-mark">{store.name.slice(0, 2).toUpperCase()}</div>
-              <div>
-                <h3>{store.name}</h3>
-                <p>{store.tagline}</p>
-              </div>
-              <strong>{store.rating}</strong>
-            </article>
-          ))}
-        </div>
-      </section>
+      <BestSellersSection />
+      <VerifiedReviewsSection />
 
       <section className="page section-block">
         <div className="final-banner">

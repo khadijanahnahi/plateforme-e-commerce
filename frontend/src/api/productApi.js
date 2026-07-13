@@ -9,6 +9,10 @@ export const productApi = {
     return http.get(`/products/${id}`);
   },
 
+  getBestSellers(limit = 8) {
+    return http.get("/products/best-sellers", { params: { limit } });
+  },
+
   getCategories() {
     return http.get("/categories");
   },

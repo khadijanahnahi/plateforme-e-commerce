@@ -9,6 +9,7 @@ import com.boutique.ecommerce.order.repository.OrderItemRepository;
 import com.boutique.ecommerce.product.entity.Product;
 import com.boutique.ecommerce.product.repository.ProductRepository;
 import com.boutique.ecommerce.review.dto.ReviewEligibilityResponse;
+import com.boutique.ecommerce.review.dto.LatestVerifiedReviewResponse;
 import com.boutique.ecommerce.review.dto.ReviewRequest;
 import com.boutique.ecommerce.review.dto.ReviewResponse;
 import com.boutique.ecommerce.review.entity.ProductReview;
@@ -17,6 +18,7 @@ import com.boutique.ecommerce.review.repository.ProductReviewRepository;
 import com.boutique.ecommerce.user.entity.AppUser;
 import com.boutique.ecommerce.user.repository.UserRepository;
 import java.util.List;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -150,6 +152,17 @@ public class ProductReviewService {
         return reviewRepository.countByProductIdAndStatus(productId, ReviewStatus.APPROVED);
     }
 
+    @Transactional(readOnly = true)
+    public List<LatestVerifiedReviewResponse> getLatestVerifiedReviews(int requestedLimit) {
+        int limit = Math.max(1, Math.min(requestedLimit, 20));
+        return reviewRepository.findByStatusAndVerifiedPurchaseTrueOrderByCreatedAtDesc(
+                        ReviewStatus.APPROVED,
+                        PageRequest.of(0, limit)
+                ).stream()
+                .map(this::toLatestVerifiedResponse)
+                .toList();
+    }
+
     private ReviewEligibilityResponse resolveEligibility(Long userId, Long productId) {
         if (reviewRepository.existsByUserIdAndProductId(userId, productId)) {
             return new ReviewEligibilityResponse(false, "You already reviewed this product.");
@@ -231,5 +244,32 @@ public class ProductReviewService {
                 review.getCreatedAt(),
                 review.getUpdatedAt()
         );
+    }
+
+    private LatestVerifiedReviewResponse toLatestVerifiedResponse(ProductReview review) {
+        Product product = review.getProduct();
+        return new LatestVerifiedReviewResponse(
+                review.getId(),
+                review.getRating(),
+                review.getComment(),
+                maskCustomerName(review.getUser().getFullName()),
+                review.isVerifiedPurchase(),
+                product.getId(),
+                product.getName(),
+                product.getImageUrl(),
+                review.getCreatedAt()
+        );
+    }
+
+    private String maskCustomerName(String fullName) {
+        if (fullName == null || fullName.isBlank()) {
+            return "Client ShopSphere";
+        }
+
+        String[] parts = fullName.trim().split("\\s+");
+        if (parts.length == 1) {
+            return parts[0];
+        }
+        return parts[0] + " " + Character.toUpperCase(parts[parts.length - 1].charAt(0)) + ".";
     }
 }
