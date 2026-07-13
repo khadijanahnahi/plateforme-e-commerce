@@ -7,6 +7,8 @@ import { useAuth } from "../contexts/AuthContext";
 import { useCart } from "../hooks/useCart";
 import { useWishlist } from "../hooks/useWishlist";
 
+const DIRECT_CHECKOUT_KEY = "shopsphere_direct_checkout";
+
 export default function ProductsPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -80,6 +82,28 @@ export default function ProductsPage() {
     } catch { /* Le contexte affiche une notification compréhensible. */ }
   }
 
+  function handleBuyNow(product) {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+
+    const stockQuantity = Number(product.stockQuantity ?? 0);
+    if (product.status !== "ACTIVE" || stockQuantity <= 0) return;
+
+    const displayPrice = Number(product.effectivePrice ?? product.promotionalPrice ?? product.price ?? 0);
+    sessionStorage.setItem(DIRECT_CHECKOUT_KEY, JSON.stringify({
+      productId: product.id,
+      productName: product.name,
+      imageUrl: product.imageUrl,
+      unitPrice: displayPrice,
+      quantity: 1,
+      subtotal: displayPrice,
+      availableStock: stockQuantity,
+    }));
+    navigate("/checkout?mode=direct");
+  }
+
   async function handleToggleWishlist(product) {
     if (!isAuthenticated) {
       navigate("/login");
@@ -126,6 +150,7 @@ export default function ProductsPage() {
               isWishlisted={isWishlisted(product.id)}
               product={product}
               onAddToCart={handleAddToCart}
+              onBuyNow={handleBuyNow}
               onToggleWishlist={handleToggleWishlist}
               wishlistPending={isWishlistActionPending(product.id)}
               key={product.id}
