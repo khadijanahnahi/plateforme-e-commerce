@@ -1,6 +1,7 @@
 spring:
   application:
     name: ecommerce
+    spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://127.0.0.1:5433/ecommerce_db}
     driver-class-name: org.postgresql.Driver
@@ -38,7 +39,7 @@ spring:
             required: true
 
 server:
-  port: 8080
+  port: 8081
 
 jwt:
   secret: ${JWT_SECRET:change-this-secret-key-before-production-please-use-64-characters-minimum}

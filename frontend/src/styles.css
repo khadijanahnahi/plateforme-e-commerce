@@ -13399,59 +13399,103 @@ button.ui-button.home-category-arrow svg {
   box-shadow: none;
 }
 
-@media (max-width: 1349px) {
-  .catalog-grid,
-  .catalog-grid > .ui-state-skeleton-cards {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+/* ============================================================
+   ADMIN SHELL - Conteneur principal (corrigé)
+   ============================================================ */
+.admin-dashboard-shell {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.95), rgba(239, 239, 239, 0.92) 42%, rgba(228, 228, 228, 0.96) 100%);
+  display: flex;
+  flex-direction: row;
+}
+
+/* ============================================================
+   ADMIN SIDEBAR - Menu de gauche (FIXE)
+   ============================================================ */
+.admin-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 260px;
+  z-index: 1000;
+  overflow-y: auto;
+  padding: 1.1rem;
+  background:
+    radial-gradient(circle at 22% 0%, rgba(123, 45, 66, 0.18), transparent 28%),
+    linear-gradient(180deg, #10100f 0%, #151312 54%, #080807 100%);
+  color: #ffffff;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+
+/* ============================================================
+   ADMIN CONTENT - Partie droite (scrollable)
+   ============================================================ */
+.admin-dashboard-main {
+  margin-left: 260px;
+  width: calc(100% - 260px);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* ============================================================
+   RESPONSIVE : Tablet / Mobile (le menu devient un tiroir)
+   ============================================================ */
+@media (max-width: 1023px) {
+  .admin-dashboard-shell {
+    display: block;
+  }
+
+  .admin-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: min(84vw, 320px);
+    transform: translateX(-105%);
+    transition: transform 0.28s ease;
+    box-shadow: 24px 0 70px rgba(0, 0, 0, 0.28);
+    z-index: 1050;
+  }
+
+  .admin-sidebar.admin-sidebar-open {
+    transform: translateX(0);
+  }
+
+  .admin-dashboard-main {
+    margin-left: 0;
+    width: 100%;
   }
 }
 
-@media (max-width: 980px) {
-  .catalog-grid,
-  .catalog-grid > .ui-state-skeleton-cards {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 640px) {
-  .catalog-page {
-    width: min(94vw, 560px);
+@media (max-width: 620px) {
+  .admin-dashboard-topbar {
+    padding-inline: 0.75rem;
   }
 
-  .catalog-grid,
-  .catalog-grid > .ui-state-skeleton-cards {
-    grid-template-columns: 1fr;
+  .admin-topbar-title span {
+    display: none;
   }
 
-  .catalog-product-media {
-    aspect-ratio: 1 / 0.82;
+  .admin-topbar-actions {
+    gap: 0.45rem;
   }
 
-  .catalog-product-commerce {
-    align-items: start;
-    flex-direction: column;
+  .admin-topbar-actions .logout-button {
+    min-height: 40px;
+    padding-inline: 0.85rem;
+    font-size: 0.78rem;
   }
 
-  .catalog-product-stock {
-    text-align: left;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .catalog-product-card,
-  .catalog-product-image,
-  .catalog-wishlist-button,
-  .catalog-wishlist-button svg,
-  .catalog-product-actions .ui-button,
-  .catalog-buy-button .ui-button-icon:last-child {
-    transition-duration: 0.01ms !important;
-  }
-
-  .catalog-product-card:hover,
-  .catalog-product-card:hover .catalog-product-image,
-  .catalog-wishlist-button:hover,
-  .catalog-buy-button:hover:not(:disabled),
-  .catalog-add-button:hover:not(:disabled) {
-    transform: none;
+  .admin-profile-link {
+    width: 40px;
+    height: 40px;
   }
 }
