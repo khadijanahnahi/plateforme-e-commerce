@@ -1,46 +1,46 @@
-import { useCallback, useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import http from "../api/http";
 import { AsyncState } from "../components/ui";
 
+function normalizeListResponse(data) {
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.content)) return data.content;
+  if (Array.isArray(data?.items)) return data.items;
+  if (Array.isArray(data?.data)) return data.data;
+  return [];
+}
+
 export default function CategoriesPage() {
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  const loadCategories = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
+  const {
+    data: categories = [],
+    error,
+    isLoading: loading,
+    refetch: loadCategories,
+  } = useQuery({
+    queryKey: ["public", "categories"],
+    queryFn: async () => {
       const response = await http.get("/categories");
-      setCategories(response.data);
-    } catch (exception) {
-      setError(exception.response?.data?.message ?? "Impossible de charger les catégories.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadCategories();
-  }, [loadCategories]);
+      return normalizeListResponse(response.data);
+    },
+  });
 
   return (
     <section className="page categories-page">
       <div className="catalog-hero">
         <div>
           <span className="section-kicker">Explorer par univers</span>
-          <h1>Catégories</h1>
-          <p>Découvrez des collections monochromes sélectionnées pour votre quotidien.</p>
+          <h1>Categories</h1>
+          <p>Decouvrez des collections monochromes selectionnees pour votre quotidien.</p>
         </div>
       </div>
 
       <div className="categories-catalog-grid">
         <AsyncState
           empty={categories.length === 0}
-          emptyDescription="Les catégories actives apparaîtront ici."
-          emptyTitle="Aucune catégorie disponible"
-          error={error}
+          emptyDescription="Les categories actives apparaitront ici."
+          emptyTitle="Aucune categorie disponible"
+          error={error?.response?.data?.message ?? (error ? "Impossible de charger les categories." : "")}
           loading={loading}
           onRetry={loadCategories}
         >
@@ -57,7 +57,7 @@ export default function CategoriesPage() {
               <div className="category-showcase-copy">
                 <span>{category.productCount ?? 0} produits</span>
                 <h2>{category.name}</h2>
-                <p>{category.description ?? "Des essentiels premium pour une garde-robe quotidienne épurée."}</p>
+                <p>{category.description ?? "Des essentiels premium pour une garde-robe quotidienne epuree."}</p>
               </div>
             </Link>
           ))}

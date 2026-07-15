@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { promotionApi } from "../../api/promotionApi";
 import { useAuth } from "../../contexts/AuthContext";
@@ -80,27 +81,21 @@ export default function FlashSaleSection() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { addToCart } = useCart();
-  const [promotions, setPromotions] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const [nowTick, setNowTick] = useState(Date.now());
-
-  async function loadFlashSale() {
-    setLoading(true);
-    try {
+  const {
+    data: promotions = [],
+    isLoading: loading,
+    refetch: loadFlashSale,
+  } = useQuery({
+    queryKey: ["public", "promotions", "flash-sale"],
+    queryFn: async () => {
       const response = await promotionApi.getFlashSale();
-      setPromotions(normalizePromotions(response.data));
-    } catch {
-      setPromotions([]);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    loadFlashSale();
-  }, []);
+      return normalizePromotions(response.data);
+    },
+    staleTime: 15_000,
+  });
 
   const nearestEndDate = useMemo(() => getNearestEndDate(promotions), [promotions]);
   const timeLeft = useMemo(() => getTimeLeft(nearestEndDate), [nearestEndDate, nowTick]);

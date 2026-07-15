@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { reviewApi } from "../../api/reviewApi";
 import { ErrorState, Skeleton } from "../../components/ui";
@@ -20,9 +20,9 @@ function formatDate(value) {
 
 function ReviewStars({ rating }) {
   return (
-    <div className="verified-review-stars" aria-label={`${rating} étoiles sur 5`}>
+    <div className="verified-review-stars" aria-label={`${rating} etoiles sur 5`}>
       {Array.from({ length: 5 }, (_, index) => (
-        <span className={index < rating ? "is-filled" : ""} key={index} aria-hidden="true">★</span>
+        <span className={index < rating ? "is-filled" : ""} key={index} aria-hidden="true">*</span>
       ))}
     </div>
   );
@@ -30,26 +30,18 @@ function ReviewStars({ rating }) {
 
 export default function VerifiedReviewsSection() {
   const reveal = useInView();
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  async function loadReviews() {
-    setLoading(true);
-    setError("");
-    try {
+  const {
+    data: reviews = [],
+    error,
+    isLoading: loading,
+    refetch: loadReviews,
+  } = useQuery({
+    queryKey: ["public", "reviews", "latest", 6],
+    queryFn: async () => {
       const response = await reviewApi.getLatestVerified(6);
-      setReviews(normalizeList(response.data));
-    } catch (exception) {
-      setError(exception.response?.data?.message ?? "Impossible de charger les avis vérifiés.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    loadReviews();
-  }, []);
+      return normalizeList(response.data);
+    },
+  });
 
   if (!loading && !error && reviews.length === 0) {
     return null;
@@ -59,10 +51,10 @@ export default function VerifiedReviewsSection() {
     <section ref={reveal.ref} className={`page section-block verified-reviews-section ${reveal.isVisible ? "is-visible" : ""}`}>
       <div className="section-heading verified-reviews-heading">
         <div>
-          <span className="section-kicker">Avis vérifiés</span>
+          <span className="section-kicker">Avis verifies</span>
           <h2>Ils ont choisi ShopSphere</h2>
         </div>
-        <p>Des retours authentiques publiés après achat et livraison.</p>
+        <p>Des retours authentiques publies apres achat et livraison.</p>
       </div>
 
       {loading ? (
@@ -76,7 +68,10 @@ export default function VerifiedReviewsSection() {
           ))}
         </div>
       ) : error ? (
-        <ErrorState description={error} onRetry={loadReviews} />
+        <ErrorState
+          description={error.response?.data?.message ?? "Impossible de charger les avis verifies."}
+          onRetry={loadReviews}
+        />
       ) : (
         <div className="verified-reviews-grid">
           {reviews.map((review, index) => (
@@ -87,9 +82,9 @@ export default function VerifiedReviewsSection() {
             >
               <div className="verified-review-topline">
                 <ReviewStars rating={review.rating} />
-                <span className="verified-purchase-badge">Achat vérifié</span>
+                <span className="verified-purchase-badge">Achat verifie</span>
               </div>
-              <blockquote>“{review.comment}”</blockquote>
+              <blockquote>"{review.comment}"</blockquote>
               <div className="verified-review-author">
                 <div className="verified-review-avatar" aria-hidden="true">
                   {review.customerDisplayName?.charAt(0)?.toUpperCase() ?? "S"}
@@ -104,10 +99,10 @@ export default function VerifiedReviewsSection() {
                   {review.productImageUrl ? <img src={review.productImageUrl} alt="" loading="lazy" /> : <span aria-hidden="true">S</span>}
                 </span>
                 <span>
-                  <small>Produit évalué</small>
+                  <small>Produit evalue</small>
                   <strong>{review.productName}</strong>
                 </span>
-                <span aria-hidden="true">→</span>
+                <span aria-hidden="true">-&gt;</span>
               </Link>
             </article>
           ))}

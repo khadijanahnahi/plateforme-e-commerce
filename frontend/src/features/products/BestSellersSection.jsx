@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { productApi } from "../../api/productApi";
 import { useAuth } from "../../contexts/AuthContext";
@@ -31,26 +31,18 @@ export default function BestSellersSection() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { addToCart, isCartActionPending } = useCart();
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  async function loadProducts() {
-    setLoading(true);
-    setError("");
-    try {
+  const {
+    data: products = [],
+    error,
+    isLoading: loading,
+    refetch: loadProducts,
+  } = useQuery({
+    queryKey: ["public", "products", "best-sellers", 8],
+    queryFn: async () => {
       const response = await productApi.getBestSellers(8);
-      setProducts(normalizeList(response.data));
-    } catch (exception) {
-      setError(exception.response?.data?.message ?? "Impossible de charger les meilleures ventes.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    loadProducts();
-  }, []);
+      return normalizeList(response.data);
+    },
+  });
 
   async function handleAdd(product) {
     if (!isAuthenticated) {
@@ -82,7 +74,10 @@ export default function BestSellersSection() {
           ))}
         </div>
       ) : error ? (
-        <ErrorState description={error} onRetry={loadProducts} />
+        <ErrorState
+          description={error.response?.data?.message ?? "Impossible de charger les meilleures ventes."}
+          onRetry={loadProducts}
+        />
       ) : products.length === 0 ? (
         <EmptyState
           title="Aucun produit disponible"
