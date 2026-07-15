@@ -12,7 +12,7 @@ const emptyCart = {
 const CartContext = createContext(null);
 
 export function CartProvider({ children }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const toast = useToastContext();
   const [cart, setCart] = useState(emptyCart);
   const [loading, setLoading] = useState(false);
@@ -20,7 +20,9 @@ export function CartProvider({ children }) {
   const inFlightActions = useRef(new Map());
 
   const loadCart = useCallback(async () => {
-    if (!isAuthenticated) {
+    const isAdmin = user?.roles?.some((role) => role === "ADMIN" || role === "ROLE_ADMIN");
+
+    if (!isAuthenticated || isAdmin) {
       setCart(emptyCart);
       return emptyCart;
     }
@@ -33,7 +35,7 @@ export function CartProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user]);
 
   const syncCart = useCallback((nextCart) => {
     setCart(nextCart ?? emptyCart);

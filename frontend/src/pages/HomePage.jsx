@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import http from "../api/http";
 import HomeCategoriesCarousel from "../components/category/HomeCategoriesCarousel";
@@ -70,35 +71,16 @@ function normalizeListResponse(data) {
 }
 
 export default function HomePage() {
-  const [heroBanners, setHeroBanners] = useState([]);
   const [activeHeroIndex, setActiveHeroIndex] = useState(0);
-  const [heroLoaded, setHeroLoaded] = useState(false);
-
-  useEffect(() => {
-    let mounted = true;
-
-    async function loadHeroBanner() {
-      try {
-        const response = await http.get("/banners", {
-          params: { placement: "HOME_HERO" },
-        });
-        if (mounted) {
-          setHeroBanners(normalizeListResponse(response.data));
-          setHeroLoaded(true);
-        }
-      } catch {
-        if (mounted) {
-          setHeroBanners([]);
-          setHeroLoaded(true);
-        }
-      }
-    }
-
-    loadHeroBanner();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  const { data: heroBanners = [], isFetched: heroLoaded } = useQuery({
+    queryKey: ["public", "banners", "HOME_HERO"],
+    queryFn: async () => {
+      const response = await http.get("/banners", {
+        params: { placement: "HOME_HERO" },
+      });
+      return normalizeListResponse(response.data);
+    },
+  });
 
   useEffect(() => {
     if (heroBanners.length < 2) {

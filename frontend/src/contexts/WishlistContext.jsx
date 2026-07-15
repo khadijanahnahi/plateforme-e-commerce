@@ -6,7 +6,7 @@ import { useToastContext } from "./ToastContext";
 const WishlistContext = createContext(null);
 
 export function WishlistProvider({ children }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const toast = useToastContext();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -19,7 +19,9 @@ export function WishlistProvider({ children }) {
   }, [items]);
 
   const loadWishlist = useCallback(async () => {
-    if (!isAuthenticated) {
+    const isAdmin = user?.roles?.some((role) => role === "ADMIN" || role === "ROLE_ADMIN");
+
+    if (!isAuthenticated || isAdmin) {
       setItems([]);
       return [];
     }
@@ -36,7 +38,7 @@ export function WishlistProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user]);
 
   function isWishlisted(productId) {
     return wishlistProductIds.has(Number(productId));

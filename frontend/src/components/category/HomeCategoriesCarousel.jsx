@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import http from "../../api/http";
 import { Button, EmptyState, ErrorState, Skeleton } from "../ui";
@@ -36,7 +37,7 @@ function ChevronIcon({ direction }) {
 
 function CategorySkeletons({ count }) {
   return (
-    <div className="home-categories-skeletons" aria-label="Chargement des catégories" role="status">
+    <div className="home-categories-skeletons" aria-label="Chargement des categories" role="status">
       {Array.from({ length: count }, (_, index) => (
         <div className="home-category-skeleton" key={index}>
           <Skeleton height={18} width="42px" />
@@ -53,33 +54,25 @@ function CategorySkeletons({ count }) {
 export default function HomeCategoriesCarousel() {
   const viewportRef = useRef(null);
   const touchStartXRef = useRef(null);
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [viewportWidth, setViewportWidth] = useState(0);
+  const {
+    data: categories = [],
+    error,
+    isLoading: loading,
+    refetch: loadCategories,
+  } = useQuery({
+    queryKey: ["public", "categories"],
+    queryFn: async () => {
+      const response = await http.get("/categories");
+      return normalizeListResponse(response.data);
+    },
+  });
   const cardsPerView = getCardsPerView(viewportWidth);
   const maxIndex = Math.max(0, categories.length - cardsPerView);
   const cardWidth = viewportWidth > 0
     ? (viewportWidth - CARD_GAP * (cardsPerView - 1)) / cardsPerView
     : 0;
-
-  const loadCategories = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const response = await http.get("/categories");
-      setCategories(normalizeListResponse(response.data));
-    } catch (exception) {
-      setError(exception.response?.data?.message ?? "Impossible de charger les catégories.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadCategories();
-  }, [loadCategories]);
 
   useEffect(() => {
     const viewport = viewportRef.current;
@@ -131,19 +124,19 @@ export default function HomeCategoriesCarousel() {
     <section className="page section-block home-categories-section" aria-labelledby="home-categories-title">
       <div className="home-categories-heading">
         <div>
-          <span className="section-kicker">Catégories</span>
-          <h2 id="home-categories-title">Une garde-robe pensée pièce par pièce</h2>
-          <p>Explorez des univers sobres et sélectionnés pour composer votre style au quotidien.</p>
+          <span className="section-kicker">Categories</span>
+          <h2 id="home-categories-title">Une garde-robe pensee piece par piece</h2>
+          <p>Explorez des univers sobres et selectionnes pour composer votre style au quotidien.</p>
         </div>
 
         <div className="home-categories-actions">
           <Link className="home-categories-all-link" to="/categories">
-            Voir toutes les catégories <span aria-hidden="true">→</span>
+            Voir toutes les categories <span aria-hidden="true">-&gt;</span>
           </Link>
           {showControls ? (
             <div className="home-categories-controls" aria-label="Navigation du carousel">
               <Button
-                aria-label="Catégories précédentes"
+                aria-label="Categories precedentes"
                 className="home-category-arrow"
                 disabled={currentIndex === 0}
                 onClick={showPrevious}
@@ -152,7 +145,7 @@ export default function HomeCategoriesCarousel() {
                 <ChevronIcon direction="left" />
               </Button>
               <Button
-                aria-label="Catégories suivantes"
+                aria-label="Categories suivantes"
                 className="home-category-arrow home-category-arrow-next"
                 disabled={currentIndex === maxIndex}
                 onClick={showNext}
@@ -171,11 +164,16 @@ export default function HomeCategoriesCarousel() {
         onTouchEnd={handleTouchEnd}
       >
         {loading ? <CategorySkeletons count={cardsPerView} /> : null}
-        {!loading && error ? <ErrorState description={error} onRetry={loadCategories} /> : null}
+        {!loading && error ? (
+          <ErrorState
+            description={error.response?.data?.message ?? "Impossible de charger les categories."}
+            onRetry={loadCategories}
+          />
+        ) : null}
         {!loading && !error && categories.length === 0 ? (
           <EmptyState
-            description="Les catégories actives apparaîtront prochainement."
-            title="Aucune catégorie disponible"
+            description="Les categories actives apparaitront prochainement."
+            title="Aucune categorie disponible"
           />
         ) : null}
         {!loading && !error && categories.length > 0 ? (
@@ -194,13 +192,13 @@ export default function HomeCategoriesCarousel() {
                 <span className="home-category-number">{String(index + 1).padStart(2, "0")}</span>
                 <div className="home-category-card-copy">
                   <h3>{category.name}</h3>
-                  <p>{category.description ?? "Découvrez une sélection premium pensée pour le quotidien."}</p>
+                  <p>{category.description ?? "Decouvrez une selection premium pensee pour le quotidien."}</p>
                 </div>
                 <div className="home-category-card-footer">
                   <strong>
                     {category.productCount ?? 0} {(category.productCount ?? 0) === 1 ? "produit" : "produits"}
                   </strong>
-                  <span aria-hidden="true">→</span>
+                  <span aria-hidden="true">-&gt;</span>
                 </div>
               </Link>
             ))}

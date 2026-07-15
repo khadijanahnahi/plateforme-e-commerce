@@ -1,4 +1,6 @@
 import AppRouter from "./routes/AppRouter";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "./api/queryClient";
 import { AuthProvider } from "./contexts/AuthContext";
 import { CartProvider } from "./contexts/CartContext";
 import { WishlistProvider } from "./contexts/WishlistContext";
@@ -7,16 +9,18 @@ import AppErrorBoundary from "./components/errors/AppErrorBoundary";
 
 export default function App() {
   return (
-    <ToastProvider>
-      <AppErrorBoundary>
-        <AuthProvider>
-          <WishlistProvider>
-            <CartProvider>
-              <AppRouter />
-            </CartProvider>
-          </WishlistProvider>
-        </AuthProvider>
-      </AppErrorBoundary>
-    </ToastProvider>
+    <QueryClientProvider client={queryClient}>
+      <ToastProvider>
+        <AppErrorBoundary>
+          <AuthProvider>
+            <WishlistProvider>
+              <CartProvider>
+                <AppRouter />
+              </CartProvider>
+            </WishlistProvider>
+          </AuthProvider>
+        </AppErrorBoundary>
+      </ToastProvider>
+    </QueryClientProvider>
   );
 }
