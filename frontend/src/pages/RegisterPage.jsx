@@ -9,6 +9,10 @@ function validateEmail(email) {
 }
 
 function getPasswordStrength(password) {
+  if (!password) {
+    return { label: "À définir", level: "empty", width: "0%" };
+  }
+
   let score = 0;
 
   if (password.length >= 8) score += 1;
@@ -17,14 +21,14 @@ function getPasswordStrength(password) {
   if (/[^A-Za-z0-9]/.test(password)) score += 1;
 
   if (score <= 1) {
-    return { label: "Weak", level: "weak", width: "33%" };
+    return { label: "Faible", level: "weak", width: "33%" };
   }
 
   if (score <= 3) {
-    return { label: "Medium", level: "medium", width: "66%" };
+    return { label: "Moyen", level: "medium", width: "66%" };
   }
 
-  return { label: "Strong", level: "strong", width: "100%" };
+  return { label: "Fort", level: "strong", width: "100%" };
 }
 
 export default function RegisterPage() {
@@ -78,35 +82,35 @@ export default function RegisterPage() {
     const nextErrors = {};
 
     if (!form.fullName.trim()) {
-      nextErrors.fullName = "Full name is required.";
+      nextErrors.fullName = "Le nom complet est obligatoire.";
     }
 
     if (!form.email.trim()) {
-      nextErrors.email = "Email is required.";
+      nextErrors.email = "L'email est obligatoire.";
     } else if (!validateEmail(form.email)) {
-      nextErrors.email = "Please enter a valid email address.";
+      nextErrors.email = "Veuillez saisir une adresse email valide.";
     }
 
     if (!form.phone.trim()) {
-      nextErrors.phone = "Phone number is required.";
+      nextErrors.phone = "Le numéro de téléphone est obligatoire.";
     }
 
     if (!form.password.trim()) {
-      nextErrors.password = "Password is required.";
+      nextErrors.password = "Le mot de passe est obligatoire.";
     } else if (form.password.length < 8) {
-      nextErrors.password = "Password must contain at least 8 characters.";
+      nextErrors.password = "Le mot de passe doit contenir au moins 8 caractères.";
     }
 
     if (!form.confirmPassword.trim()) {
-      nextErrors.confirmPassword = "Please confirm your password.";
+      nextErrors.confirmPassword = "Veuillez confirmer votre mot de passe.";
     } else if (form.confirmPassword !== form.password) {
-      nextErrors.confirmPassword = "Passwords do not match.";
+      nextErrors.confirmPassword = "Les mots de passe ne correspondent pas.";
     }
 
     setErrors(nextErrors);
 
     if (Object.keys(nextErrors).length > 0) {
-      setSubmitMessage("Please correct the form before creating your account.");
+      setSubmitMessage("Veuillez corriger les champs indiqués.");
       setToastVisible(false);
       return;
     }
@@ -134,58 +138,32 @@ export default function RegisterPage() {
         setErrors(validationErrors);
       }
 
-      setSubmitMessage(apiMessage ?? "Unable to create account. Please try again.");
+      setSubmitMessage(apiMessage ?? "Impossible de créer le compte. Veuillez réessayer.");
     } finally {
       setIsSubmitting(false);
     }
   }
 
   return (
-    <section className="auth-page">
-      <div className="page auth-shell">
-        <div className="auth-aside">
-          <Link className="auth-logo" to="/">
-            ShopSphere
-          </Link>
-          <span className="section-kicker">Join the store</span>
-          <h1>Create your account</h1>
-          <p>
-            Build your account to access new drops, save your curated products
-            and track every premium order from one place.
-          </p>
-          <div className="auth-stat-list">
-            <div>
-              <strong>1 click</strong>
-              <span>Wishlist saving</span>
-            </div>
-            <div>
-              <strong>Secure</strong>
-              <span>Protected customer area</span>
-            </div>
-            <div>
-              <strong>Instant</strong>
-              <span>Order tracking access</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="auth-card auth-fade-up">
+    <section className="auth-page register-page">
+      <div className="page register-shell">
+        <div className="auth-card register-card">
           <div className="auth-card-header">
-            <Link className="auth-mini-logo" to="/">
-              ShopSphere
-            </Link>
-            <h2>Create your account</h2>
-            <p>Fill the details below to create your customer profile.</p>
+            <span className="register-card-kicker">Inscription</span>
+            <h2>Créer votre compte</h2>
+            <p>Quelques informations suffisent pour rejoindre ShopSphere.</p>
           </div>
 
-          <form className="auth-form" onSubmit={handleSubmit}>
+          <form className="auth-form register-form" onSubmit={handleSubmit}>
+            <div className="register-form-grid">
             <div className="auth-field stagger-field" style={{ "--delay": "0.06s" }}>
-              <label htmlFor="register-fullName">Full name</label>
+              <label htmlFor="register-fullName">Nom complet</label>
               <input
                 id="register-fullName"
                 name="fullName"
                 type="text"
-                placeholder="John Doe"
+                placeholder="Votre nom "
+                autoComplete="name"
                 value={form.fullName}
                 onChange={handleChange}
               />
@@ -201,19 +179,21 @@ export default function RegisterPage() {
                 name="email"
                 type="email"
                 placeholder="you@example.com"
+                autoComplete="email"
                 value={form.email}
                 onChange={handleChange}
               />
               {errors.email ? <p className="field-error">{errors.email}</p> : null}
             </div>
 
-            <div className="auth-field stagger-field" style={{ "--delay": "0.18s" }}>
-              <label htmlFor="register-phone">Phone</label>
+            <div className="auth-field register-field-wide stagger-field" style={{ "--delay": "0.18s" }}>
+              <label htmlFor="register-phone">Téléphone</label>
               <input
                 id="register-phone"
                 name="phone"
                 type="tel"
                 placeholder="+212 6 00 00 00 00"
+                autoComplete="tel"
                 value={form.phone}
                 onChange={handleChange}
               />
@@ -221,13 +201,14 @@ export default function RegisterPage() {
             </div>
 
             <div className="auth-field stagger-field" style={{ "--delay": "0.24s" }}>
-              <label htmlFor="register-password">Password</label>
+              <label htmlFor="register-password">Mot de passe</label>
               <div className="password-input-shell">
                 <input
                   id="register-password"
                   name="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Create a strong password"
+                  placeholder="8 caractères minimum"
+                  autoComplete="new-password"
                   value={form.password}
                   onChange={handleChange}
                 />
@@ -235,9 +216,9 @@ export default function RegisterPage() {
                   className="password-toggle"
                   type="button"
                   onClick={() => setShowPassword((current) => !current)}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
                 >
-                  {showPassword ? "Hide" : "Show"}
+                  {showPassword ? "Masquer" : "Voir"}
                 </button>
               </div>
               <div className="password-strength">
@@ -255,13 +236,14 @@ export default function RegisterPage() {
             </div>
 
             <div className="auth-field stagger-field" style={{ "--delay": "0.3s" }}>
-              <label htmlFor="register-confirmPassword">Confirm password</label>
+              <label htmlFor="register-confirmPassword">Confirmer le mot de passe</label>
               <div className="password-input-shell">
                 <input
                   id="register-confirmPassword"
                   name="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
-                  placeholder="Repeat your password"
+                  placeholder="Répétez votre mot de passe"
+                  autoComplete="new-password"
                   value={form.confirmPassword}
                   onChange={handleChange}
                 />
@@ -269,18 +251,19 @@ export default function RegisterPage() {
                   className="password-toggle"
                   type="button"
                   onClick={() => setShowConfirmPassword((current) => !current)}
-                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                  aria-label={showConfirmPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
                 >
-                  {showConfirmPassword ? "Hide" : "Show"}
+                  {showConfirmPassword ? "Masquer" : "Voir"}
                 </button>
               </div>
               {errors.confirmPassword ? (
                 <p className="field-error">{errors.confirmPassword}</p>
               ) : null}
             </div>
+            </div>
 
             {submitMessage ? (
-              <div className="form-status status-error">{submitMessage}</div>
+              <div className="form-status status-error" role="alert">{submitMessage}</div>
             ) : null}
 
             <button
@@ -289,20 +272,20 @@ export default function RegisterPage() {
               style={{ "--delay": "0.36s" }}
               type="submit"
             >
-              {isSubmitting ? "Creating account..." : "Create Account"}
+              {isSubmitting ? "Création en cours..." : "Créer mon compte"}
             </button>
           </form>
 
           <p className="auth-switch">
-            Already have an account?{" "}
+            Vous avez déjà un compte ?{" "}
             <Link className="auth-text-link" to="/login">
-              Login
+              Se connecter
             </Link>
           </p>
 
           {toastVisible ? (
             <div className="auth-toast" role="status" aria-live="polite">
-              Account created successfully. You can now sign in.
+              Votre compte a été créé avec succès.
             </div>
           ) : null}
         </div>
