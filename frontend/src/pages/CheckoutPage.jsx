@@ -265,9 +265,10 @@ export default function CheckoutPage() {
 
           <form className="admin-panel admin-form" onSubmit={confirmOrder}>
             <h2>Delivery information</h2>
-            <input name="fullName" value={form.fullName} onChange={updateField} placeholder="Full name" required />
-            <input name="phoneNumber" value={form.phoneNumber} onChange={updateField} placeholder="Phone number" required />
+            <input aria-label="Nom complet" name="fullName" value={form.fullName} onChange={updateField} placeholder="Full name" required />
+            <input aria-label="Téléphone" name="phoneNumber" value={form.phoneNumber} onChange={updateField} placeholder="Phone number" required />
             <textarea
+              aria-label="Adresse"
               name="streetAddress"
               value={form.streetAddress}
               onChange={updateField}
@@ -275,10 +276,11 @@ export default function CheckoutPage() {
               required
             />
             <div className="admin-form-row">
-              <input name="city" value={form.city} onChange={updateField} placeholder="City" required />
-              <input name="postalCode" value={form.postalCode} onChange={updateField} placeholder="Postal code" />
+              <input aria-label="Ville" name="city" value={form.city} onChange={updateField} placeholder="City" required />
+              <input aria-label="Code postal" name="postalCode" value={form.postalCode} onChange={updateField} placeholder="Postal code" />
             </div>
             <textarea
+              aria-label="Notes de livraison"
               name="deliveryNotes"
               value={form.deliveryNotes}
               onChange={updateField}

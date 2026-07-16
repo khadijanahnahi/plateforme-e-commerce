@@ -12,6 +12,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -37,7 +38,7 @@ public class OrderEmailService {
         this.storeSettingsRepository = storeSettingsRepository;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
     public void sendOrderConfirmation(Long orderId) {
         if (!isStoreEmailEnabled(true)) {
             log.info("Order confirmation email skipped by store settings. orderId={}", orderId);
@@ -49,7 +50,7 @@ public class OrderEmailService {
         ));
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
     public void sendOrderStatusUpdate(Long orderId, OrderStatus oldStatus, OrderStatus newStatus) {
         if (!isStoreEmailEnabled(false)) {
             log.info("Order status email skipped by store settings. orderId={} newStatus={}", orderId, newStatus);
