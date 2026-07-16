@@ -35,10 +35,11 @@ export default function ClientHeader({
         </NavLink>
 
         <nav className="client-desktop-nav" aria-label="Navigation principale">
+          <NavLink className={() => getProductNavClass("best")} to="/">Acceuil</NavLink>
           <NavLink className={() => getProductNavClass(null)} to="/products">Boutique</NavLink>
           <NavLink className={({ isActive }) => (isActive ? "active" : undefined)} to="/categories">Catégories</NavLink>
           <NavLink className={() => getProductNavClass("new")} to="/products?sort=new">Nouveautés</NavLink>
-          <NavLink className={() => getProductNavClass("best")} to="/products?sort=best">Meilleures ventes</NavLink>
+          <NavLink className={({ isActive }) => (isActive ? "active" : undefined)} to="/about">À propos</NavLink>
         </nav>
 
         <div className="client-actions">

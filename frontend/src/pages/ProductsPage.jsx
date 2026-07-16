@@ -116,6 +116,7 @@ export default function ProductsPage() {
 
   return (
     <section className="page catalog-page">
+      {/*
       <div className="catalog-hero">
         <div>
           <span className="section-kicker">Catalogue ShopSphere</span>
@@ -123,6 +124,7 @@ export default function ProductsPage() {
           <p>Explorez nos essentiels monochromes et filtrez-les par catégorie.</p>
         </div>
       </div>
+      */}
 
       <form className="catalog-filters" onSubmit={handleFilter}>
         <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Rechercher un produit" />

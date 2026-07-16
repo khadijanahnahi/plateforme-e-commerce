@@ -266,7 +266,7 @@ export default function HomePage() {
               <Link to="/products">Produits</Link>
               <Link to="/categories">Catégories</Link>
               <Link to="/products?sort=new">Nouveautés</Link>
-              <Link to="/products?sort=best">Meilleures ventes</Link>
+              <Link to="/support?sort=best">support</Link>
             </div>
           </div>
 

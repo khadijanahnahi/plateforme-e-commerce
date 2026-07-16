@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import ClientHeader from "../components/ClientHeader";
+import AuthHeader from "../components/layout/AuthHeader";
 import ClientFooter from "../components/layout/ClientFooter";
 import { useAuth } from "../contexts/AuthContext";
 import { useCart } from "../hooks/useCart";
@@ -15,6 +16,7 @@ export default function MainLayout() {
   const [searchTerm, setSearchTerm] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isAdmin = user?.roles?.some((role) => role === "ADMIN" || role === "ROLE_ADMIN");
+  const isAuthEntryPage = location.pathname === "/login" || location.pathname === "/register";
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -46,19 +48,23 @@ export default function MainLayout() {
 
   return (
     <div className="app-shell">
-      <ClientHeader
-        cartCount={cartCount}
-        getProductNavClass={getProductNavClass}
-        handleLogout={handleLogout}
-        handleSearchSubmit={handleSearchSubmit}
-        isAdmin={isAdmin}
-        isAuthenticated={isAuthenticated}
-        mobileMenuOpen={mobileMenuOpen}
-        searchTerm={searchTerm}
-        setMobileMenuOpen={setMobileMenuOpen}
-        setSearchTerm={setSearchTerm}
-        wishlistCount={wishlistCount}
-      />
+      {isAuthEntryPage ? (
+        <AuthHeader />
+      ) : (
+        <ClientHeader
+          cartCount={cartCount}
+          getProductNavClass={getProductNavClass}
+          handleLogout={handleLogout}
+          handleSearchSubmit={handleSearchSubmit}
+          isAdmin={isAdmin}
+          isAuthenticated={isAuthenticated}
+          mobileMenuOpen={mobileMenuOpen}
+          searchTerm={searchTerm}
+          setMobileMenuOpen={setMobileMenuOpen}
+          setSearchTerm={setSearchTerm}
+          wishlistCount={wishlistCount}
+        />
+      )}
       <main>
         <Outlet />
       </main>

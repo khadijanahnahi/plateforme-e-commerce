@@ -27,6 +27,10 @@ export default function CategoriesPage() {
 
   return (
     <section className="page categories-page">
+      {/* ============================================================
+          PARTIE À ÉLIMINER (catalog-hero)
+          ============================================================ */}
+      {/*
       <div className="catalog-hero">
         <div>
           <span className="section-kicker">Explorer par univers</span>
@@ -34,6 +38,7 @@ export default function CategoriesPage() {
           <p>Découvrez des collections monochromes sélectionnées pour votre quotidien.</p>
         </div>
       </div>
+      */}
 
       <div className="categories-catalog-grid">
         <AsyncState

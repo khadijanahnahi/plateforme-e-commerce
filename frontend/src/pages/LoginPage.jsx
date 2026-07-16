@@ -80,41 +80,12 @@ export default function LoginPage() {
 
   return (
     <section className="auth-page login-page">
-      <div className="page auth-shell login-shell">
-        <div className="auth-aside login-aside">
-          <Link className="auth-logo" to="/">
-            ShopSphere
-          </Link>
-          <div className="login-aside-copy">
-            <span className="section-kicker">Espace client</span>
-            <h1>Votre espace ShopSphere</h1>
-            <p>
-              Accédez à vos commandes, vos produits sauvegardés et vos avantages membres.
-            </p>
-          </div>
-          <div className="auth-stat-list">
-            <div>
-              <strong>24h</strong>
-              <span>Accès prioritaire</span>
-            </div>
-            <div>
-              <strong>Sécurisé</strong>
-              <span>Paiement protégé</span>
-            </div>
-            <div>
-              <strong>Premium</strong>
-              <span>Expérience monochrome</span>
-            </div>
-          </div>
-        </div>
-
+      <div className="page login-shell">
         <div className="auth-card login-card">
           <div className="auth-card-header">
-            <Link className="auth-mini-logo" to="/">
-              ShopSphere
-            </Link>
+            <span className="login-card-kicker">Espace membre</span>
             <h2>Bienvenue</h2>
-            <p>Connectez-vous avec votre email et votre mot de passe.</p>
+            <p>Connectez-vous pour retrouver votre univers ShopSphere.</p>
           </div>
 
           <form className="auth-form" onSubmit={handleSubmit}>
@@ -208,6 +179,13 @@ export default function LoginPage() {
               Créer un compte
             </Link>
           </p>
+
+          <div className="login-security-note" aria-label="Connexion sécurisée">
+            <span className="login-security-pulse" aria-hidden="true" />
+            <span>Connexion sécurisée</span>
+            <span className="login-security-divider" aria-hidden="true" />
+            <span>Données protégées</span>
+          </div>
         </div>
       </div>
     </section>
