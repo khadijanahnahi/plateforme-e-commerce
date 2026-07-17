@@ -28,6 +28,8 @@ public interface ProductReviewRepository extends JpaRepository<ProductReview, Lo
 
     boolean existsByUserIdAndProductId(Long userId, Long productId);
 
+    boolean existsByProductId(Long productId);
+
     long countByProductIdAndStatus(Long productId, ReviewStatus status);
 
     @Query("""

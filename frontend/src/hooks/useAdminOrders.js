@@ -64,7 +64,6 @@ export function useAdminOrders(initialSearch = "") {
   async function refreshOrders() {
     const response = await adminOrdersApi.getAdminOrders();
     setOrders(response.data);
-    setSelectedStatuses({});
     return response.data;
   }
 
@@ -110,6 +109,7 @@ export function useAdminOrders(initialSearch = "") {
         await action();
         toast.success(successMessage);
         await refreshOrders();
+        setSelectedStatuses({});
       } catch (exception) {
         const nextError = exception.response?.data?.message ?? fallbackError;
         setError(nextError);

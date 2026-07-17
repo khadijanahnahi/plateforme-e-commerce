@@ -23,6 +23,10 @@ export const adminProductsApi = {
     return http.delete(`/admin/products/${id}`);
   },
 
+  deleteProduct(id) {
+    return http.delete(`/admin/products/${id}/permanent`);
+  },
+
   updateStock(id, stockQuantity) {
     return http.patch(`/admin/products/${id}/stock`, { stockQuantity });
   },

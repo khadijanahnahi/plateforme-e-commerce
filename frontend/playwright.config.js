@@ -5,6 +5,8 @@ const useExistingServer = process.env.E2E_SKIP_WEB_SERVER === "true";
 
 export default defineConfig({
   testDir: "./e2e",
+  globalSetup: "./e2e/global-setup.js",
+  globalTeardown: "./e2e/global-teardown.js",
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,

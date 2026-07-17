@@ -11,6 +11,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface PromotionRepository extends JpaRepository<Promotion, Long> {
 
+    boolean existsByProductId(Long productId);
+
     @Query("""
             select p
             from Promotion p

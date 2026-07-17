@@ -10,6 +10,8 @@ import org.springframework.data.jpa.domain.Specification;
 
 public interface StockMovementRepository extends JpaRepository<StockMovement, Long>, JpaSpecificationExecutor<StockMovement> {
 
+    boolean existsByProductId(Long productId);
+
     @Override
     @EntityGraph(attributePaths = {"product", "order", "admin"})
     List<StockMovement> findAll(Specification<StockMovement> specification, Sort sort);

@@ -76,4 +76,10 @@ public class AdminProductController {
     public ProductResponse archive(@PathVariable Long id) {
         return productService.archive(id);
     }
+
+    @DeleteMapping("/{id}/permanent")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deletePermanently(@PathVariable Long id) {
+        productService.deletePermanently(id);
+    }
 }

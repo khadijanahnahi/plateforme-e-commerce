@@ -2,8 +2,10 @@ package com.boutique.ecommerce.product.service;
 
 import com.boutique.ecommerce.category.entity.Category;
 import com.boutique.ecommerce.category.repository.CategoryRepository;
+import com.boutique.ecommerce.cart.repository.CartItemRepository;
 import com.boutique.ecommerce.common.exception.ResourceConflictException;
 import com.boutique.ecommerce.common.exception.ResourceNotFoundException;
+import com.boutique.ecommerce.order.repository.OrderItemRepository;
 import com.boutique.ecommerce.product.dto.ProductRequest;
 import com.boutique.ecommerce.product.dto.ProductResponse;
 import com.boutique.ecommerce.product.dto.UpdateProductStatusRequest;
@@ -11,11 +13,14 @@ import com.boutique.ecommerce.product.dto.UpdateProductStockRequest;
 import com.boutique.ecommerce.product.entity.Product;
 import com.boutique.ecommerce.product.entity.ProductStatus;
 import com.boutique.ecommerce.product.repository.ProductRepository;
+import com.boutique.ecommerce.promotion.repository.PromotionRepository;
 import com.boutique.ecommerce.promotion.service.PromotionService;
 import com.boutique.ecommerce.promotion.service.PromotionService.EffectivePriceResult;
 import com.boutique.ecommerce.review.entity.ReviewStatus;
 import com.boutique.ecommerce.review.repository.ProductReviewRepository;
+import com.boutique.ecommerce.stock.repository.StockMovementRepository;
 import com.boutique.ecommerce.stock.service.StockMovementService;
+import com.boutique.ecommerce.wishlist.repository.WishlistItemRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,19 +38,34 @@ public class ProductService {
     private final ProductReviewRepository reviewRepository;
     private final PromotionService promotionService;
     private final StockMovementService stockMovementService;
+    private final OrderItemRepository orderItemRepository;
+    private final CartItemRepository cartItemRepository;
+    private final PromotionRepository promotionRepository;
+    private final WishlistItemRepository wishlistItemRepository;
+    private final StockMovementRepository stockMovementRepository;
 
     public ProductService(
             ProductRepository productRepository,
             CategoryRepository categoryRepository,
             ProductReviewRepository reviewRepository,
             PromotionService promotionService,
-            StockMovementService stockMovementService
+            StockMovementService stockMovementService,
+            OrderItemRepository orderItemRepository,
+            CartItemRepository cartItemRepository,
+            PromotionRepository promotionRepository,
+            WishlistItemRepository wishlistItemRepository,
+            StockMovementRepository stockMovementRepository
     ) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
         this.reviewRepository = reviewRepository;
         this.promotionService = promotionService;
         this.stockMovementService = stockMovementService;
+        this.orderItemRepository = orderItemRepository;
+        this.cartItemRepository = cartItemRepository;
+        this.promotionRepository = promotionRepository;
+        this.wishlistItemRepository = wishlistItemRepository;
+        this.stockMovementRepository = stockMovementRepository;
     }
 
     @Transactional(readOnly = true)
@@ -156,6 +176,36 @@ public class ProductService {
         Product product = findProduct(id);
         product.archive();
         return toResponse(product);
+    }
+
+    @Transactional
+    public void deletePermanently(Long id) {
+        Product product = findProduct(id);
+        assertProductCanBeDeleted(id);
+
+        if (cartItemRepository.existsByProductId(id)) {
+            cartItemRepository.deleteByProductId(id);
+        }
+        if (wishlistItemRepository.existsByProductId(id)) {
+            wishlistItemRepository.deleteByProductId(id);
+        }
+
+        productRepository.delete(product);
+    }
+
+    private void assertProductCanBeDeleted(Long productId) {
+        if (orderItemRepository.existsByProductId(productId)) {
+            throw new ResourceConflictException("Cannot delete this product because it is linked to orders. Archive it instead.");
+        }
+        if (promotionRepository.existsByProductId(productId)) {
+            throw new ResourceConflictException("Cannot delete this product because it is linked to promotions. Delete its promotions first or archive it.");
+        }
+        if (reviewRepository.existsByProductId(productId)) {
+            throw new ResourceConflictException("Cannot delete this product because it has reviews. Archive it instead.");
+        }
+        if (stockMovementRepository.existsByProductId(productId)) {
+            throw new ResourceConflictException("Cannot delete this product because it has stock history. Archive it instead.");
+        }
     }
 
     private Product findProduct(Long id) {

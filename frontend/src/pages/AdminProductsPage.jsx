@@ -42,6 +42,7 @@ export default function AdminProductsPage() {
     statusFilter,
     totalPages,
     archiveProduct,
+    deleteProduct,
     resetFilters,
     saveProduct,
     searchProducts,
@@ -60,6 +61,8 @@ export default function AdminProductsPage() {
   const [imageUploading, setImageUploading] = useState(false);
   const [archiveTargetId, setArchiveTargetId] = useState(null);
   const [archiving, setArchiving] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   function updateField(event) {
     const { name, value } = event.target;
@@ -125,6 +128,21 @@ export default function AdminProductsPage() {
     }
   }
 
+  async function handleDeleteProduct() {
+    if (!deleteTargetId) return;
+    setDeleting(true);
+    setMessage("");
+    setError("");
+    try {
+      await deleteProduct(deleteTargetId);
+      setDeleteTargetId(null);
+    } catch (exception) {
+      setError(getApiErrorMessage(exception, "Impossible de supprimer le produit."));
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   async function handleStockChange(product) {
     const value = window.prompt("Nouvelle quantité en stock", product.stockQuantity);
     if (value === null) {
@@ -179,7 +197,7 @@ export default function AdminProductsPage() {
       <AdminPageHeader
         kicker="Inventaire admin"
         title="Gestion des produits"
-        description="Créer, modifier, archiver et gérer le stock des produits ShopSphere."
+        description="Créer, modifier, archiver, supprimer et gérer le stock des produits ShopSphere."
         actionLabel="+ Ajouter un produit"
         onAction={openCreateModal}
       />
@@ -222,6 +240,7 @@ export default function AdminProductsPage() {
         <AdminProductsTable
           loading={loading}
           onArchive={setArchiveTargetId}
+          onDelete={setDeleteTargetId}
           onEdit={openEditModal}
           onStockChange={handleStockChange}
           products={paginatedProducts}
@@ -289,6 +308,17 @@ export default function AdminProductsPage() {
         variant="danger"
         onClose={() => !archiving && setArchiveTargetId(null)}
         onConfirm={handleArchiveProduct}
+      />
+
+      <ConfirmDialog
+        confirmLabel="Supprimer"
+        description="Cette action supprime définitivement le produit seulement s'il n'est lié à aucune commande, promotion, avis ou historique de stock. Sinon, utilisez Archiver."
+        loading={deleting}
+        open={Boolean(deleteTargetId)}
+        title="Supprimer définitivement ce produit ?"
+        variant="danger"
+        onClose={() => !deleting && setDeleteTargetId(null)}
+        onConfirm={handleDeleteProduct}
       />
     </section>
   );

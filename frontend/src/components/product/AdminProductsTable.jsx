@@ -14,6 +14,7 @@ function getStockBadge(product) {
 export default function AdminProductsTable({
   loading,
   onArchive,
+  onDelete,
   onEdit,
   onStockChange,
   products,
@@ -65,7 +66,8 @@ export default function AdminProductsTable({
                 <td className="table-actions">
                   <Button size="sm" variant="ghost" onClick={() => onEdit(product)}>Modifier</Button>
                   <Button size="sm" variant="outline" onClick={() => onStockChange(product)}>Stock</Button>
-                  <Button size="sm" variant="danger" onClick={() => onArchive(product.id)}>Archiver</Button>
+                  <Button size="sm" variant="outline" onClick={() => onArchive(product.id)}>Archiver</Button>
+                  <Button size="sm" variant="danger" onClick={() => onDelete(product.id)}>Supprimer</Button>
                 </td>
               </tr>
             );

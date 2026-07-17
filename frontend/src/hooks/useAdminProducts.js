@@ -122,6 +122,12 @@ export function useAdminProducts() {
     await loadProducts();
   }
 
+  async function deleteProduct(id) {
+    await adminProductsApi.deleteProduct(id);
+    setMessage("Product deleted.");
+    await loadProducts();
+  }
+
   async function updateStock(product, stockQuantity) {
     await adminProductsApi.updateStock(product.id, stockQuantity);
     setMessage("Stock updated.");
@@ -157,6 +163,7 @@ export function useAdminProducts() {
     statusFilter,
     totalPages,
     archiveProduct,
+    deleteProduct,
     loadProducts,
     resetFilters,
     saveProduct,
