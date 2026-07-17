@@ -9,7 +9,7 @@ const emptyPasswordForm = {
 };
 
 export default function ProfilePage() {
-  const { isAuthenticated, login, user } = useAuth();
+  const { authLoading, isAuthenticated, login, user } = useAuth();
   const [form, setForm] = useState({
     fullName: user?.fullName ?? "",
     email: user?.email ?? "",
@@ -32,6 +32,10 @@ export default function ProfilePage() {
       });
     }
   }, [user]);
+
+  if (authLoading) {
+    return <section className="page profile-page">Chargement de la session...</section>;
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;

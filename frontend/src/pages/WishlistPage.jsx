@@ -14,7 +14,7 @@ function renderStars(rating) {
 }
 
 export default function WishlistPage() {
-  const { isAuthenticated } = useAuth();
+  const { authLoading, isAuthenticated } = useAuth();
   const { addToCart, isCartActionPending } = useCart();
   const {
     error,
@@ -35,6 +35,10 @@ export default function WishlistPage() {
     try {
       await removeFromWishlist(productId);
     } catch { /* Le contexte affiche l'erreur. */ }
+  }
+
+  if (authLoading) {
+    return <section className="page wishlist-page">Chargement de la session...</section>;
   }
 
   if (!isAuthenticated) {

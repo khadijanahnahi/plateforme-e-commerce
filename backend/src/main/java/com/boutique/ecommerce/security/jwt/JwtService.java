@@ -58,6 +58,10 @@ public class JwtService {
         return jwtProperties.getAccessTokenExpirationMs();
     }
 
+    public long getRefreshTokenExpirationMs() {
+        return jwtProperties.getRefreshTokenExpirationMs();
+    }
+
     public UserDetails toUserDetails(AppUser user) {
         return User.withUsername(user.getEmail())
                 .password(user.getPassword())

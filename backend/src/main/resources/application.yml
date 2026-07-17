@@ -73,6 +73,10 @@ app:
       enabled: ${APP_AUTH_RATE_LIMIT_ENABLED:true}
       max-attempts: ${APP_AUTH_RATE_LIMIT_MAX_ATTEMPTS:5}
       window-seconds: ${APP_AUTH_RATE_LIMIT_WINDOW_SECONDS:60}
+  security:
+    refresh-cookie:
+      secure: ${APP_REFRESH_COOKIE_SECURE:false}
+      same-site: ${APP_REFRESH_COOKIE_SAME_SITE:Lax}
 
 cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME:}

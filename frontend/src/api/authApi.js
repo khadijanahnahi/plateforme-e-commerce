@@ -9,6 +9,14 @@ export const authApi = {
     return http.post("/auth/register", payload);
   },
 
+  refresh() {
+    return http.post("/auth/refresh");
+  },
+
+  logout() {
+    return http.post("/auth/logout");
+  },
+
   forgotPassword(email) {
     return http.post("/auth/forgot-password", { email });
   },

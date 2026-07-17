@@ -2,8 +2,9 @@ package com.boutique.ecommerce.auth.service;
 
 import com.boutique.ecommerce.auth.dto.AuthResponse;
 import com.boutique.ecommerce.auth.dto.LoginRequest;
-import com.boutique.ecommerce.auth.dto.RefreshTokenRequest;
 import com.boutique.ecommerce.auth.dto.RegisterRequest;
+import com.boutique.ecommerce.auth.entity.RefreshTokenSession;
+import com.boutique.ecommerce.auth.repository.RefreshTokenSessionRepository;
 import com.boutique.ecommerce.common.exception.ResourceConflictException;
 import com.boutique.ecommerce.common.exception.UnauthorizedException;
 import com.boutique.ecommerce.security.jwt.JwtService;
@@ -12,6 +13,11 @@ import com.boutique.ecommerce.user.entity.Role;
 import com.boutique.ecommerce.user.entity.RoleName;
 import com.boutique.ecommerce.user.repository.RoleRepository;
 import com.boutique.ecommerce.user.repository.UserRepository;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
+import java.util.HexFormat;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -31,23 +37,26 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final RefreshTokenSessionRepository refreshTokenSessionRepository;
 
     public AuthService(
             UserRepository userRepository,
             RoleRepository roleRepository,
             PasswordEncoder passwordEncoder,
             AuthenticationManager authenticationManager,
-            JwtService jwtService
+            JwtService jwtService,
+            RefreshTokenSessionRepository refreshTokenSessionRepository
     ) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
+        this.refreshTokenSessionRepository = refreshTokenSessionRepository;
     }
 
     @Transactional
-    public AuthResponse register(RegisterRequest request) {
+    public AuthenticatedSession register(RegisterRequest request) {
         String normalizedEmail = normalizeEmail(request.email());
 
         if (userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
@@ -68,11 +77,11 @@ public class AuthService {
 
         AppUser savedUser = userRepository.save(user);
         UserDetails userDetails = jwtService.toUserDetails(savedUser);
-        return buildAuthResponse(savedUser, userDetails);
+        return buildAuthenticatedSession(savedUser, userDetails);
     }
 
-    @Transactional(readOnly = true)
-    public AuthResponse login(LoginRequest request) {
+    @Transactional
+    public AuthenticatedSession login(LoginRequest request) {
         String normalizedEmail = normalizeEmail(request.email());
 
         Authentication authentication;
@@ -87,15 +96,26 @@ public class AuthService {
         AppUser user = userRepository.findByEmailIgnoreCase(normalizedEmail)
                 .orElseThrow(() -> new UnauthorizedException("User account not found."));
 
-        return buildAuthResponse(user, (UserDetails) authentication.getPrincipal());
+        return buildAuthenticatedSession(user, (UserDetails) authentication.getPrincipal());
     }
 
-    @Transactional(readOnly = true)
-    public AuthResponse refreshToken(RefreshTokenRequest request) {
-        String refreshToken = request.refreshToken();
+    @Transactional
+    public AuthenticatedSession refreshToken(String refreshToken) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new UnauthorizedException("Refresh token is required.");
+        }
 
         if (!jwtService.isRefreshToken(refreshToken)) {
             throw new UnauthorizedException("Refresh token is invalid.");
+        }
+
+        String tokenHash = hashToken(refreshToken);
+        RefreshTokenSession session = refreshTokenSessionRepository.findByTokenHash(tokenHash)
+                .orElseThrow(() -> new UnauthorizedException("Refresh session is invalid or revoked."));
+
+        LocalDateTime now = LocalDateTime.now();
+        if (!session.isActive(now)) {
+            throw new UnauthorizedException("Refresh session has expired or was revoked.");
         }
 
         String email = jwtService.extractSubject(refreshToken);
@@ -107,14 +127,32 @@ public class AuthService {
             throw new UnauthorizedException("Refresh token has expired or is invalid.");
         }
 
-        return buildAuthResponse(user, userDetails);
+        session.setRevokedAt(now);
+        refreshTokenSessionRepository.save(session);
+
+        return buildAuthenticatedSession(user, userDetails);
     }
 
-    private AuthResponse buildAuthResponse(AppUser user, UserDetails userDetails) {
-        return new AuthResponse(
+    @Transactional
+    public void logout(String refreshToken) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            return;
+        }
+
+        refreshTokenSessionRepository.revokeByTokenHash(hashToken(refreshToken), LocalDateTime.now());
+    }
+
+    private AuthenticatedSession buildAuthenticatedSession(AppUser user, UserDetails userDetails) {
+        String refreshToken = jwtService.generateRefreshToken(userDetails);
+        RefreshTokenSession session = new RefreshTokenSession();
+        session.setUser(user);
+        session.setTokenHash(hashToken(refreshToken));
+        session.setExpiresAt(LocalDateTime.now().plusNanos(jwtService.getRefreshTokenExpirationMs() * 1_000_000));
+        refreshTokenSessionRepository.save(session);
+
+        AuthResponse response = new AuthResponse(
                 "Bearer",
                 jwtService.generateAccessToken(userDetails),
-                jwtService.generateRefreshToken(userDetails),
                 jwtService.getAccessTokenExpirationMs(),
                 new AuthResponse.UserInfo(
                         user.getId(),
@@ -126,6 +164,18 @@ public class AuthService {
                                 .collect(Collectors.toSet())
                 )
         );
+
+        return new AuthenticatedSession(response, refreshToken);
+    }
+
+    private String hashToken(String token) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hash);
+        } catch (NoSuchAlgorithmException ex) {
+            throw new IllegalStateException("SHA-256 algorithm is not available.", ex);
+        }
     }
 
     private String normalizeEmail(String email) {

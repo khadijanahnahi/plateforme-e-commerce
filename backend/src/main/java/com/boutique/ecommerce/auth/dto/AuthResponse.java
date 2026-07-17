@@ -5,7 +5,6 @@ import java.util.Set;
 public record AuthResponse(
         String tokenType,
         String accessToken,
-        String refreshToken,
         long accessTokenExpiresInMs,
         UserInfo user
 ) {

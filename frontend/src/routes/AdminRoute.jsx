@@ -7,7 +7,11 @@ function hasAdminRole(user) {
 
 export default function AdminRoute() {
   const location = useLocation();
-  const { isAuthenticated, user } = useAuth();
+  const { authLoading, isAuthenticated, user } = useAuth();
+
+  if (authLoading) {
+    return <div className="page">Chargement de la session...</div>;
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace state={{ from: location }} />;

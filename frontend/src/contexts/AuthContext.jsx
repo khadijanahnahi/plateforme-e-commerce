@@ -1,62 +1,91 @@
 import { createContext, useContext, useEffect, useState } from "react";
-
-const ACCESS_TOKEN_KEY = "shopsphere_access_token";
-const REFRESH_TOKEN_KEY = "shopsphere_refresh_token";
-const USER_KEY = "shopsphere_user";
+import http from "../api/http";
+import { clearAccessToken, setAccessToken } from "../api/authTokenStore";
 
 const AuthContext = createContext(null);
 
-function readStoredUser() {
-  const storedUser = localStorage.getItem(USER_KEY);
-
-  if (!storedUser) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(storedUser);
-  } catch {
-    localStorage.removeItem(USER_KEY);
-    return null;
-  }
-}
-
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => readStoredUser());
-  const [accessToken, setAccessToken] = useState(() =>
-    localStorage.getItem(ACCESS_TOKEN_KEY),
-  );
+  const [user, setUser] = useState(null);
+  const [accessToken, setAccessTokenState] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
-    const syncAuth = () => {
-      setUser(readStoredUser());
-      setAccessToken(localStorage.getItem(ACCESS_TOKEN_KEY));
-    };
+    let cancelled = false;
 
-    window.addEventListener("storage", syncAuth);
-    return () => window.removeEventListener("storage", syncAuth);
+    async function restoreSession() {
+      try {
+        removeLegacyLocalStorageTokens();
+        const response = await http.post("/auth/refresh");
+        if (cancelled) {
+          return;
+        }
+        applyAuth(response.data);
+      } catch {
+        if (!cancelled) {
+          clearAuth();
+        }
+      } finally {
+        if (!cancelled) {
+          setAuthLoading(false);
+        }
+      }
+    }
+
+    restoreSession();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  function login(authResponse) {
-    localStorage.setItem(ACCESS_TOKEN_KEY, authResponse.accessToken);
-    localStorage.setItem(REFRESH_TOKEN_KEY, authResponse.refreshToken);
-    localStorage.setItem(USER_KEY, JSON.stringify(authResponse.user));
+  useEffect(() => {
+    function syncRefreshedAuth(event) {
+      applyAuth(event.detail);
+    }
+
+    function syncClearedAuth() {
+      clearAuth();
+    }
+
+    window.addEventListener("shopsphere:auth-refreshed", syncRefreshedAuth);
+    window.addEventListener("shopsphere:auth-cleared", syncClearedAuth);
+
+    return () => {
+      window.removeEventListener("shopsphere:auth-refreshed", syncRefreshedAuth);
+      window.removeEventListener("shopsphere:auth-cleared", syncClearedAuth);
+    };
+  }, []);
+
+  function applyAuth(authResponse) {
     setAccessToken(authResponse.accessToken);
+    setAccessTokenState(authResponse.accessToken);
     setUser(authResponse.user);
+    setAuthLoading(false);
   }
 
-  function logout() {
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
-    setAccessToken(null);
+  function clearAuth() {
+    clearAccessToken();
+    setAccessTokenState(null);
     setUser(null);
+  }
+
+  function login(authResponse) {
+    applyAuth(authResponse);
+  }
+
+  async function logout() {
+    try {
+      await http.post("/auth/logout");
+    } finally {
+      clearAuth();
+    }
   }
 
   return (
     <AuthContext.Provider
       value={{
         accessToken,
+        authLoading,
         isAuthenticated: Boolean(accessToken && user),
         login,
         logout,
@@ -78,8 +107,8 @@ export function useAuth() {
   return context;
 }
 
-export const authStorageKeys = {
-  ACCESS_TOKEN_KEY,
-  REFRESH_TOKEN_KEY,
-  USER_KEY,
-};
+function removeLegacyLocalStorageTokens() {
+  localStorage.removeItem("shopsphere_access_token");
+  localStorage.removeItem("shopsphere_refresh_token");
+  localStorage.removeItem("shopsphere_user");
+}

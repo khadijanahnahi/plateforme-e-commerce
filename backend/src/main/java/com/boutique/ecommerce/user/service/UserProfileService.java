@@ -1,6 +1,7 @@
 package com.boutique.ecommerce.user.service;
 
 import com.boutique.ecommerce.auth.dto.AuthResponse;
+import com.boutique.ecommerce.auth.repository.RefreshTokenSessionRepository;
 import com.boutique.ecommerce.common.exception.ResourceConflictException;
 import com.boutique.ecommerce.common.exception.UnauthorizedException;
 import com.boutique.ecommerce.security.jwt.JwtService;
@@ -9,6 +10,7 @@ import com.boutique.ecommerce.user.dto.UpdateProfileRequest;
 import com.boutique.ecommerce.user.dto.UserProfileResponse;
 import com.boutique.ecommerce.user.entity.AppUser;
 import com.boutique.ecommerce.user.repository.UserRepository;
+import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.security.core.Authentication;
@@ -24,15 +26,18 @@ public class UserProfileService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final RefreshTokenSessionRepository refreshTokenSessionRepository;
 
     public UserProfileService(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
-            JwtService jwtService
+            JwtService jwtService,
+            RefreshTokenSessionRepository refreshTokenSessionRepository
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.refreshTokenSessionRepository = refreshTokenSessionRepository;
     }
 
     @Transactional(readOnly = true)
@@ -59,7 +64,6 @@ public class UserProfileService {
         return new AuthResponse(
                 "Bearer",
                 jwtService.generateAccessToken(userDetails),
-                jwtService.generateRefreshToken(userDetails),
                 jwtService.getAccessTokenExpirationMs(),
                 new AuthResponse.UserInfo(
                         user.getId(),
@@ -79,6 +83,7 @@ public class UserProfileService {
         }
 
         user.setPassword(passwordEncoder.encode(request.newPassword()));
+        refreshTokenSessionRepository.revokeActiveSessionsForUser(user.getId(), LocalDateTime.now());
         return toProfileResponse(user);
     }
 

@@ -19,7 +19,7 @@ const sections = [
   },
   {
     title: "Cookies et stockage local",
-    text: "Le site peut utiliser le stockage local du navigateur pour conserver des informations techniques comme le token de session ou certaines préférences d'affichage.",
+    text: "Le site peut utiliser des cookies sécurisés pour maintenir la session et le stockage local uniquement pour certaines préférences d'affichage.",
   },
   {
     title: "Emails transactionnels",
