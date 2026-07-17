@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import { NavLink } from "react-router-dom";
 import MobileMenu from "./MobileMenu";
 import SearchBar from "./SearchBar";
@@ -16,6 +17,32 @@ export default function ClientHeader({
   setSearchTerm,
   wishlistCount,
 }) {
+  const mobileLayer =
+    mobileMenuOpen && typeof document !== "undefined"
+      ? createPortal(
+          <>
+            <button
+              className="client-mobile-overlay"
+              type="button"
+              aria-label="Fermer le menu mobile"
+              onClick={() => setMobileMenuOpen(false)}
+            />
+            <MobileMenu
+              getProductNavClass={getProductNavClass}
+              handleLogout={handleLogout}
+              handleSearchSubmit={handleSearchSubmit}
+              isAdmin={isAdmin}
+              isAuthenticated={isAuthenticated}
+              onClose={() => setMobileMenuOpen(false)}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              wishlistCount={wishlistCount}
+            />
+          </>,
+          document.body
+        )
+      : null;
+
   return (
     <header className="client-header">
       <div className="client-announcement" aria-label="Annonces ShopSphere">
@@ -35,7 +62,7 @@ export default function ClientHeader({
         </NavLink>
 
         <nav className="client-desktop-nav" aria-label="Navigation principale">
-          <NavLink className={() => getProductNavClass("best")} to="/">Acceuil</NavLink>
+          <NavLink className={() => getProductNavClass("best")} to="/">Accueil</NavLink>
           <NavLink className={() => getProductNavClass(null)} to="/products">Boutique</NavLink>
           <NavLink className={({ isActive }) => (isActive ? "active" : undefined)} to="/categories">Catégories</NavLink>
           <NavLink className={() => getProductNavClass("new")} to="/products?sort=new">Nouveautés</NavLink>
@@ -107,18 +134,7 @@ export default function ClientHeader({
         </div>
       </div>
 
-      {mobileMenuOpen ? (
-        <MobileMenu
-          getProductNavClass={getProductNavClass}
-          handleLogout={handleLogout}
-          handleSearchSubmit={handleSearchSubmit}
-          isAdmin={isAdmin}
-          isAuthenticated={isAuthenticated}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          wishlistCount={wishlistCount}
-        />
-      ) : null}
+      {mobileLayer}
     </header>
   );
 }

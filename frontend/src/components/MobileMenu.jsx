@@ -7,21 +7,39 @@ export default function MobileMenu({
   handleSearchSubmit,
   isAdmin,
   isAuthenticated,
+  onClose,
   searchTerm,
   setSearchTerm,
   wishlistCount = 0,
 }) {
+  function submitSearch(event) {
+    handleSearchSubmit(event);
+    onClose?.();
+  }
+
+  function logoutAndClose() {
+    handleLogout();
+    onClose?.();
+  }
+
+  function closeOnNavigation(event) {
+    const target = event.target;
+    if (target instanceof HTMLElement && target.closest("a")) {
+      onClose?.();
+    }
+  }
+
   return (
-    <div className="client-mobile-panel">
+    <div className="client-mobile-panel" role="dialog" aria-modal="true" aria-label="Menu mobile ShopSphere">
       <SearchBar
         className="client-mobile-search"
-        onSubmit={handleSearchSubmit}
+        onSubmit={submitSearch}
         placeholder="Rechercher..."
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
       />
 
-      <nav className="client-mobile-nav" aria-label="Navigation mobile">
+      <nav className="client-mobile-nav" aria-label="Navigation mobile" onClick={closeOnNavigation}>
         <NavLink className={() => getProductNavClass(null)} to="/products">Boutique</NavLink>
         <NavLink className={({ isActive }) => (isActive ? "active" : undefined)} to="/categories">Catégories</NavLink>
         <NavLink className={() => getProductNavClass("new")} to="/products?sort=new">Nouveautés</NavLink>
@@ -41,13 +59,13 @@ export default function MobileMenu({
               <NavLink to="/admin/dashboard">Admin Dashboard</NavLink>
               <NavLink to="/">Voir la boutique</NavLink>
               <NavLink to="/profile">Profil</NavLink>
-              <button type="button" onClick={handleLogout}>Déconnexion</button>
+              <button type="button" onClick={logoutAndClose}>Déconnexion</button>
             </>
           ) : (
             <>
               <NavLink to="/profile">Profil</NavLink>
               <NavLink to="/orders">Mes commandes</NavLink>
-              <button type="button" onClick={handleLogout}>Déconnexion</button>
+              <button type="button" onClick={logoutAndClose}>Déconnexion</button>
             </>
           )
         ) : (
