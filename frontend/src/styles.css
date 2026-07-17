@@ -14245,6 +14245,197 @@ button.ui-button.home-category-arrow svg {
   box-shadow: none;
 }
 
+/* Product catalogue responsive hardening */
+.catalog-page {
+  box-sizing: border-box;
+  width: min(94vw, 1560px);
+  max-width: 1560px;
+  margin-inline: auto;
+}
+
+.catalog-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 0.34fr) auto;
+  align-items: center;
+}
+
+.catalog-filters > * {
+  min-width: 0;
+}
+
+.catalog-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(16px, 1.4vw, 24px);
+  align-items: stretch;
+}
+
+.catalog-grid > * {
+  min-width: 0;
+}
+
+.catalog-grid > .ui-state,
+.catalog-grid > .ui-state-skeleton {
+  grid-column: 1 / -1;
+}
+
+.catalog-grid > .ui-state-skeleton-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(16px, 1.4vw, 24px);
+}
+
+.catalog-product-card {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.catalog-product-body,
+.catalog-product-commerce,
+.catalog-product-price,
+.catalog-product-actions {
+  min-width: 0;
+}
+
+.catalog-product-category,
+.catalog-product-name,
+.catalog-product-description,
+.catalog-product-rating,
+.catalog-product-price,
+.catalog-product-stock {
+  overflow-wrap: anywhere;
+}
+
+.catalog-product-description {
+  -webkit-line-clamp: 2;
+}
+
+.catalog-product-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+@media (max-width: 1320px) {
+  .catalog-grid,
+  .catalog-grid > .ui-state-skeleton-cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1100px) {
+  .catalog-grid,
+  .catalog-grid > .ui-state-skeleton-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .catalog-filters {
+    grid-template-columns: minmax(0, 1fr) minmax(210px, 0.42fr) auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .catalog-page {
+    width: 100%;
+    max-width: none;
+    padding-inline: 16px;
+  }
+
+  .catalog-filters {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    padding: 14px;
+    border-radius: 20px;
+  }
+
+  .catalog-filters input,
+  .catalog-filters select,
+  .catalog-filters .ui-button,
+  .catalog-filters button {
+    width: 100%;
+    min-height: 52px;
+  }
+
+  .catalog-grid,
+  .catalog-grid > .ui-state-skeleton-cards {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+
+  .catalog-product-card {
+    border-radius: 22px;
+  }
+
+  .catalog-product-media {
+    margin: 9px 9px 0;
+    aspect-ratio: 16 / 11;
+    border-radius: 18px;
+  }
+
+  .catalog-product-body {
+    padding: 15px;
+  }
+
+  .catalog-product-name {
+    font-size: 1.22rem;
+    line-height: 1.18;
+  }
+
+  .catalog-product-description {
+    min-height: auto;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .catalog-product-commerce {
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .catalog-product-price {
+    flex: 1 1 auto;
+  }
+
+  .catalog-product-price strong {
+    font-size: 1.28rem;
+  }
+
+  .catalog-product-stock {
+    max-width: 42%;
+    flex: 0 1 auto;
+    text-align: right;
+  }
+
+  .catalog-product-actions {
+    gap: 10px;
+    padding-top: 16px;
+  }
+
+  .catalog-product-actions .ui-button {
+    min-height: 50px;
+    width: 100%;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 360px) {
+  .catalog-page {
+    padding-inline: 12px;
+  }
+
+  .catalog-product-commerce {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .catalog-product-stock {
+    max-width: none;
+    text-align: left;
+  }
+}
+
 /* ============================================================
    ADMIN SHELL - Conteneur principal (corrigé)
    ============================================================ */
