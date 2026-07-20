@@ -56,14 +56,6 @@ export default function WishlistPage() {
 
   return (
     <section className="page wishlist-page">
-      <div className="catalog-hero">
-        <div>
-          <span className="section-kicker">Wishlist</span>
-          <h1>Vos produits sauvegardés</h1>
-          <p>Retrouvez vos pièces préférées et ajoutez-les au panier lorsque vous êtes prêt.</p>
-        </div>
-      </div>
-
       <AsyncState
         empty={items.length === 0}
         emptyAction={<Link className="button button-primary" to="/products">Découvrir les produits</Link>}
