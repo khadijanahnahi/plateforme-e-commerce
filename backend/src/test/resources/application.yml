@@ -9,4 +9,13 @@ spring:
       ddl-auto: update
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   flyway:
+<<<<<<< HEAD
     enabled: true
+=======
+    enabled: false
+
+jwt:
+  secret: tests-only-secret-key-with-at-least-sixty-four-characters-123456789
+  access-token-expiration-ms: 900000
+  refresh-token-expiration-ms: 604800000
+>>>>>>> b65ab6da3cc2965e9d7425659862474546a5aa1b
