@@ -7972,20 +7972,20 @@ body,
 }
 
 .about-hero {
-  min-height: min(680px, calc(100vh - 145px));
+  min-height: clamp(520px, 33vw, 590px);
   padding: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(390px, 0.92fr);
+  grid-template-columns: minmax(0, 1.05fr) minmax(390px, 0.95fr);
   overflow: hidden;
   border: 1px solid var(--about-border);
-  border-radius: 30px;
+  border-radius: 26px;
   background: rgba(255, 255, 255, 0.84);
   box-shadow: 0 30px 80px rgba(39, 29, 24, 0.09);
 }
 
 .about-hero-copy {
   z-index: 1;
-  padding: clamp(2rem, 5vw, 5.5rem);
+  padding: clamp(2rem, 3.4vw, 4rem);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -8000,11 +8000,11 @@ body,
 }
 
 .about-hero h1 {
-  max-width: 850px;
-  margin: 1rem 0 1.35rem;
+  max-width: 760px;
+  margin: 0.7rem 0 1rem;
   font-family: "Playfair Display", Georgia, "Times New Roman", serif;
-  font-size: clamp(3.3rem, 5.8vw, 6.7rem);
-  line-height: 0.91;
+  font-size: clamp(3.1rem, 4.3vw, 5.1rem);
+  line-height: 0.92;
   letter-spacing: -0.06em;
 }
 
@@ -8014,23 +8014,23 @@ body,
 }
 
 .about-hero-copy > p {
-  max-width: 700px;
+  max-width: 640px;
   margin: 0;
   color: rgba(17, 16, 15, 0.66);
-  font-size: clamp(1rem, 1.3vw, 1.17rem);
-  line-height: 1.75;
+  font-size: clamp(0.96rem, 1.1vw, 1.06rem);
+  line-height: 1.6;
 }
 
 .about-actions {
-  margin-top: 1.8rem;
+  margin-top: 1.25rem;
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
 }
 
 .about-button {
-  min-height: 52px;
-  padding: 0.85rem 1.45rem;
+  min-height: 48px;
+  padding: 0.75rem 1.3rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -8069,26 +8069,26 @@ body,
 }
 
 .about-badges {
-  margin-top: clamp(2rem, 4vw, 4rem);
+  margin-top: clamp(1.2rem, 2vw, 1.8rem);
   display: flex;
   flex-wrap: wrap;
   gap: 0.55rem;
 }
 
 .about-badges span {
-  padding: 0.58rem 0.85rem;
+  padding: 0.48rem 0.72rem;
   border: 1px solid var(--about-border);
   border-radius: 999px;
   background: rgba(248, 245, 239, 0.78);
   color: rgba(17, 16, 15, 0.68);
   font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 600;
 }
 
 .about-hero-art {
   position: relative;
-  min-height: 540px;
+  min-height: 500px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -8111,7 +8111,7 @@ body,
 .about-hero-art strong {
   z-index: 1;
   font-family: "Playfair Display", Georgia, "Times New Roman", serif;
-  font-size: clamp(5rem, 9vw, 10rem);
+  font-size: clamp(4.5rem, 7vw, 8rem);
   font-weight: 400;
   letter-spacing: -0.08em;
 }
@@ -8566,7 +8566,7 @@ body,
   }
 
   .about-hero-art {
-    min-height: 390px;
+    min-height: 330px;
   }
 
   .about-story-grid {
@@ -8643,7 +8643,7 @@ body,
   }
 
   .about-hero h1 {
-    font-size: clamp(2.9rem, 14vw, 4.2rem);
+    font-size: clamp(2.65rem, 12vw, 3.7rem);
   }
 
   .about-actions,
@@ -8652,7 +8652,7 @@ body,
   }
 
   .about-hero-art {
-    min-height: 310px;
+    min-height: 250px;
   }
 
   .about-art-orbit-one {

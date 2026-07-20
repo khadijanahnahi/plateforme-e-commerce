@@ -1,5 +1,6 @@
-import { AsyncState, Button, Input, Select } from "../components/ui";
+import { AsyncState, Button, Input, Pagination, Select } from "../components/ui";
 import {
+  ADMIN_STOCK_MOVEMENTS_PAGE_SIZE,
   stockMovementTypes,
   useAdminStockMovements,
 } from "../hooks/useAdminStockMovements";
@@ -28,16 +29,28 @@ function MovementBadge({ type }) {
 
 export default function AdminStockMovementsPage() {
   const {
+    currentPage,
     error,
     filters,
     loading,
     movements,
+    paginatedMovements,
     products,
+    totalPages,
     applyFilters,
     loadData,
     resetFilters,
+    setCurrentPage,
     updateFilter,
   } = useAdminStockMovements();
+
+  const firstShown = movements.length === 0
+    ? 0
+    : (currentPage - 1) * ADMIN_STOCK_MOVEMENTS_PAGE_SIZE + 1;
+  const lastShown = Math.min(
+    currentPage * ADMIN_STOCK_MOVEMENTS_PAGE_SIZE,
+    movements.length,
+  );
 
   return (
     <section className="page admin-page admin-stock-page">
@@ -61,7 +74,7 @@ export default function AdminStockMovementsPage() {
 
       <div className="admin-panel stock-movement-panel">
         <div className="admin-list-summary">
-          {movements.length} mouvement{movements.length === 1 ? "" : "s"}
+          Affichage de {firstShown} à {lastShown} sur {movements.length} mouvement{movements.length === 1 ? "" : "s"}
         </div>
         <AsyncState
           empty={movements.length === 0}
@@ -80,7 +93,7 @@ export default function AdminStockMovementsPage() {
                 </tr>
               </thead>
               <tbody>
-                {movements.map((movement) => (
+                {paginatedMovements.map((movement) => (
                   <tr key={movement.id}>
                     <td>{formatDate(movement.createdAt)}</td>
                     <td><strong>{movement.productName}</strong><small className="admin-muted">ID {movement.productId}</small></td>
@@ -97,6 +110,16 @@ export default function AdminStockMovementsPage() {
             </table>
           </div>
         </AsyncState>
+
+        {!loading && movements.length > ADMIN_STOCK_MOVEMENTS_PAGE_SIZE ? (
+          <div className="pagination-bar">
+            <Pagination
+              page={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        ) : null}
       </div>
     </section>
   );

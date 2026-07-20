@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { adminStockMovementsApi } from "../api/adminStockMovementsApi";
+
+export const ADMIN_STOCK_MOVEMENTS_PAGE_SIZE = 10;
 
 export const stockMovementTypes = [
   "ORDER_CREATED",
@@ -24,6 +26,16 @@ export function useAdminStockMovements() {
   const [filters, setFilters] = useState(emptyStockMovementFilters);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(movements.length / ADMIN_STOCK_MOVEMENTS_PAGE_SIZE),
+  );
+  const paginatedMovements = useMemo(() => {
+    const start = (currentPage - 1) * ADMIN_STOCK_MOVEMENTS_PAGE_SIZE;
+    return movements.slice(start, start + ADMIN_STOCK_MOVEMENTS_PAGE_SIZE);
+  }, [currentPage, movements]);
 
   const loadData = useCallback(async (nextFilters = emptyStockMovementFilters, loadProducts = false) => {
     setLoading(true);
@@ -40,6 +52,7 @@ export function useAdminStockMovements() {
         const response = await adminStockMovementsApi.getMovements(nextFilters);
         setMovements(response.data);
       }
+      setCurrentPage(1);
     } catch (exception) {
       setError(exception.response?.data?.message ?? "Impossible de charger l'historique du stock.");
     } finally {
@@ -67,14 +80,18 @@ export function useAdminStockMovements() {
   }
 
   return {
+    currentPage,
     error,
     filters,
     loading,
     movements,
+    paginatedMovements,
     products,
+    totalPages,
     applyFilters,
     loadData: () => loadData(filters),
     resetFilters,
+    setCurrentPage,
     updateFilter,
   };
 }
