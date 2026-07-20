@@ -9,11 +9,13 @@ export const emptyCategoryForm = {
 };
 
 export const categoryStatusFilters = ["ALL", "ACTIVE", "INACTIVE"];
+export const ADMIN_CATEGORIES_PAGE_SIZE = 10;
 
 export function useAdminCategories() {
   const [categories, setCategories] = useState([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [imageUploading, setImageUploading] = useState(false);
   const [message, setMessage] = useState("");
@@ -33,6 +35,19 @@ export function useAdminCategories() {
       return matchesSearch && matchesStatus;
     });
   }, [categories, search, statusFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredCategories.length / ADMIN_CATEGORIES_PAGE_SIZE));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const paginatedCategories = filteredCategories.slice(
+    (safeCurrentPage - 1) * ADMIN_CATEGORIES_PAGE_SIZE,
+    safeCurrentPage * ADMIN_CATEGORIES_PAGE_SIZE
+  );
+
+  const categoryStats = useMemo(() => ({
+    total: categories.length,
+    active: categories.filter((category) => category.active).length,
+    inactive: categories.filter((category) => !category.active).length,
+  }), [categories]);
 
   async function refreshCategories() {
     const response = await adminCategoriesApi.getCategories();
@@ -117,6 +132,7 @@ export function useAdminCategories() {
   function resetFilters() {
     setSearch("");
     setStatusFilter("ALL");
+    setCurrentPage(1);
   }
 
   useEffect(() => {
@@ -125,16 +141,21 @@ export function useAdminCategories() {
 
   return {
     categories,
+    categoryStats,
+    currentPage,
     error,
     filteredCategories,
     imageUploading,
     loading,
     message,
+    paginatedCategories,
     search,
     statusFilter,
+    totalPages,
     changeCategoryStatus,
     resetFilters,
     saveCategory,
+    setCurrentPage,
     setError,
     setMessage,
     setSearch,

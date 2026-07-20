@@ -77,8 +77,8 @@ export default function ClientFooter() {
           style={{ "--delay": "0.32s" }}
           onSubmit={(event) => event.preventDefault()}
         >
-          <h3>Newsletter</h3>
-          <p>Recevez les nouveaux drops, offres membres et sélections premium.</p>
+          <h3>Club privé ShopSphere</h3>
+          <p>-10% sur votre première commande, plus un accès prioritaire aux éditions limitées, 24h avant tout le monde.</p>
           <div>
             <input type="email" placeholder="Votre email" aria-label="Votre email" />
             <button type="submit">S'abonner</button>
