@@ -13,3 +13,8 @@ spring:
       mode: never
   flyway:
     enabled: false
+
+jwt:
+  secret: tests-only-secret-key-with-at-least-sixty-four-characters-123456789
+  access-token-expiration-ms: 900000
+  refresh-token-expiration-ms: 604800000
