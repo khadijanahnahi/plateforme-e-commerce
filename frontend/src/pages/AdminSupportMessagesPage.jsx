@@ -1,4 +1,3 @@
-import AdminPageHeader from "../components/layout/AdminPageHeader";
 import AdminStatsCard from "../components/ui/AdminStatsCard";
 import AdminSupportMessagesTable from "../components/support/AdminSupportMessagesTable";
 import SupportMessageDetailModal from "../components/support/SupportMessageDetailModal";
@@ -35,12 +34,6 @@ export default function AdminSupportMessagesPage() {
 
   return (
     <section className="page admin-page admin-support-messages-page">
-      <AdminPageHeader
-        kicker="Admin support"
-        title="Support Messages"
-        description="Gerer les demandes clients et les messages de contact."
-      />
-
       <div className="admin-stats-grid">
         <AdminStatsCard label="Total Messages" value={stats.total} />
         <AdminStatsCard label="New" value={stats.new} />

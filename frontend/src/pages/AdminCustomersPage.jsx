@@ -94,14 +94,6 @@ export default function AdminCustomersPage() {
 
   return (
     <section className="admin-page customers-admin-page">
-      <div className="admin-hero">
-        <div>
-          <span className="section-kicker">ADMIN CRM</span>
-          <h1>Customers</h1>
-          <p>Suivre les clients inscrits, leurs commandes et leur valeur commerciale.</p>
-        </div>
-      </div>
-
       {error ? <div className="admin-alert admin-alert-error">{error}</div> : null}
 
       <div className="customers-stats-grid">

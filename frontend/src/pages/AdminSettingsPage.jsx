@@ -1,4 +1,3 @@
-import AdminPageHeader from "../components/layout/AdminPageHeader";
 import { useAdminSettings } from "../hooks/useAdminSettings";
 import useFeedbackToast from "../hooks/useFeedbackToast";
 
@@ -26,12 +25,6 @@ export default function AdminSettingsPage() {
 
   return (
     <section className="page admin-page admin-settings-page">
-      <AdminPageHeader
-        kicker="Configuration boutique"
-        title="Paramètres"
-        description="Gérez les informations publiques et les règles métier de ShopSphere. Les secrets techniques restent protégés dans l’environnement serveur."
-      />
-
       {error ? <div className="admin-alert">{error}</div> : null}
 
       {loading ? <SettingsSkeleton /> : (

@@ -3,7 +3,6 @@ import DashboardCharts from "../components/dashboard/DashboardCharts";
 import DashboardKpiGrid from "../components/dashboard/DashboardKpiGrid";
 import DashboardSkeleton from "../components/dashboard/DashboardSkeleton";
 import DashboardTables from "../components/dashboard/DashboardTables";
-import AdminPageHeader from "../components/layout/AdminPageHeader";
 import { dashboardPeriods, useAdminDashboard } from "../hooks/useAdminDashboard";
 
 export default function AdminDashboardPage() {
@@ -24,12 +23,6 @@ export default function AdminDashboardPage() {
 
   return (
     <section className="page admin-page admin-dashboard-page">
-      <AdminPageHeader
-        kicker="Centre de pilotage"
-        title="ShopSphere Dashboard"
-        description="Suivez les ventes, les commandes, les clients et les opérations prioritaires de la boutique."
-      />
-
       <div className="admin-actions dashboard-toolbar">
         <span>Période</span>
         <select className="dashboard-period-select" value={period} onChange={(event) => updatePeriod(event.target.value)}>

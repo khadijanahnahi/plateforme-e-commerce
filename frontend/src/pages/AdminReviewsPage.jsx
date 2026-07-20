@@ -1,4 +1,3 @@
-import AdminPageHeader from "../components/layout/AdminPageHeader";
 import AdminReviewsTable from "../components/review/AdminReviewsTable";
 import { reviewStatuses, useAdminReviews } from "../hooks/useAdminReviews";
 import useFeedbackToast from "../hooks/useFeedbackToast";
@@ -19,12 +18,6 @@ export default function AdminReviewsPage() {
 
   return (
     <section className="page admin-page">
-      <AdminPageHeader
-        kicker="Admin moderation"
-        title="Reviews"
-        description="Moderer les avis produits verifies avant publication dans la boutique."
-      />
-
       {error ? <div className="admin-alert">{error}</div> : null}
 
       <div className="admin-panel">

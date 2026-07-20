@@ -146,14 +146,6 @@ export default function AdminCouponsPage() {
 
   return (
     <section className="page admin-page">
-      <div className="admin-hero">
-        <div>
-          <span className="section-kicker">Admin promotions</span>
-          <h1>Coupons</h1>
-          <p>Create and manage checkout promo codes for Cash on Delivery orders.</p>
-        </div>
-      </div>
-
       {message ? <div className="admin-alert admin-success">{message}</div> : null}
       {error ? <div className="admin-alert">{error}</div> : null}
 

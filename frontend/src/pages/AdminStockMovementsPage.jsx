@@ -1,4 +1,3 @@
-import AdminPageHeader from "../components/layout/AdminPageHeader";
 import { AsyncState, Button, Input, Select } from "../components/ui";
 import {
   stockMovementTypes,
@@ -42,12 +41,6 @@ export default function AdminStockMovementsPage() {
 
   return (
     <section className="page admin-page admin-stock-page">
-      <AdminPageHeader
-        kicker="Admin inventory"
-        title="Historique du stock"
-        description="Consultez chaque entrée, sortie et ajustement avec son origine métier."
-      />
-
       <form className="admin-panel stock-movement-filters" onSubmit={applyFilters}>
         <Select label="Produit" name="productId" value={filters.productId} onChange={updateFilter}>
           <option value="">Tous les produits</option>

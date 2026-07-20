@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import AdminPageHeader from "../components/layout/AdminPageHeader";
 import AdminOrdersTable from "../components/order/AdminOrdersTable";
 import AdminStatsCard from "../components/ui/AdminStatsCard";
 import { ErrorState } from "../components/ui";
@@ -50,12 +49,6 @@ export default function AdminOrdersPage() {
 
   return (
     <section className="page admin-page">
-      <AdminPageHeader
-        kicker="Admin fulfillment"
-        title="Orders"
-        description="Suivre les commandes et avancer les statuts autorises."
-      />
-
       {message ? <div className="admin-alert admin-success">{message}</div> : null}
       {error ? <ErrorState description={error} onRetry={loadOrders} /> : null}
 
