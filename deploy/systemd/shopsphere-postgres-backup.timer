@@ -1,0 +1,12 @@
+[Unit]
+Description=Run ShopSphere PostgreSQL backup daily
+
+[Timer]
+OnCalendar=*-*-* 02:00:00
+Persistent=true
+RandomizedDelaySec=10m
+AccuracySec=1m
+Unit=shopsphere-postgres-backup.service
+
+[Install]
+WantedBy=timers.target
