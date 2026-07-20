@@ -2,14 +2,6 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { getSupportApiError, supportApi } from "../api/supportApi";
 
-const quickHelpLinks = [
-  "Suivi de commande",
-  "Paiement à la livraison",
-  "Livraison & expédition",
-  "Retours & échanges",
-  "Aide sur mon compte",
-];
-
 const contactDetails = [
   {
     label: "Nous écrire",
@@ -199,16 +191,6 @@ export default function SupportPage() {
               ))}
             </div>
           </div>
-
-          <div className="support-card">
-            <span className="section-kicker">Aide rapide</span>
-            <h2>Sujets populaires</h2>
-            <div className="quick-help-list">
-              {quickHelpLinks.map((label) => (
-                <a href="#support-faq" key={label}>{label}</a>
-              ))}
-            </div>
-          </div>
         </aside>
       </section>
 
@@ -238,11 +220,13 @@ export default function SupportPage() {
               <article className={`support-faq-item ${isOpen ? "support-faq-open" : ""}`} key={faq.question}>
                 <button type="button" aria-expanded={isOpen} onClick={() => setOpenFaqIndex(isOpen ? -1 : index)}>
                   <span>{faq.question}</span>
-                  <strong aria-hidden="true" />
+                  <strong aria-hidden="true">{isOpen ? "\u2212" : "+"}</strong>
                 </button>
-                <div className="support-faq-answer">
-                  <p>{faq.answer}</p>
-                </div>
+                {isOpen && (
+                  <div className="support-faq-answer">
+                    <p>{faq.answer}</p>
+                  </div>
+                )}
               </article>
             );
           })}

@@ -1828,24 +1828,42 @@ a {
 
 .support-field {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .support-field-full {
   grid-column: 1 / -1;
 }
 
+.support-field label {
+  order: -1;
+  color: #6b6b6b;
+  font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 0.74rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .support-field input,
 .support-field textarea {
   width: 100%;
-  padding: 0.9rem 0.1rem 0.5rem;
-  border: 0;
-  border-bottom: 1px solid rgba(17, 17, 17, 0.22);
-  border-radius: 0;
-  background: transparent;
-  color: #111111;
+  padding: 0.85rem 1rem;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  background: #f9f9f9;
+  color: #333333;
   font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   font-size: 0.98rem;
-  transition: border-color 0.25s ease;
+  transition: border-color 0.25s ease, background-color 0.25s ease;
+}
+
+.support-field input::placeholder,
+.support-field textarea::placeholder {
+  color: #333333;
+  opacity: 0.6;
 }
 
 .support-field textarea {
@@ -1857,29 +1875,7 @@ a {
 .support-field textarea:focus {
   outline: none;
   border-color: #111111;
-}
-
-.support-field label {
-  position: absolute;
-  left: 0.1rem;
-  top: 0.9rem;
-  color: #8a8a8a;
-  font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  font-size: 0.98rem;
-  pointer-events: none;
-  transition: transform 0.2s ease, font-size 0.2s ease, color 0.2s ease;
-  transform-origin: left top;
-}
-
-.support-field input:focus + label,
-.support-field input:not(:placeholder-shown) + label,
-.support-field textarea:focus + label,
-.support-field textarea:not(:placeholder-shown) + label {
-  transform: translateY(-1.05rem);
-  font-size: 0.74rem;
-  color: #111111;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  background: #ffffff;
 }
 
 .support-field-select {
@@ -1889,7 +1885,7 @@ a {
 }
 
 .support-field-select label {
-  color: #8a8a8a;
+  color: #6b6b6b;
   font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   font-size: 0.74rem;
   font-weight: 600;
@@ -1899,20 +1895,20 @@ a {
 
 .support-field-select select {
   width: 100%;
-  padding: 0.55rem 0.1rem;
-  border: 0;
-  border-bottom: 1px solid rgba(17, 17, 17, 0.22);
-  border-radius: 0;
-  background: transparent;
-  color: #111111;
+  padding: 0.85rem 1rem;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  background: #f9f9f9;
+  color: #333333;
   font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   font-size: 0.98rem;
-  transition: border-color 0.25s ease;
+  transition: border-color 0.25s ease, background-color 0.25s ease;
 }
 
 .support-field-select select:focus {
   outline: none;
   border-color: #111111;
+  background: #ffffff;
 }
 
 .support-submit {
@@ -1922,8 +1918,7 @@ a {
 
 .support-form-card small,
 .support-success,
-.support-contact-list p,
-.support-faq-item p {
+.support-contact-list p {
   color: #606060;
   font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   line-height: 1.65;
@@ -1980,34 +1975,18 @@ a {
   font-size: 0.88rem;
 }
 
-.quick-help-list {
-  display: grid;
-  gap: 0;
-}
-
-.quick-help-list a,
-.support-text-link {
-  color: #111111;
-  font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  transition: color 0.25s ease, transform 0.25s ease;
-}
-
-.quick-help-list a {
-  padding: 0.85rem 0;
-  border-bottom: 1px solid rgba(17, 17, 17, 0.1);
-  font-size: 0.94rem;
-}
-
-.quick-help-list a:hover,
-.support-text-link:hover {
-  color: #666666;
-  transform: translateX(4px);
-}
-
 .support-text-link {
   display: inline-flex;
   margin-top: 1rem;
+  color: #111111;
+  font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   font-weight: 700;
+  transition: color 0.25s ease, transform 0.25s ease;
+}
+
+.support-text-link:hover {
+  color: #666666;
+  transform: translateX(4px);
 }
 
 
@@ -2116,10 +2095,11 @@ a {
 
 .support-highlight-card span {
   display: block;
-  color: rgba(17, 17, 17, 0.16);
-  font-family: "Playfair Display", Georgia, "Times New Roman", serif;
-  font-size: clamp(2.4rem, 3.4vw, 3.4rem);
-  font-weight: 700;
+  color: #999999;
+  font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   line-height: 1;
 }
 
@@ -2178,6 +2158,7 @@ a {
   font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   font-size: 1.02rem;
   font-weight: 600;
+  color: #111111;
 }
 
 .support-faq-item button strong {
@@ -2185,52 +2166,41 @@ a {
   width: 20px;
   height: 20px;
   flex: 0 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: 0;
   border-radius: 0;
-}
-
-.support-faq-item button strong::before,
-.support-faq-item button strong::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  background: #111111;
-  transform: translate(-50%, -50%);
-  transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1), opacity 280ms ease;
-}
-
-.support-faq-item button strong::before {
-  width: 13px;
-  height: 1.5px;
-}
-
-.support-faq-item button strong::after {
-  width: 1.5px;
-  height: 13px;
-}
-
-.support-faq-open button strong::after {
-  opacity: 0;
-  transform: translate(-50%, -50%) rotate(90deg);
+  font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 1.1rem;
+  font-weight: 400;
+  line-height: 1;
+  color: #111111;
+  font-style: normal;
 }
 
 .support-faq-answer {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  animation: support-faq-reveal 220ms ease;
 }
 
-.support-faq-open .support-faq-answer {
-  grid-template-rows: 1fr;
+@keyframes support-faq-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .support-faq-answer p {
   margin: 0;
-  min-height: 0;
-  overflow: hidden;
   padding-right: 2.5rem;
-  padding-bottom: 1.3rem;
+  padding-bottom: 16px;
+  color: #555555;
+  font-size: 0.95rem;
+  line-height: 1.6;
 }
 
 .support-cta-card {
@@ -16533,4 +16503,193 @@ button.ui-button.home-category-arrow svg {
   .home-page .hero-visual img {
     max-height: 180px;
   }
+}
+
+/* =============================================================================
+   ShopSphere — Design system VITRINE UNIQUEMENT
+   Typographie et images harmonisées avec la page d'accueil.
+   EXCLU : admin (.admin-dashboard-shell), login, register, auth.
+   ============================================================================= */
+
+:root {
+  /* --- Conteneur & grille (vitrine) --- */
+  --ss-container-max: 1680px;
+  --ss-container-narrow: 1000px;
+  --ss-container-gutter: clamp(1rem, 1.6vw, 2rem);
+  --ss-container-width: min(94vw, var(--ss-container-max));
+
+  /* --- Typographie (référence : page d'accueil) --- */
+  --ss-font-display: "Playfair Display", Georgia, "Times New Roman", serif;
+  --ss-font-body: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --ss-text-kicker: 0.76rem;
+  --ss-text-sm: 0.95rem;
+  --ss-text-h3: 1.35rem;
+  --ss-text-h2: clamp(2rem, 3.5vw, 3rem);
+  --ss-text-h1: clamp(2.2rem, 3.8vw, 3.5rem);
+
+  /* --- Ratios d'images --- */
+  --ss-ratio-product: 4 / 3;
+  --ss-ratio-category: 4 / 3;
+}
+
+/* --- Conteneur vitrine (.page) — admin & auth exclus --- */
+.app-shell :is(.home-page, .support-page, .about-page) .page,
+.app-shell :is(.catalog-page, .categories-page, .cart-page, .checkout-page, .wishlist-page, .product-details-page, .not-found-page, .orders-page, .order-success-page),
+.app-shell .legal-page .page {
+  box-sizing: border-box;
+  width: var(--ss-container-width);
+  max-width: var(--ss-container-max);
+  margin-inline: auto;
+  padding-inline: var(--ss-container-gutter);
+}
+
+.app-shell .legal-page .legal-shell {
+  max-width: min(94vw, var(--ss-container-narrow));
+}
+
+/* --- Images vitrine : anti-débordement (pas admin, pas auth) --- */
+.app-shell :is(.home-page, .catalog-page, .categories-page, .support-page, .about-page, .legal-page, .cart-page, .checkout-page, .wishlist-page, .product-details-page) img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* --- Kickers vitrine (login / register / auth exclus) --- */
+.app-shell main > :not(.auth-page):not(.login-page):not(.register-page) .section-kicker,
+.app-shell .home-page .eyebrow {
+  font-family: var(--ss-font-body);
+  font-size: var(--ss-text-kicker);
+  font-weight: 800;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+}
+
+/* --- Corps de texte vitrine --- */
+.app-shell .catalog-hero p,
+.app-shell .support-page .support-hero-copy p,
+.app-shell .about-page .about-hero-copy > p,
+.app-shell .legal-page .legal-intro,
+.app-shell .categories-page .category-showcase-copy p,
+.app-shell .catalog-page .catalog-product-description {
+  font-family: var(--ss-font-body);
+  font-size: var(--ss-text-sm);
+  line-height: 1.7;
+}
+
+/* --- H1 vitrine (hero accueil exclu) --- */
+.app-shell .catalog-page .catalog-hero h1,
+.app-shell .support-page .support-hero-copy h1,
+.app-shell .about-page .about-hero h1,
+.app-shell .legal-page .legal-card h1,
+.app-shell .wishlist-page h1,
+.app-shell .cart-page h1,
+.app-shell .checkout-page h1,
+.app-shell .product-details-page h1,
+.app-shell .not-found-page h1,
+.app-shell .categories-page > h1 {
+  font-family: var(--ss-font-display);
+  font-size: var(--ss-text-h1);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+/* --- H2 vitrine (accueil conserve ses styles dédiés) --- */
+.app-shell .support-page .support-faq-section h2,
+.app-shell .support-page .support-cta-card h2,
+.app-shell .support-page .support-form-card h2,
+.app-shell .about-page .about-section-heading h2,
+.app-shell .about-page .about-section h2,
+.app-shell .about-page .about-final-cta h2,
+.app-shell .legal-page .legal-section h2,
+.app-shell .wishlist-page h2,
+.app-shell .cart-page h2,
+.app-shell .checkout-page h2,
+.app-shell .product-details-page h2 {
+  font-family: var(--ss-font-display);
+  font-size: var(--ss-text-h2);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+/* --- H3 / titres cartes vitrine --- */
+.app-shell .home-page .category-card h3,
+.app-shell .home-page .product-card h3,
+.app-shell .home-page .recommended-card h3,
+.app-shell .home-page .store-card h3,
+.app-shell .catalog-page .catalog-product-name,
+.app-shell .categories-page .category-showcase-copy h2 {
+  font-family: var(--ss-font-display);
+  font-size: var(--ss-text-h3);
+  line-height: 1.2;
+}
+
+/* --- Images vitrine : cover pour cartes & bannières --- */
+.app-shell .catalog-page .catalog-product-image,
+.app-shell .categories-page .category-showcase-image img,
+.app-shell .home-page .flash-product-image,
+.app-shell .home-page .home-category-carousel-card img,
+.app-shell .support-page .support-hero-image,
+.app-shell .about-page .about-editorial-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.app-shell .catalog-page .catalog-product-media {
+  aspect-ratio: var(--ss-ratio-product);
+}
+
+.app-shell .categories-page .category-showcase-image {
+  aspect-ratio: var(--ss-ratio-category);
+  min-height: unset;
+}
+
+.app-shell .categories-page .category-showcase-image img {
+  height: 100%;
+}
+
+.app-shell .home-page .final-banner {
+  overflow: hidden;
+}
+
+/* --- Utilitaires vitrine (optionnels) --- */
+.app-shell .ss-container {
+  box-sizing: border-box;
+  width: var(--ss-container-width);
+  max-width: var(--ss-container-max);
+  margin-inline: auto;
+  padding-inline: var(--ss-container-gutter);
+}
+
+.app-shell .ss-container--narrow {
+  max-width: min(94vw, var(--ss-container-narrow));
+}
+
+.app-shell .ss-media-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.app-shell .ss-prose {
+  font-family: var(--ss-font-body);
+  font-size: var(--ss-text-sm);
+  line-height: 1.75;
+  color: rgba(13, 13, 12, 0.68);
+}
+
+.app-shell .ss-prose h2 {
+  font-family: var(--ss-font-display);
+  font-size: var(--ss-text-h2);
+  line-height: 1.1;
+  margin: 1.5rem 0 0.75rem;
+}
+
+.app-shell .ss-prose h3 {
+  font-family: var(--ss-font-display);
+  font-size: var(--ss-text-h3);
+  line-height: 1.2;
+  margin: 1.25rem 0 0.5rem;
 }
