@@ -31,6 +31,9 @@ import PrivacyPolicyPage from "../pages/PrivacyPolicyPage";
 import ProductDetailsPage from "../pages/ProductDetailsPage";
 import ProductsPage from "../pages/ProductsPage";
 import ProfilePage from "../pages/ProfilePage";
+import ProfileInformationPage from "../pages/ProfileInformationPage";
+import ProfileOverviewPage from "../pages/ProfileOverviewPage";
+import ProfileSecurityPage from "../pages/ProfileSecurityPage";
 import RegisterPage from "../pages/RegisterPage";
 import ResetPasswordPage from "../pages/ResetPasswordPage";
 import ReturnPolicyPage from "../pages/ReturnPolicyPage";
@@ -60,7 +63,11 @@ export default function AppRouter() {
         <Route path="/order-success/:orderId" element={<OrderSuccessPage />} />
         <Route path="/orders" element={<OrdersPage />} />
         <Route path="/orders/:id" element={<OrderDetailsPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/profile" element={<ProfilePage />}>
+          <Route index element={<ProfileOverviewPage />} />
+          <Route path="informations" element={<ProfileInformationPage />} />
+          <Route path="security" element={<ProfileSecurityPage />} />
+        </Route>
         <Route path="/support" element={<SupportPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/terms" element={<TermsPage />} />

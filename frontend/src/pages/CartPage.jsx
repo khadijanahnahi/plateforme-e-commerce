@@ -52,14 +52,6 @@ export default function CartPage() {
 
   return (
     <section className="page cart-page">
-      <div className="catalog-hero">
-        <div>
-          <span className="section-kicker">Votre sélection</span>
-          <h1>Votre panier</h1>
-          <p>Vérifiez vos produits, ajustez les quantités puis passez à la commande.</p>
-        </div>
-      </div>
-
       <AsyncState
         empty={cart.items.length === 0}
         emptyAction={<Link className="button button-primary" to="/products">Découvrir les produits</Link>}

@@ -23,18 +23,6 @@ export default function OrdersPage() {
 
   return (
     <section className="page admin-page orders-page">
-      <div className="admin-hero orders-hero">
-        <div className="orders-hero-copy">
-          <span className="section-kicker">Suivi des commandes</span>
-          <h1>Mes commandes</h1>
-          <p>Consultez l'historique et le statut de vos commandes ShopSphere.</p>
-        </div>
-        <div className="orders-hero-note" aria-label="Information sur le suivi">
-          <span>Besoin d'aide ?</span>
-          <strong>Chaque commande est suivie en temps réel.</strong>
-        </div>
-      </div>
-
       {!loading && !error && orders.length > 0 ? (
         <div className="orders-summary" aria-label="Résumé des commandes">
           <div className="orders-summary-card">
