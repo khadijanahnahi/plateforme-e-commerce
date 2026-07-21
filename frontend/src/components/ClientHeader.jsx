@@ -1,14 +1,15 @@
+import { useCallback, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { NavLink } from "react-router-dom";
 import MobileMenu from "./MobileMenu";
-import SearchBar from "./SearchBar";
+import MobileProductSearchPanel from "./search/MobileProductSearchPanel";
+import ProductSearchAutocomplete from "./search/ProductSearchAutocomplete";
 import UserMenu from "./UserMenu";
 
 export default function ClientHeader({
   cartCount,
   getProductNavClass,
   handleLogout,
-  handleSearchSubmit,
   isAdmin,
   isAuthenticated,
   mobileMenuOpen,
@@ -17,6 +18,12 @@ export default function ClientHeader({
   setSearchTerm,
   wishlistCount,
 }) {
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const mobileSearchTriggerRef = useRef(null);
+  const closeMobileSearch = useCallback(() => {
+    setMobileSearchOpen(false);
+    window.requestAnimationFrame(() => mobileSearchTriggerRef.current?.focus());
+  }, []);
   const mobileLayer =
     mobileMenuOpen && typeof document !== "undefined"
       ? createPortal(
@@ -30,7 +37,6 @@ export default function ClientHeader({
             <MobileMenu
               getProductNavClass={getProductNavClass}
               handleLogout={handleLogout}
-              handleSearchSubmit={handleSearchSubmit}
               isAdmin={isAdmin}
               isAuthenticated={isAuthenticated}
               onClose={() => setMobileMenuOpen(false)}
@@ -70,13 +76,28 @@ export default function ClientHeader({
         </nav>
 
         <div className="client-actions">
-          <SearchBar
+          <ProductSearchAutocomplete
             className="client-desktop-search"
-            onSubmit={handleSearchSubmit}
+            onValueChange={setSearchTerm}
             placeholder="Rechercher un produit..."
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
+            value={searchTerm}
           />
+
+          <button
+            aria-label="Ouvrir la recherche"
+            className="client-icon-button client-mobile-search-toggle"
+            onClick={() => {
+              setMobileMenuOpen(false);
+              setMobileSearchOpen(true);
+            }}
+            ref={mobileSearchTriggerRef}
+            type="button"
+          >
+            <svg className="client-action-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="11" cy="11" r="6.5" />
+              <path d="m16 16 4 4" />
+            </svg>
+          </button>
 
           {!isAdmin ? (
             <NavLink
@@ -135,6 +156,12 @@ export default function ClientHeader({
       </div>
 
       {mobileLayer}
+      <MobileProductSearchPanel
+        onClose={closeMobileSearch}
+        onValueChange={setSearchTerm}
+        open={mobileSearchOpen}
+        value={searchTerm}
+      />
     </header>
   );
 }

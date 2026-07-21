@@ -9,6 +9,18 @@ export const productApi = {
     return http.get(`/products/${id}`);
   },
 
+  searchProductSuggestions(query, limit = 6, signal) {
+    const normalizedQuery = query?.trim() ?? "";
+    if (normalizedQuery.length < 2) {
+      return Promise.resolve({ data: [] });
+    }
+
+    return http.get("/products/search-suggestions", {
+      params: { query: normalizedQuery, limit },
+      signal,
+    });
+  },
+
   getBestSellers(limit = 8) {
     return http.get("/products/best-sellers", { params: { limit } });
   },

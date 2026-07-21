@@ -118,6 +118,36 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             select p
             from Product p
             join fetch p.category c
+            where p.status in :statuses
+              and c.active = true
+              and (
+                    lower(p.name) like :containsPattern
+                    or lower(coalesce(p.sku, '')) like :containsPattern
+                    or lower(c.name) like :containsPattern
+                  )
+            order by
+              case
+                when lower(p.name) = :normalizedQuery then 0
+                when lower(p.name) like :prefixPattern then 1
+                when lower(coalesce(p.sku, '')) = :normalizedQuery then 2
+                when lower(coalesce(p.sku, '')) like :prefixPattern then 3
+                when lower(c.name) like :prefixPattern then 4
+                else 5
+              end,
+              p.name asc
+            """)
+    List<Product> findSearchSuggestions(
+            @Param("statuses") Collection<ProductStatus> statuses,
+            @Param("normalizedQuery") String normalizedQuery,
+            @Param("prefixPattern") String prefixPattern,
+            @Param("containsPattern") String containsPattern,
+            Pageable pageable
+    );
+
+    @Query("""
+            select p
+            from Product p
+            join fetch p.category c
             where (:categoryId is null or c.id = :categoryId)
             order by p.createdAt desc
             """)

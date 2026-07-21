@@ -49,12 +49,6 @@ export default function MainLayout() {
     navigate("/login", { replace: true });
   }
 
-  function handleSearchSubmit(event) {
-    event.preventDefault();
-    const query = searchTerm.trim();
-    navigate(query ? `/products?search=${encodeURIComponent(query)}` : "/products");
-  }
-
   function getProductNavClass(sortValue) {
     if (location.pathname !== "/products") {
       return undefined;
@@ -77,7 +71,6 @@ export default function MainLayout() {
           cartCount={cartCount}
           getProductNavClass={getProductNavClass}
           handleLogout={handleLogout}
-          handleSearchSubmit={handleSearchSubmit}
           isAdmin={isAdmin}
           isAuthenticated={isAuthenticated}
           mobileMenuOpen={mobileMenuOpen}

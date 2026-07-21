@@ -2,7 +2,9 @@ package com.boutique.ecommerce.product.controller;
 
 import com.boutique.ecommerce.product.dto.ProductPageResponse;
 import com.boutique.ecommerce.product.dto.ProductResponse;
+import com.boutique.ecommerce.product.dto.ProductSearchSuggestionResponse;
 import com.boutique.ecommerce.product.service.ProductService;
+import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,6 +29,14 @@ public class ProductController {
             @RequestParam(defaultValue = "24") int size
     ) {
         return ProductPageResponse.from(productService.getVisibleProductsPage(search, categoryId, page, size));
+    }
+
+    @GetMapping("/search-suggestions")
+    public List<ProductSearchSuggestionResponse> searchSuggestions(
+            @RequestParam(required = false) String query,
+            @RequestParam(defaultValue = "6") int limit
+    ) {
+        return productService.searchSuggestions(query, limit);
     }
 
     @GetMapping("/{id}")

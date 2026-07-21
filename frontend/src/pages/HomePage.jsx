@@ -6,6 +6,7 @@ import FlashSaleSection from "../components/product/FlashSaleSection";
 import BestSellersSection from "../features/products/BestSellersSection";
 import VerifiedReviewsSection from "../features/reviews/VerifiedReviewsSection";
 import HomeBlogSection from "../features/blog/HomeBlogSection";
+import ProductSearchAutocomplete from "../components/search/ProductSearchAutocomplete";
 import heroMonochrome from "../../images/hero-monochrome.webp";
 
 const heroHeadline = ["Élevez votre", "allure"];
@@ -74,6 +75,7 @@ export default function HomePage() {
   const [heroBanners, setHeroBanners] = useState([]);
   const [activeHeroIndex, setActiveHeroIndex] = useState(0);
   const [heroLoaded, setHeroLoaded] = useState(false);
+  const [homeSearchTerm, setHomeSearchTerm] = useState("");
 
   useEffect(() => {
     let mounted = true;
@@ -125,7 +127,7 @@ export default function HomePage() {
   return (
     <div className="home-page">
       <section className="page hero-section">
-        <div className={`hero-card ${hasHeroSlider ? "hero-card-carousel" : ""}`} key={heroBanner?.id ?? "default-hero"}>
+        <div className={`hero-card hero-card-search-enabled ${hasHeroSlider ? "hero-card-carousel" : ""}`} key={heroBanner?.id ?? "default-hero"}>
           <div className="hero-copy">
             <span className="eyebrow">{heroBanner ? "Campagne en vedette" : "Édition premium"}</span>
             <div className="hero-headline">
@@ -143,6 +145,13 @@ export default function HomePage() {
               {heroBanner?.subtitle ||
                 "Des essentiels monochromes pensés pour chaque saison. Découvrez des pièces premium, durables et faciles à porter au quotidien."}
             </p>
+            <ProductSearchAutocomplete
+              className="home-predictive-search"
+              onValueChange={setHomeSearchTerm}
+              placeholder="Rechercher dans la collection..."
+              value={homeSearchTerm}
+              variant="home"
+            />
             <div className="hero-actions">
               <Link className="button button-primary" to={primaryTarget}>
                 {primaryText} <span aria-hidden="true">→</span>

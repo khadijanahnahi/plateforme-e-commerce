@@ -8,6 +8,7 @@ import com.boutique.ecommerce.common.exception.ResourceNotFoundException;
 import com.boutique.ecommerce.order.repository.OrderItemRepository;
 import com.boutique.ecommerce.product.dto.ProductRequest;
 import com.boutique.ecommerce.product.dto.ProductResponse;
+import com.boutique.ecommerce.product.dto.ProductSearchSuggestionResponse;
 import com.boutique.ecommerce.product.dto.UpdateProductStatusRequest;
 import com.boutique.ecommerce.product.dto.UpdateProductStockRequest;
 import com.boutique.ecommerce.product.entity.Product;
@@ -23,6 +24,7 @@ import com.boutique.ecommerce.stock.service.StockMovementService;
 import com.boutique.ecommerce.wishlist.repository.WishlistItemRepository;
 import com.boutique.ecommerce.blog.repository.BlogPostRepository;
 import java.util.List;
+import java.util.Locale;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -101,6 +103,30 @@ public class ProductService {
                 );
 
         return products.map(this::toResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProductSearchSuggestionResponse> searchSuggestions(String query, int limit) {
+        String normalizedQuery = normalizeOptional(query);
+        if (normalizedQuery == null || normalizedQuery.length() < 2) {
+            throw new IllegalArgumentException("Search query must contain at least 2 characters.");
+        }
+        if (normalizedQuery.length() > 100) {
+            throw new IllegalArgumentException("Search query must not exceed 100 characters.");
+        }
+
+        String loweredQuery = normalizedQuery.toLowerCase(Locale.ROOT);
+        int safeLimit = Math.min(10, Math.max(1, limit));
+        return productRepository.findSearchSuggestions(
+                        PUBLIC_STATUSES,
+                        loweredQuery,
+                        loweredQuery + "%",
+                        "%" + loweredQuery + "%",
+                        PageRequest.of(0, safeLimit)
+                )
+                .stream()
+                .map(this::toSearchSuggestionResponse)
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -312,6 +338,21 @@ public class ProductService {
                 reviewCount,
                 product.getCreatedAt(),
                 product.getUpdatedAt()
+        );
+    }
+
+    private ProductSearchSuggestionResponse toSearchSuggestionResponse(Product product) {
+        EffectivePriceResult price = promotionService.getEffectivePrice(product);
+        return new ProductSearchSuggestionResponse(
+                product.getId(),
+                product.getName(),
+                product.getImageUrl(),
+                product.getCategory().getName(),
+                price.originalPrice(),
+                price.effectivePrice(),
+                price.promotionActive(),
+                price.discountPercentage(),
+                product.getStockQuantity()
         );
     }
 

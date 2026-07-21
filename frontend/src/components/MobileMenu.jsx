@@ -1,10 +1,9 @@
 import { NavLink } from "react-router-dom";
-import SearchBar from "./SearchBar";
+import ProductSearchAutocomplete from "./search/ProductSearchAutocomplete";
 
 export default function MobileMenu({
   getProductNavClass,
   handleLogout,
-  handleSearchSubmit,
   isAdmin,
   isAuthenticated,
   onClose,
@@ -12,11 +11,6 @@ export default function MobileMenu({
   setSearchTerm,
   wishlistCount = 0,
 }) {
-  function submitSearch(event) {
-    handleSearchSubmit(event);
-    onClose?.();
-  }
-
   function logoutAndClose() {
     handleLogout();
     onClose?.();
@@ -31,12 +25,13 @@ export default function MobileMenu({
 
   return (
     <div className="client-mobile-panel" role="dialog" aria-modal="true" aria-label="Menu mobile ShopSphere">
-      <SearchBar
+      <ProductSearchAutocomplete
         className="client-mobile-search"
-        onSubmit={submitSearch}
+        onNavigate={onClose}
+        onValueChange={setSearchTerm}
         placeholder="Rechercher..."
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
+        value={searchTerm}
+        variant="mobile"
       />
 
       <nav className="client-mobile-nav" aria-label="Navigation mobile" onClick={closeOnNavigation}>
