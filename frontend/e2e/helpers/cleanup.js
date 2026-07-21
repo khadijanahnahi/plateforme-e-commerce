@@ -26,6 +26,14 @@ LEFT JOIN order_items oi ON oi.order_id = o.id
 WHERE o.user_id IN (SELECT id FROM tmp_e2e_users)
    OR oi.product_id IN (SELECT id FROM tmp_e2e_products);
 
+CREATE TEMP TABLE tmp_e2e_blog_categories AS
+SELECT id FROM blog_categories WHERE name LIKE 'E2E Blog Category%';
+
+CREATE TEMP TABLE tmp_e2e_blog_posts AS
+SELECT id FROM blog_posts
+WHERE title LIKE 'E2E Blog Article%'
+   OR category_id IN (SELECT id FROM tmp_e2e_blog_categories);
+
 DELETE FROM invoice_items WHERE invoice_id IN (SELECT id FROM invoices WHERE order_id IN (SELECT id FROM tmp_e2e_orders));
 DELETE FROM invoices WHERE order_id IN (SELECT id FROM tmp_e2e_orders);
 DELETE FROM coupon_usages WHERE order_id IN (SELECT id FROM tmp_e2e_orders) OR user_id IN (SELECT id FROM tmp_e2e_users);
@@ -36,6 +44,10 @@ DELETE FROM orders WHERE id IN (SELECT id FROM tmp_e2e_orders);
 DELETE FROM cart_items WHERE user_id IN (SELECT id FROM tmp_e2e_users) OR product_id IN (SELECT id FROM tmp_e2e_products);
 DELETE FROM wishlist_items WHERE user_id IN (SELECT id FROM tmp_e2e_users) OR product_id IN (SELECT id FROM tmp_e2e_products);
 DELETE FROM promotions WHERE product_id IN (SELECT id FROM tmp_e2e_products);
+DELETE FROM blog_post_tags WHERE post_id IN (SELECT id FROM tmp_e2e_blog_posts);
+DELETE FROM blog_post_products WHERE post_id IN (SELECT id FROM tmp_e2e_blog_posts) OR product_id IN (SELECT id FROM tmp_e2e_products);
+DELETE FROM blog_posts WHERE id IN (SELECT id FROM tmp_e2e_blog_posts);
+DELETE FROM blog_categories WHERE id IN (SELECT id FROM tmp_e2e_blog_categories);
 DELETE FROM password_reset_tokens WHERE user_id IN (SELECT id FROM tmp_e2e_users);
 DELETE FROM user_roles WHERE user_id IN (SELECT id FROM tmp_e2e_users);
 DELETE FROM products WHERE id IN (SELECT id FROM tmp_e2e_products);

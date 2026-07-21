@@ -31,6 +31,15 @@ const adminSections = [
     ],
   },
   {
+    title: "Contenu",
+    links: [
+      { icon: "blog", label: "Articles", to: "/admin/blog/posts" },
+      { icon: "create", label: "Nouvel article", to: "/admin/blog/posts/new" },
+      { icon: "category", label: "Catégories blog", to: "/admin/blog/categories" },
+      { icon: "tag", label: "Tags", to: "/admin/blog/tags" },
+    ],
+  },
+  {
     title: "Customers",
     links: [
       { icon: "customer", label: "Customers", to: "/admin/customers" },
@@ -59,6 +68,9 @@ function AdminNavIcon({ name }) {
     customer: <><circle cx="9" cy="8" r="3" /><path d="M3.5 20a5.5 5.5 0 0 1 11 0M16 6.5a3 3 0 0 1 0 5.8M16.5 15a5 5 0 0 1 4 5" /></>,
     order: <><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Z" /><path d="M9 8h6M9 12h6M9 16h3" /></>,
     settings: <><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z" /></>,
+    blog: <><path d="M5 4h14v16H5z" /><path d="M8 8h8M8 12h8M8 16h5" /></>,
+    create: <><path d="M5 4h10l4 4v12H5z" /><path d="M15 4v5h4M12 11v6M9 14h6" /></>,
+    tag: <><path d="M20 13 13 20 4 11V4h7l9 9Z" /><circle cx="8.5" cy="8.5" r="1.2" /></>,
   };
 
   return <svg aria-hidden="true" className="admin-nav-icon" viewBox="0 0 24 24">{paths[name]}</svg>;

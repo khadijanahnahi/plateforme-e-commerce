@@ -32,6 +32,7 @@ Structure modulaire Spring Boot :
 - `order`
 - `stock`
 - `dashboard`
+- `blog` : CMS, publication programmée, taxonomies, médias et sitemap
 - `upload`
 - `security`
 - `config`
@@ -102,3 +103,24 @@ npm run test:e2e
 Les scénarios créent des données uniques et doivent être exécutés contre une base de
 test jetable, jamais directement contre la base de production. La CI démarre puis
 supprime automatiquement une stack Docker et ses volumes pour chaque exécution.
+
+## Blog / CMS
+
+Le journal public est disponible sur `/blog`. Le back-office se trouve sous
+`/admin/blog/posts`, avec des écrans séparés pour les catégories et les tags.
+Seuls les articles `PUBLISHED` dont la date de publication est atteinte sont publics.
+Le HTML produit par l'éditeur Tiptap est nettoyé côté serveur avant stockage.
+
+Les images de couverture et de contenu acceptent uniquement JPEG, PNG et WEBP. En
+Docker, elles sont stockées dans MinIO dans le bucket défini par
+`MINIO_BLOG_BUCKET`. En développement local, le fallback est `backend/storage/blog`.
+Le sitemap des articles publiés est exposé à `/sitemap.xml` derrière Nginx.
+
+Variables principales :
+
+```dotenv
+APP_BLOG_STORAGE_PROVIDER=minio
+MINIO_BLOG_BUCKET=shopsphere-media
+APP_BLOG_MAX_IMAGE_SIZE=5242880
+FRONTEND_URL=https://votre-domaine.example
+```

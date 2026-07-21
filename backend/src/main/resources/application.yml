@@ -68,6 +68,14 @@ app:
     minio-secret-key: ${MINIO_SECRET_KEY:minioadmin}
     minio-bucket: ${MINIO_BUCKET:shopsphere-invoices}
     minio-prefix: ${MINIO_INVOICE_PREFIX:invoices}
+  blog:
+    storage-provider: ${APP_BLOG_STORAGE_PROVIDER:local}
+    local-path: ${APP_BLOG_STORAGE_PATH:./storage/blog}
+    minio-endpoint: ${MINIO_ENDPOINT:http://127.0.0.1:9000}
+    minio-access-key: ${MINIO_ACCESS_KEY:minioadmin}
+    minio-secret-key: ${MINIO_SECRET_KEY:minioadmin}
+    minio-bucket: ${MINIO_BLOG_BUCKET:shopsphere-media}
+    max-image-size: ${APP_BLOG_MAX_IMAGE_SIZE:5242880}
   rate-limit:
     auth:
       enabled: ${APP_AUTH_RATE_LIMIT_ENABLED:true}

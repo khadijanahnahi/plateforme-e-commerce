@@ -21,6 +21,7 @@ import com.boutique.ecommerce.review.repository.ProductReviewRepository;
 import com.boutique.ecommerce.stock.repository.StockMovementRepository;
 import com.boutique.ecommerce.stock.service.StockMovementService;
 import com.boutique.ecommerce.wishlist.repository.WishlistItemRepository;
+import com.boutique.ecommerce.blog.repository.BlogPostRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +44,7 @@ public class ProductService {
     private final PromotionRepository promotionRepository;
     private final WishlistItemRepository wishlistItemRepository;
     private final StockMovementRepository stockMovementRepository;
+    private final BlogPostRepository blogPostRepository;
 
     public ProductService(
             ProductRepository productRepository,
@@ -54,7 +56,8 @@ public class ProductService {
             CartItemRepository cartItemRepository,
             PromotionRepository promotionRepository,
             WishlistItemRepository wishlistItemRepository,
-            StockMovementRepository stockMovementRepository
+            StockMovementRepository stockMovementRepository,
+            BlogPostRepository blogPostRepository
     ) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
@@ -66,6 +69,7 @@ public class ProductService {
         this.promotionRepository = promotionRepository;
         this.wishlistItemRepository = wishlistItemRepository;
         this.stockMovementRepository = stockMovementRepository;
+        this.blogPostRepository = blogPostRepository;
     }
 
     @Transactional(readOnly = true)
@@ -205,6 +209,9 @@ public class ProductService {
         }
         if (stockMovementRepository.existsByProductId(productId)) {
             throw new ResourceConflictException("Cannot delete this product because it has stock history. Archive it instead.");
+        }
+        if (blogPostRepository.existsByProductsId(productId)) {
+            throw new ResourceConflictException("Cannot delete this product because it is linked to a blog post. Remove the association first.");
         }
     }
 

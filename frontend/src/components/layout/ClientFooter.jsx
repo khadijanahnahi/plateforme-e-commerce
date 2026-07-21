@@ -16,6 +16,7 @@ const customerLinks = [
 
 const legalLinks = [
   { label: "À propos", to: "/about" },
+  { label: "Journal", to: "/blog" },
   { label: "Conditions", to: "/terms" },
   { label: "Confidentialité", to: "/privacy-policy" },
   { label: "Retours", to: "/return-policy" },

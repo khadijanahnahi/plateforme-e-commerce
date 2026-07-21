@@ -31,6 +31,17 @@ export async function loginAdmin(request) {
   return json(response);
 }
 
+export async function createBlogCategory(request) {
+  const admin = await loginAdmin(request);
+  const headers = { Authorization: `Bearer ${admin.accessToken}` };
+  const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const category = await json(await request.post("/api/admin/blog/categories", {
+    headers,
+    data: { name: `E2E Blog Category ${suffix}`, description: "Catégorie temporaire Playwright" },
+  }));
+  return { admin, category };
+}
+
 export async function createSellableProduct(request) {
   const admin = await loginAdmin(request);
   const headers = { Authorization: `Bearer ${admin.accessToken}` };

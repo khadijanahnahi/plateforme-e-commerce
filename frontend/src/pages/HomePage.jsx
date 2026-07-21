@@ -5,6 +5,7 @@ import HomeCategoriesCarousel from "../components/category/HomeCategoriesCarouse
 import FlashSaleSection from "../components/product/FlashSaleSection";
 import BestSellersSection from "../features/products/BestSellersSection";
 import VerifiedReviewsSection from "../features/reviews/VerifiedReviewsSection";
+import HomeBlogSection from "../features/blog/HomeBlogSection";
 import heroMonochrome from "../../images/hero-monochrome.webp";
 
 const heroHeadline = ["Élevez votre", "allure"];
@@ -253,6 +254,7 @@ export default function HomePage() {
       <FlashSaleSection />
       <BestSellersSection />
       <VerifiedReviewsSection />
+      <HomeBlogSection />
 
       <section className="page section-block">
         <div className="final-banner">
@@ -302,6 +304,7 @@ export default function HomePage() {
             <h3>Marque</h3>
             <div className="footer-links">
               <Link to="/about">À propos</Link>
+              <Link to="/blog">Journal</Link>
               <Link to="/support">Contact</Link>
               <Link to="/terms">Conditions</Link>
               <Link to="/privacy-policy">ConfidentialitÃ©</Link>

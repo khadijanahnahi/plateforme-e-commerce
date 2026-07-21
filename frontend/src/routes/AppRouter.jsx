@@ -44,6 +44,16 @@ import ServerErrorPage from "../pages/ServerErrorPage";
 import WishlistPage from "../pages/WishlistPage";
 
 const AdminDashboardPage = lazy(() => import("../pages/AdminDashboardPage"));
+const BlogPage = lazy(() => import("../pages/BlogPage"));
+const BlogPostPage = lazy(() => import("../pages/BlogPostPage"));
+const AdminBlogPostsPage = lazy(() => import("../pages/AdminBlogPostsPage"));
+const AdminBlogEditorPage = lazy(() => import("../pages/AdminBlogEditorPage"));
+const AdminBlogCategoriesPage = lazy(() => import("../pages/AdminBlogCategoriesPage"));
+const AdminBlogTagsPage = lazy(() => import("../pages/AdminBlogTagsPage"));
+
+function LazyPage({ children }) {
+  return <Suspense fallback={<div className="dashboard-route-loading">Chargement...</div>}>{children}</Suspense>;
+}
 
 export default function AppRouter() {
   return (
@@ -70,6 +80,8 @@ export default function AppRouter() {
         </Route>
         <Route path="/support" element={<SupportPage />} />
         <Route path="/about" element={<AboutPage />} />
+        <Route path="/blog" element={<LazyPage><BlogPage /></LazyPage>} />
+        <Route path="/blog/:slug" element={<LazyPage><BlogPostPage /></LazyPage>} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
         <Route path="/return-policy" element={<ReturnPolicyPage />} />
@@ -100,6 +112,11 @@ export default function AppRouter() {
           <Route path="/admin/orders" element={<AdminOrdersPage />} />
           <Route path="/admin/orders/:id" element={<AdminOrderDetailsPage />} />
           <Route path="/admin/settings" element={<AdminSettingsPage />} />
+          <Route path="/admin/blog/posts" element={<LazyPage><AdminBlogPostsPage /></LazyPage>} />
+          <Route path="/admin/blog/posts/new" element={<LazyPage><AdminBlogEditorPage /></LazyPage>} />
+          <Route path="/admin/blog/posts/:id/edit" element={<LazyPage><AdminBlogEditorPage /></LazyPage>} />
+          <Route path="/admin/blog/categories" element={<LazyPage><AdminBlogCategoriesPage /></LazyPage>} />
+          <Route path="/admin/blog/tags" element={<LazyPage><AdminBlogTagsPage /></LazyPage>} />
         </Route>
       </Route>
     </Routes>

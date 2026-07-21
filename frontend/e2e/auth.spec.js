@@ -13,5 +13,5 @@ test("un client peut s'inscrire puis accéder à son profil", async ({ page }) =
   await page.getByRole("button", { name: "Créer mon compte" }).click();
 
   await expect(page).toHaveURL(/\/profile$/);
-  await expect(page.getByRole("heading", { name: "Mon profil" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^Bonjour,/ })).toBeVisible();
 });
