@@ -23,6 +23,8 @@ import com.boutique.ecommerce.stock.service.StockMovementService;
 import com.boutique.ecommerce.wishlist.repository.WishlistItemRepository;
 import com.boutique.ecommerce.blog.repository.BlogPostRepository;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -83,6 +85,22 @@ public class ProductService {
                 .stream()
                 .map(this::toResponse)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ProductResponse> getVisibleProductsPage(String search, Long categoryId, int page, int size) {
+        String normalizedSearch = normalizeSearch(search);
+        PageRequest pageRequest = PageRequest.of(Math.max(0, page), Math.min(48, Math.max(1, size)));
+        Page<Product> products = normalizedSearch == null
+                ? productRepository.findVisibleProductsPage(PUBLIC_STATUSES, categoryId, pageRequest)
+                : productRepository.searchVisibleProductsPage(
+                        PUBLIC_STATUSES,
+                        toSearchPattern(normalizedSearch),
+                        categoryId,
+                        pageRequest
+                );
+
+        return products.map(this::toResponse);
     }
 
     @Transactional(readOnly = true)

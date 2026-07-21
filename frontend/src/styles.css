@@ -5384,6 +5384,41 @@ a {
   flex-direction: column;
 }
 
+.catalog-pagination-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.catalog-pagination-bar > p {
+  margin: 0;
+  color: #6e6a64;
+  font-size: 0.9rem;
+}
+
+.catalog-pagination-bar .ui-pagination {
+  width: auto;
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .catalog-pagination-bar {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  .catalog-pagination-bar .ui-pagination {
+    width: 100%;
+  }
+}
+
 .categories-catalog-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
