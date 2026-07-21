@@ -49,23 +49,34 @@ export default function CategoriesPage() {
           loading={loading}
           onRetry={loadCategories}
         >
-          {categories.map((category, index) => (
-            <Link
-              className="category-showcase-card reveal-card"
-              key={category.id}
-              to={`/products?categoryId=${category.id}`}
-              style={{ animationDelay: `${0.06 + index * 0.05}s` }}
-            >
-              <div className="category-showcase-image">
-                {category.imageUrl ? <img src={category.imageUrl} alt={category.name} /> : <span>{category.name}</span>}
-              </div>
-              <div className="category-showcase-copy">
-                <span>{category.productCount ?? 0} produits</span>
-                <h2>{category.name}</h2>
-                <p>{category.description ?? "Des essentiels premium pour une garde-robe quotidienne épurée."}</p>
-              </div>
-            </Link>
-          ))}
+          {categories.map((category, index) => {
+            const productCount = category.productCount ?? 0;
+            const isAvailable = productCount > 0;
+            const Card = isAvailable ? Link : "article";
+
+            return (
+              <Card
+                aria-disabled={isAvailable ? undefined : true}
+                className={`category-showcase-card reveal-card${isAvailable ? "" : " is-coming-soon"}`}
+                key={category.id}
+                to={isAvailable ? `/products?categoryId=${category.id}` : undefined}
+                style={{ animationDelay: `${0.06 + index * 0.05}s` }}
+              >
+                <div className="category-showcase-image">
+                  {category.imageUrl ? <img src={category.imageUrl} alt={category.name} /> : <span>{category.name}</span>}
+                </div>
+                <div className="category-showcase-copy">
+                  <span className="category-availability">
+                    {isAvailable
+                      ? `${productCount} ${productCount === 1 ? "produit" : "produits"}`
+                      : "Bientôt disponible"}
+                  </span>
+                  <h2>{category.name}</h2>
+                  <p>{category.description ?? "Des essentiels premium pour une garde-robe quotidienne épurée."}</p>
+                </div>
+              </Card>
+            );
+          })}
         </AsyncState>
       </div>
     </section>

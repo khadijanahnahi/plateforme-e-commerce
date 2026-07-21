@@ -5411,6 +5411,16 @@ a {
   box-shadow: 0 24px 55px rgba(17, 17, 17, 0.1);
 }
 
+.category-showcase-card.is-coming-soon {
+  cursor: default;
+}
+
+.category-showcase-card.is-coming-soon:hover {
+  transform: none;
+  border-color: rgba(17, 17, 17, 0.08);
+  box-shadow: none;
+}
+
 .category-showcase-image {
   min-height: 0;
   border-radius: 18px;
@@ -5435,6 +5445,15 @@ a {
   transform: scale(1.04);
 }
 
+.category-showcase-card.is-coming-soon .category-showcase-image img {
+  filter: grayscale(0.5) saturate(0.7);
+  opacity: 0.84;
+}
+
+.category-showcase-card.is-coming-soon:hover .category-showcase-image img {
+  transform: none;
+}
+
 .category-showcase-image span {
   padding: 1.1rem;
   color: #ffffff;
@@ -5452,6 +5471,20 @@ a {
   font-size: 0.78rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+}
+
+.category-showcase-copy .category-availability {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 28px;
+  align-items: center;
+  padding-inline: 0.65rem;
+  border: 1px solid rgba(142, 49, 74, 0.16);
+  border-radius: 999px;
+  background: rgba(142, 49, 74, 0.07);
+  color: #8e314a;
+  font-size: 0.7rem;
+  font-weight: 800;
 }
 
 .category-showcase-copy h2 {
