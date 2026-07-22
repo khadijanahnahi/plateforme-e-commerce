@@ -20,6 +20,22 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
 
     List<OrderItem> findByOrderId(Long orderId);
 
+    @Query("""
+            select oi
+            from OrderItem oi
+            join fetch oi.order o
+            join fetch oi.product p
+            where o.user.id = :userId
+              and o.status = :orderStatus
+              and o.paymentStatus = :paymentStatus
+            order by o.createdAt desc, oi.id desc
+            """)
+    List<OrderItem> findEligibleReturnItems(
+            @Param("userId") Long userId,
+            @Param("orderStatus") OrderStatus orderStatus,
+            @Param("paymentStatus") PaymentStatus paymentStatus
+    );
+
     boolean existsByProductId(Long productId);
 
     @Query("""

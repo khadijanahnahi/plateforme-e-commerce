@@ -16,6 +16,7 @@ import AdminCustomerDetailsPage from "../pages/AdminCustomerDetailsPage";
 import AdminSettingsPage from "../pages/AdminSettingsPage";
 import AdminStockMovementsPage from "../pages/AdminStockMovementsPage";
 import AdminSupportMessagesPage from "../pages/AdminSupportMessagesPage";
+import AdminReturnRequestsPage from "../pages/AdminReturnRequestsPage";
 import AboutPage from "../pages/AboutPage";
 import CategoriesPage from "../pages/CategoriesPage";
 import CartPage from "../pages/CartPage";
@@ -111,6 +112,7 @@ export default function AppRouter() {
           <Route path="/admin/support-messages" element={<AdminSupportMessagesPage />} />
           <Route path="/admin/orders" element={<AdminOrdersPage />} />
           <Route path="/admin/orders/:id" element={<AdminOrderDetailsPage />} />
+          <Route path="/admin/return-requests" element={<AdminReturnRequestsPage />} />
           <Route path="/admin/settings" element={<AdminSettingsPage />} />
           <Route path="/admin/blog/posts" element={<LazyPage><AdminBlogPostsPage /></LazyPage>} />
           <Route path="/admin/blog/posts/new" element={<LazyPage><AdminBlogEditorPage /></LazyPage>} />
