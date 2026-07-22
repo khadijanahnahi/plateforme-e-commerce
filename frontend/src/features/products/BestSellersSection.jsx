@@ -55,11 +55,14 @@ export default function BestSellersSection() {
   return (
     <section ref={reveal.ref} className={`page section-block best-sellers-section ${reveal.isVisible ? "is-visible" : ""}`}>
       <div className="section-heading best-sellers-heading">
-        <div>
+        <div className="best-sellers-heading-copy">
           <span className="section-kicker">Best-sellers</span>
           <h2>Les favoris de nos clients</h2>
+          <p>Découvrez les produits les plus commandés sur ShopSphere.</p>
         </div>
-        <p>Découvrez les produits les plus commandés sur ShopSphere.</p>
+        <Link className="best-sellers-all-link" to="/products">
+          Voir toute la sélection <span aria-hidden="true">→</span>
+        </Link>
       </div>
 
       {loading ? (
@@ -97,9 +100,12 @@ export default function BestSellersSection() {
                 key={product.productId}
                 style={{ "--reveal-delay": `${index * 70}ms` }}
               >
+                <span className="best-seller-index" aria-hidden="true">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
                 <Link className="best-seller-image" to={`/products/${product.productId}`}>
                   {product.imageUrl ? (
-                    <img src={product.imageUrl} alt={product.name} loading="lazy" />
+                    <img src={product.imageUrl} alt={product.name} loading="lazy" decoding="async" />
                   ) : (
                     <span className="best-seller-image-fallback">ShopSphere</span>
                   )}
@@ -111,7 +117,7 @@ export default function BestSellersSection() {
                 <div className="best-seller-content">
                   <div className="best-seller-meta">
                     <span>{product.categoryName ?? "Collection"}</span>
-                    <span>{product.quantitySold != null ? `${product.quantitySold} vendu${product.quantitySold > 1 ? "s" : ""}` : "Nouveauté"}</span>
+                    <span>{product.quantitySold != null ? `${product.quantitySold} vendu${product.quantitySold > 1 ? "s" : ""}` : "Sélection"}</span>
                   </div>
                   <Link className="best-seller-title" to={`/products/${product.productId}`}>{product.name}</Link>
                   {product.description ? <p>{product.description}</p> : null}
