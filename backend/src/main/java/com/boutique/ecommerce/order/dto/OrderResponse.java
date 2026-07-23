@@ -15,6 +15,7 @@ public record OrderResponse(
         BigDecimal subtotalAmount,
         BigDecimal discountAmount,
         String couponCode,
+        BigDecimal deliveryFee,
         BigDecimal totalAmount,
         OrderStatus status,
         PaymentStatus paymentStatus,

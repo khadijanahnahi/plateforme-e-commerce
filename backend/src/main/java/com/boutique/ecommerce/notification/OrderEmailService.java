@@ -297,6 +297,7 @@ public class OrderEmailService {
     private String buildTotalsRows(Order order) {
         BigDecimal subtotal = amountOrFallback(order.getSubtotalAmount(), order.getTotalAmount());
         BigDecimal discount = amountOrFallback(order.getDiscountAmount(), ZERO);
+        BigDecimal deliveryFee = amountOrFallback(order.getDeliveryFee(), ZERO);
         BigDecimal total = amountOrFallback(order.getTotalAmount(), subtotal.subtract(discount));
 
         StringBuilder rows = new StringBuilder();
@@ -307,7 +308,7 @@ public class OrderEmailService {
                     : "Discount (" + escapeHtml(order.getCouponCode()) + ")";
             rows.append(totalRow(label, "-" + formatAmount(discount), false));
         }
-        rows.append(totalRow("Livraison", "0.00 DH", false));
+        rows.append(totalRow("Livraison", formatAmount(deliveryFee), false));
         rows.append(totalRow("Total", formatAmount(total), true));
         return rows.toString();
     }

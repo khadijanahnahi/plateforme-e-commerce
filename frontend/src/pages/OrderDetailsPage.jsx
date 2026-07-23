@@ -331,7 +331,7 @@ export default function OrderDetailsPage() {
                   </div>
                   <div>
                     <span>Livraison</span>
-                    <strong>Gratuite</strong>
+                    <strong>{Number(order.deliveryFee ?? 0) === 0 ? "Gratuite" : formatMoney(order.deliveryFee)}</strong>
                   </div>
                   <div className="order-payment-total">
                     <span>Total</span>

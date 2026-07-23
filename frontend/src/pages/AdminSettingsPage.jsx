@@ -45,7 +45,7 @@ export default function AdminSettingsPage() {
               <header><span>02</span><div><h2>Livraison</h2><p>Tarification et informations présentées au checkout.</p></div></header>
               <div className="settings-fields-grid settings-fields-single">
                 <label><span>Frais de livraison (DH)</span><input min="0" name="deliveryFee" step="0.01" type="number" value={form.deliveryFee} onChange={updateField} required /></label>
-                <label><span>Livraison gratuite à partir de (DH)</span><input min="0" name="freeDeliveryThreshold" step="0.01" type="number" value={form.freeDeliveryThreshold} onChange={updateField} required /></label>
+                <label><span>Livraison gratuite à partir de (DH, 0 = désactivée)</span><input min="0" name="freeDeliveryThreshold" step="0.01" type="number" value={form.freeDeliveryThreshold} onChange={updateField} required /></label>
                 <label><span>Délai estimé</span><input maxLength="240" name="estimatedDeliveryText" value={form.estimatedDeliveryText} onChange={updateField} required /></label>
               </div>
               <SettingsSwitch checked={form.cashOnDeliveryEnabled} description="Autoriser le paiement lors de la réception." label="Paiement à la livraison" name="cashOnDeliveryEnabled" onChange={updateField} />

@@ -64,6 +64,26 @@ public class StoreSettingsService {
         return toResponse(storeSettingsRepository.saveAndFlush(settings));
     }
 
+    @Transactional
+    public BigDecimal calculateDeliveryFee(BigDecimal chargeableAmount) {
+        StoreSettings settings = getOrCreateSettings();
+        BigDecimal deliveryFee = amountOrZero(settings.getDeliveryFee());
+        BigDecimal freeDeliveryThreshold = amountOrZero(settings.getFreeDeliveryThreshold());
+        BigDecimal normalizedAmount = amountOrZero(chargeableAmount);
+
+        if (deliveryFee.compareTo(ZERO) == 0) {
+            return ZERO;
+        }
+
+        // A zero threshold disables free delivery instead of making every order free.
+        if (freeDeliveryThreshold.compareTo(ZERO) > 0
+                && normalizedAmount.compareTo(freeDeliveryThreshold) >= 0) {
+            return ZERO;
+        }
+
+        return deliveryFee;
+    }
+
     private StoreSettings getOrCreateSettings() {
         return storeSettingsRepository.findById(StoreSettings.GLOBAL_SETTINGS_ID)
                 .orElseGet(() -> storeSettingsRepository.save(defaultSettings()));
@@ -124,5 +144,9 @@ public class StoreSettingsService {
 
     private String normalizeOptional(String value) {
         return value == null || value.isBlank() ? null : value.trim();
+    }
+
+    private BigDecimal amountOrZero(BigDecimal amount) {
+        return amount == null || amount.compareTo(ZERO) < 0 ? ZERO : amount;
     }
 }

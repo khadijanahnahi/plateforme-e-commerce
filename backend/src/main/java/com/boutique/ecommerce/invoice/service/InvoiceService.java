@@ -144,7 +144,7 @@ public class InvoiceService {
                 .billingAddress(order.getShippingAddress())
                 .subtotalAmount(amountOrFallback(order.getSubtotalAmount(), order.getTotalAmount()))
                 .discountAmount(amountOrFallback(order.getDiscountAmount(), ZERO))
-                .deliveryFee(ZERO)
+                .deliveryFee(amountOrFallback(order.getDeliveryFee(), ZERO))
                 .totalAmount(amountOrFallback(order.getTotalAmount(), ZERO))
                 .paymentMethod(PAYMENT_METHOD_CASH_ON_DELIVERY)
                 .paymentStatus(order.getPaymentStatus().name())

@@ -7,7 +7,6 @@ import useAsyncAction from "../hooks/useAsyncAction";
 import { useToast } from "../hooks/useToast";
 
 const DIRECT_CHECKOUT_KEY = "shopsphere_direct_checkout";
-const DELIVERY_FEE = 0;
 
 function readDirectCheckout() {
   const value = sessionStorage.getItem(DIRECT_CHECKOUT_KEY);
@@ -67,6 +66,7 @@ export default function CheckoutPage() {
   const { user } = useAuth();
   const isDirectCheckout = searchParams.get("mode") === "direct";
   const [cart, setCart] = useState({ items: [], totalAmount: 0, totalItems: 0 });
+  const [storeSettings, setStoreSettings] = useState({ deliveryFee: 0, freeDeliveryThreshold: 0 });
   const [directCheckout, setDirectCheckout] = useState(() => isDirectCheckout ? readDirectCheckout() : null);
   const [form, setForm] = useState({
     fullName: user?.fullName ?? "",
@@ -104,7 +104,13 @@ export default function CheckoutPage() {
   const hasItems = checkoutSummary.items.length > 0;
   const subtotal = Number(checkoutSummary.totalAmount);
   const discount = Number(couponValidation?.discountAmount ?? 0);
-  const total = Math.max(0, subtotal - discount) + DELIVERY_FEE;
+  const chargeableAmount = Math.max(0, subtotal - discount);
+  const configuredDeliveryFee = Math.max(0, Number(storeSettings.deliveryFee ?? 0));
+  const freeDeliveryThreshold = Math.max(0, Number(storeSettings.freeDeliveryThreshold ?? 0));
+  const deliveryFee = freeDeliveryThreshold > 0 && chargeableAmount >= freeDeliveryThreshold
+    ? 0
+    : configuredDeliveryFee;
+  const total = chargeableAmount + deliveryFee;
 
   useEffect(() => {
     setForm((current) => ({
@@ -117,19 +123,27 @@ export default function CheckoutPage() {
   const loadCheckout = useCallback(async () => {
     setLoading(true);
     setLoadError("");
-    if (isDirectCheckout) {
-      const direct = readDirectCheckout();
-      setDirectCheckout(direct);
-      if (!direct) setLoadError("Ce checkout direct a expiré. Sélectionnez de nouveau Acheter maintenant.");
-      setLoading(false);
-      return;
-    }
-
     try {
-      const response = await http.get("/cart");
-      setCart(response.data);
+      if (isDirectCheckout) {
+        const direct = readDirectCheckout();
+        setDirectCheckout(direct);
+        if (!direct) {
+          setLoadError("Ce checkout direct a expiré. Sélectionnez de nouveau Acheter maintenant.");
+          return;
+        }
+
+        const settingsResponse = await http.get("/settings/public");
+        setStoreSettings(settingsResponse.data);
+      } else {
+        const [cartResponse, settingsResponse] = await Promise.all([
+          http.get("/cart"),
+          http.get("/settings/public"),
+        ]);
+        setCart(cartResponse.data);
+        setStoreSettings(settingsResponse.data);
+      }
     } catch (exception) {
-      setLoadError(exception.response?.data?.message ?? "Impossible de charger le panier.");
+      setLoadError(exception.response?.data?.message ?? "Impossible de charger les informations du checkout.");
     } finally {
       setLoading(false);
     }
@@ -345,7 +359,7 @@ export default function CheckoutPage() {
             <div className="checkout-breakdown">
               <div><span>Sous-total</span><strong>{subtotal.toFixed(2)} DH</strong></div>
               <div><span>Réduction</span><strong>-{discount.toFixed(2)} DH</strong></div>
-              <div><span>Livraison</span><strong className="checkout-free-delivery">{DELIVERY_FEE === 0 ? "Gratuite" : `${DELIVERY_FEE.toFixed(2)} DH`}</strong></div>
+              <div><span>Livraison</span><strong className={deliveryFee === 0 ? "checkout-free-delivery" : ""}>{deliveryFee === 0 ? "Gratuite" : `${deliveryFee.toFixed(2)} DH`}</strong></div>
               <div className="checkout-breakdown-total"><span>Total</span><strong>{total.toFixed(2)} DH</strong></div>
             </div>
 

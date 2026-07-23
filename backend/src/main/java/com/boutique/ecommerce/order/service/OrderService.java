@@ -26,6 +26,7 @@ import com.boutique.ecommerce.product.repository.ProductRepository;
 import com.boutique.ecommerce.promotion.service.PromotionService;
 import com.boutique.ecommerce.promotion.service.PromotionService.EffectivePriceResult;
 import com.boutique.ecommerce.stock.service.StockMovementService;
+import com.boutique.ecommerce.settings.service.StoreSettingsService;
 import com.boutique.ecommerce.user.entity.AppUser;
 import com.boutique.ecommerce.user.repository.UserRepository;
 import java.math.BigDecimal;
@@ -49,6 +50,7 @@ public class OrderService {
     private final PromotionService promotionService;
     private final ApplicationEventPublisher eventPublisher;
     private final StockMovementService stockMovementService;
+    private final StoreSettingsService storeSettingsService;
 
     public OrderService(
             OrderRepository orderRepository,
@@ -58,7 +60,8 @@ public class OrderService {
             CouponService couponService,
             PromotionService promotionService,
             ApplicationEventPublisher eventPublisher,
-            StockMovementService stockMovementService
+            StockMovementService stockMovementService,
+            StoreSettingsService storeSettingsService
     ) {
         this.orderRepository = orderRepository;
         this.cartItemRepository = cartItemRepository;
@@ -68,6 +71,7 @@ public class OrderService {
         this.promotionService = promotionService;
         this.eventPublisher = eventPublisher;
         this.stockMovementService = stockMovementService;
+        this.storeSettingsService = storeSettingsService;
     }
 
     @Transactional
@@ -312,6 +316,7 @@ public class OrderService {
                 .customerPhone(normalizeOptional(phoneNumber) == null ? user.getPhone() : normalizeOptional(phoneNumber))
                 .subtotalAmount(BigDecimal.ZERO)
                 .discountAmount(BigDecimal.ZERO)
+                .deliveryFee(BigDecimal.ZERO)
                 .totalAmount(BigDecimal.ZERO)
                 .status(OrderStatus.PENDING)
                 .paymentStatus(PaymentStatus.UNPAID)
@@ -376,10 +381,13 @@ public class OrderService {
 
     private void applyTotals(Order order, BigDecimal subtotalAmount, CouponCalculation couponCalculation) {
         BigDecimal discountAmount = couponCalculation.discountAmount();
+        BigDecimal chargeableAmount = subtotalAmount.subtract(discountAmount).max(BigDecimal.ZERO);
+        BigDecimal deliveryFee = storeSettingsService.calculateDeliveryFee(chargeableAmount);
         order.setSubtotalAmount(subtotalAmount);
         order.setDiscountAmount(discountAmount);
         order.setCouponCode(couponCalculation.coupon() == null ? null : couponCalculation.coupon().getCode());
-        order.setTotalAmount(subtotalAmount.subtract(discountAmount));
+        order.setDeliveryFee(deliveryFee);
+        order.setTotalAmount(chargeableAmount.add(deliveryFee));
     }
 
     private OrderResponse mapToOrderResponse(Order order) {
@@ -406,6 +414,7 @@ public class OrderService {
                 order.getSubtotalAmount(),
                 order.getDiscountAmount(),
                 order.getCouponCode(),
+                order.getDeliveryFee(),
                 order.getTotalAmount(),
                 order.getStatus(),
                 order.getPaymentStatus(),

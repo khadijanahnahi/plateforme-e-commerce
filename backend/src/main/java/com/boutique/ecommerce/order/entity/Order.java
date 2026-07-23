@@ -34,7 +34,7 @@ import org.hibernate.annotations.Check;
                 @UniqueConstraint(name = "uk_order_number", columnNames = "order_number")
         }
 )
-@Check(constraints = "total_amount >= 0 and status in ('PENDING', 'CONFIRMED', 'SHIPPED', 'DELIVERED', 'CANCELLED') and payment_status in ('UNPAID', 'PAID', 'FAILED')")
+@Check(constraints = "delivery_fee >= 0 and total_amount >= 0 and status in ('PENDING', 'CONFIRMED', 'SHIPPED', 'DELIVERED', 'CANCELLED') and payment_status in ('UNPAID', 'PAID', 'FAILED')")
 @Getter
 @Setter
 @Builder
@@ -76,6 +76,10 @@ public class Order extends AuditableEntity {
 
     @Column(name = "coupon_code", length = 50)
     private String couponCode;
+
+    @Builder.Default
+    @Column(name = "delivery_fee", nullable = false, precision = 10, scale = 2)
+    private BigDecimal deliveryFee = BigDecimal.ZERO;
 
     @Column(name = "total_amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal totalAmount;
