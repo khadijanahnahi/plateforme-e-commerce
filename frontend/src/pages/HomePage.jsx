@@ -315,7 +315,6 @@ export default function HomePage() {
               <Link to="/about">À propos</Link>
               <Link to="/blog">Journal</Link>
               <Link to="/support">Contact</Link>
-              <Link to="/terms">Conditions</Link>
               <Link to="/privacy-policy">ConfidentialitÃ©</Link>
               <Link to="/return-policy">Retours</Link>
             </div>

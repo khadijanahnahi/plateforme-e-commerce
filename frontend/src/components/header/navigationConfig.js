@@ -63,9 +63,7 @@ export const serviceGroups = [
     links: [
       { label: "Contacter le support", to: "/support" },
       { label: "À propos", to: "/about" },
-      { label: "Conditions d'utilisation", to: "/terms" },
       { label: "Confidentialité", to: "/privacy-policy" },
     ],
   },
 ];
-

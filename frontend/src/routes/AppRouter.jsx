@@ -39,7 +39,6 @@ import RegisterPage from "../pages/RegisterPage";
 import ResetPasswordPage from "../pages/ResetPasswordPage";
 import ReturnPolicyPage from "../pages/ReturnPolicyPage";
 import SupportPage from "../pages/SupportPage";
-import TermsPage from "../pages/TermsPage";
 import UnauthorizedPage from "../pages/UnauthorizedPage";
 import ServerErrorPage from "../pages/ServerErrorPage";
 import WishlistPage from "../pages/WishlistPage";
@@ -83,7 +82,6 @@ export default function AppRouter() {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/blog" element={<LazyPage><BlogPage /></LazyPage>} />
         <Route path="/blog/:slug" element={<LazyPage><BlogPostPage /></LazyPage>} />
-        <Route path="/terms" element={<TermsPage />} />
         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
         <Route path="/return-policy" element={<ReturnPolicyPage />} />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />

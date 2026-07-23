@@ -10,7 +10,7 @@ function isMenuCurrent(menuId, pathname) {
   if (menuId === "shop") return pathname.startsWith("/products");
   if (menuId === "categories") return pathname.startsWith("/categories");
   if (menuId === "services") {
-    return ["/support", "/return-policy", "/terms", "/privacy-policy"].some((path) => pathname.startsWith(path));
+    return ["/support", "/return-policy", "/privacy-policy"].some((path) => pathname.startsWith(path));
   }
   return false;
 }
