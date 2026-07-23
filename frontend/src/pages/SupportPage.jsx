@@ -1,24 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { publicSettingsApi } from "../api/publicSettingsApi";
 import { getSupportApiError, supportApi } from "../api/supportApi";
-
-const contactDetails = [
-  {
-    label: "Nous écrire",
-    value: "support@shopsphere.com",
-    detail: "Pour toute question sur vos commandes, livraisons ou votre compte.",
-  },
-  {
-    label: "Nous appeler",
-    value: "+1 (800) 123-4567",
-    detail: "Parlez directement à notre équipe du service client.",
-  },
-  {
-    label: "Horaires",
-    value: "Lun - Ven, 9h - 18h",
-    detail: "Heure de l'Est (EST).",
-  },
-];
 
 const supportHighlights = [
   {
@@ -69,9 +52,63 @@ const faqs = [
 export default function SupportPage() {
   const [imageFailed, setImageFailed] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState(0);
+  const [storeSettings, setStoreSettings] = useState(null);
+  const [settingsLoading, setSettingsLoading] = useState(true);
+  const [settingsError, setSettingsError] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadPublicSettings() {
+      setSettingsLoading(true);
+      setSettingsError(false);
+
+      try {
+        const response = await publicSettingsApi.getSettings({ signal: controller.signal });
+        setStoreSettings(response.data);
+      } catch (exception) {
+        if (exception.code !== "ERR_CANCELED") {
+          setSettingsError(true);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setSettingsLoading(false);
+        }
+      }
+    }
+
+    loadPublicSettings();
+    return () => controller.abort();
+  }, []);
+
+  const contactDetails = [
+    storeSettings?.supportEmail
+      ? {
+          label: "Nous écrire",
+          value: storeSettings.supportEmail,
+          href: `mailto:${storeSettings.supportEmail}`,
+          detail: "Pour toute question sur vos commandes, livraisons ou votre compte.",
+        }
+      : null,
+    storeSettings?.supportPhone
+      ? {
+          label: "Nous appeler",
+          value: storeSettings.supportPhone,
+          href: `tel:${storeSettings.supportPhone.replace(/[^\d+]/g, "")}`,
+          detail: "Parlez directement à notre équipe du service client.",
+        }
+      : null,
+    storeSettings?.storeAddress
+      ? {
+          label: "Nous trouver",
+          value: storeSettings.storeAddress,
+          detail: "Adresse de la boutique ShopSphere.",
+        }
+      : null,
+  ].filter(Boolean);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -182,13 +219,24 @@ export default function SupportPage() {
             <span className="section-kicker">Contact</span>
             <h2>Coordonnées</h2>
             <div className="support-contact-list">
-              {contactDetails.map((item) => (
-                <div key={item.label}>
-                  <span>{item.label}</span>
-                  <strong>{item.value}</strong>
-                  <p>{item.detail}</p>
-                </div>
-              ))}
+              {settingsLoading ? <p aria-live="polite">Chargement des coordonnées...</p> : null}
+              {!settingsLoading && settingsError ? (
+                <p role="alert">Les coordonnées sont temporairement indisponibles.</p>
+              ) : null}
+              {!settingsLoading && !settingsError && contactDetails.length === 0 ? (
+                <p>Les coordonnées seront bientôt disponibles.</p>
+              ) : null}
+              {!settingsLoading && !settingsError
+                ? contactDetails.map((item) => (
+                    <div key={item.label}>
+                      <span>{item.label}</span>
+                      <strong>
+                        {item.href ? <a href={item.href}>{item.value}</a> : item.value}
+                      </strong>
+                      <p>{item.detail}</p>
+                    </div>
+                  ))
+                : null}
             </div>
           </div>
         </aside>
