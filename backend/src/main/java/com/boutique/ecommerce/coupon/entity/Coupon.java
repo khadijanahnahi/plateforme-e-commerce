@@ -74,6 +74,10 @@ public class Coupon extends AuditableEntity {
     @Column(nullable = false)
     private boolean active = true;
 
+    @Builder.Default
+    @Column(name = "publicly_visible", nullable = false)
+    private boolean publiclyVisible = false;
+
     @Column(name = "starts_at")
     private LocalDateTime startsAt;
 

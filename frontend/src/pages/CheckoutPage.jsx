@@ -5,6 +5,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { AsyncState, Button, Input, Textarea } from "../components/ui";
 import useAsyncAction from "../hooks/useAsyncAction";
 import { useToast } from "../hooks/useToast";
+import PublicCouponOffers from "../components/coupon/PublicCouponOffers";
 
 const DIRECT_CHECKOUT_KEY = "shopsphere_direct_checkout";
 
@@ -167,13 +168,14 @@ export default function CheckoutPage() {
     }));
   }
 
-  async function applyCoupon() {
+  async function applyCoupon(codeOverride = null) {
     return couponAction.run(async () => {
       setError("");
       setCouponMessage("");
       setCouponValidation(null);
+      const codeToApply = (typeof codeOverride === "string" ? codeOverride : couponCode).trim().toUpperCase();
 
-      if (!couponCode.trim()) {
+      if (!codeToApply) {
         setCouponMessage("Saisissez un code promo.");
         return;
       }
@@ -181,11 +183,11 @@ export default function CheckoutPage() {
       try {
         const response = directCheckout
           ? await http.post("/coupons/validate-direct", {
-              code: couponCode.trim(),
+              code: codeToApply,
               productId: directCheckout.productId,
               quantity: directCheckout.quantity,
             })
-          : await http.post("/coupons/validate", { code: couponCode.trim() });
+          : await http.post("/coupons/validate", { code: codeToApply });
         setCouponValidation(response.data);
         setCouponCode(response.data.code);
         setCouponMessage("Code promo appliqué.");
@@ -355,6 +357,12 @@ export default function CheckoutPage() {
               <Button loading={couponAction.loading} variant="outline" onClick={applyCoupon}>Appliquer</Button>
             </div>
             {couponMessage ? <p className={couponValidation ? "coupon-message coupon-success" : "coupon-message"}>{couponMessage}</p> : null}
+            <PublicCouponOffers
+              className="checkout-public-coupons"
+              limit={2}
+              variant="checkout"
+              onApply={applyCoupon}
+            />
 
             <div className="checkout-breakdown">
               <div><span>Sous-total</span><strong>{subtotal.toFixed(2)} DH</strong></div>

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { AsyncState, Button } from "../components/ui";
 import CartRecommendations from "../features/cart/CartRecommendations";
+import PublicCouponOffers from "../components/coupon/PublicCouponOffers";
 import { useCart } from "../hooks/useCart";
 
 function CartIcon({ name }) {
@@ -88,6 +89,8 @@ export default function CartPage() {
             </div>
             <p><strong>{cart.totalItems}</strong> article{cart.totalItems > 1 ? "s" : ""} prêt{cart.totalItems > 1 ? "s" : ""} à être commandé{cart.totalItems > 1 ? "s" : ""}.</p>
           </div>
+
+          <PublicCouponOffers limit={2} variant="cart" />
 
           <div className="cart-grid">
             <div className="cart-items-panel">

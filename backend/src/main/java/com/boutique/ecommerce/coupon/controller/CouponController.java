@@ -1,10 +1,13 @@
 package com.boutique.ecommerce.coupon.controller;
 
 import com.boutique.ecommerce.coupon.dto.CouponValidationResponse;
+import com.boutique.ecommerce.coupon.dto.PublicCouponResponse;
 import com.boutique.ecommerce.coupon.dto.ValidateDirectCouponRequest;
 import com.boutique.ecommerce.coupon.dto.ValidateCouponRequest;
 import com.boutique.ecommerce.coupon.service.CouponService;
 import jakarta.validation.Valid;
+import java.util.List;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,6 +21,11 @@ public class CouponController {
 
     public CouponController(CouponService couponService) {
         this.couponService = couponService;
+    }
+
+    @GetMapping("/public/active")
+    public List<PublicCouponResponse> getActivePublicCoupons() {
+        return couponService.getActivePublicCoupons();
     }
 
     @PostMapping("/validate")

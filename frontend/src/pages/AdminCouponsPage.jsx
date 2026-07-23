@@ -12,6 +12,7 @@ const emptyForm = {
   usageLimit: "",
   perUserLimit: "",
   active: true,
+  publiclyVisible: false,
   startsAt: "",
   expiresAt: "",
 };
@@ -38,6 +39,7 @@ function toRequest(form) {
     usageLimit: form.usageLimit === "" ? null : Number(form.usageLimit),
     perUserLimit: form.perUserLimit === "" ? null : Number(form.perUserLimit),
     active: form.active,
+    publiclyVisible: form.publiclyVisible,
     startsAt: form.startsAt || null,
     expiresAt: form.expiresAt || null,
   };
@@ -100,6 +102,7 @@ export default function AdminCouponsPage() {
       usageLimit: coupon.usageLimit ?? "",
       perUserLimit: coupon.perUserLimit ?? "",
       active: Boolean(coupon.active),
+      publiclyVisible: Boolean(coupon.publiclyVisible),
       startsAt: coupon.startsAt ? coupon.startsAt.slice(0, 16) : "",
       expiresAt: coupon.expiresAt ? coupon.expiresAt.slice(0, 16) : "",
     });
@@ -179,6 +182,11 @@ export default function AdminCouponsPage() {
             <span className="toggle-ui" aria-hidden="true" />
             <span>Active coupon</span>
           </label>
+          <label className="check-row category-active-toggle">
+            <input name="publiclyVisible" type="checkbox" checked={form.publiclyVisible} onChange={updateField} />
+            <span className="toggle-ui" aria-hidden="true" />
+            <span>Afficher publiquement aux clients</span>
+          </label>
           <div className="admin-form-actions">
             <button className="button button-primary" type="submit">{editingId ? "Update coupon" : "Create coupon"}</button>
             {editingId ? <button className="button button-secondary" type="button" onClick={resetForm}>Cancel</button> : null}
@@ -195,14 +203,15 @@ export default function AdminCouponsPage() {
                   <th>Discount</th>
                   <th>Usage</th>
                   <th>Status</th>
+                  <th>Visibilité</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan="6">Loading coupons...</td></tr>
+                  <tr><td colSpan="7">Loading coupons...</td></tr>
                 ) : coupons.length === 0 ? (
-                  <tr><td colSpan="6">No coupons found.</td></tr>
+                  <tr><td colSpan="7">No coupons found.</td></tr>
                 ) : coupons.map((coupon) => (
                   <tr key={coupon.id}>
                     <td><strong>{coupon.code}</strong></td>
@@ -212,6 +221,11 @@ export default function AdminCouponsPage() {
                     <td>
                       <span className={`status-pill ${coupon.active ? "status-active" : "status-archived"}`}>
                         {coupon.active ? "ACTIVE" : "INACTIVE"}
+                      </span>
+                    </td>
+                    <td>
+                      <span className={`status-pill ${coupon.publiclyVisible ? "status-active" : "status-archived"}`}>
+                        {coupon.publiclyVisible ? "PUBLIC" : "PRIVÉ"}
                       </span>
                     </td>
                     <td className="table-actions">

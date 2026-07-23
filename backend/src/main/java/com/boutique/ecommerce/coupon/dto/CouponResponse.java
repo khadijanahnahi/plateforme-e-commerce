@@ -17,6 +17,7 @@ public record CouponResponse(
         Integer usedCount,
         Integer perUserLimit,
         boolean active,
+        boolean publiclyVisible,
         LocalDateTime startsAt,
         LocalDateTime expiresAt,
         LocalDateTime createdAt,

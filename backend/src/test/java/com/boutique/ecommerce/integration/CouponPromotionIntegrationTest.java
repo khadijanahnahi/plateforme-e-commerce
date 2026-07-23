@@ -124,6 +124,26 @@ class CouponPromotionIntegrationTest extends PostgresIntegrationTestBase {
     }
 
     @Test
+    void publicListingOnlyReturnsVisibleCurrentlyUsableCoupons() {
+        Coupon visible = createCoupon("PUBLIC10", DiscountType.PERCENTAGE, "10.00", "100.00", null,
+                20, 1, LocalDateTime.now().minusHours(1), LocalDateTime.now().plusDays(2));
+        visible.setPubliclyVisible(true);
+
+        Coupon privateCoupon = createCoupon("PRIVATE10", DiscountType.PERCENTAGE, "10.00", null, null,
+                null, null, null, LocalDateTime.now().plusDays(2));
+        privateCoupon.setPubliclyVisible(false);
+
+        Coupon expired = createCoupon("OLD10", DiscountType.PERCENTAGE, "10.00", null, null,
+                null, null, LocalDateTime.now().minusDays(2), LocalDateTime.now().minusDays(1));
+        expired.setPubliclyVisible(true);
+        couponRepository.flush();
+
+        assertThat(couponService.getActivePublicCoupons())
+                .extracting(coupon -> coupon.code())
+                .containsExactly("PUBLIC10");
+    }
+
+    @Test
     void activePromotionChangesEffectivePriceAndExpiredPromotionDoesNot() {
         promotionService.create(new PromotionRequest(
                 product.getId(), "Flash test", null, PromotionType.FLASH_SALE, new BigDecimal("125.00"),
@@ -199,7 +219,8 @@ class CouponPromotionIntegrationTest extends PostgresIntegrationTestBase {
                 perUserLimit,
                 true,
                 startsAt,
-                expiresAt
+                expiresAt,
+                false
         ));
         return couponRepository.findByCodeIgnoreCase(code).orElseThrow();
     }

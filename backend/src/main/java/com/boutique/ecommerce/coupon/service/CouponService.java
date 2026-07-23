@@ -8,6 +8,7 @@ import com.boutique.ecommerce.common.exception.UnauthorizedException;
 import com.boutique.ecommerce.coupon.dto.CouponRequest;
 import com.boutique.ecommerce.coupon.dto.CouponResponse;
 import com.boutique.ecommerce.coupon.dto.CouponValidationResponse;
+import com.boutique.ecommerce.coupon.dto.PublicCouponResponse;
 import com.boutique.ecommerce.coupon.dto.ValidateDirectCouponRequest;
 import com.boutique.ecommerce.coupon.dto.ValidateCouponRequest;
 import com.boutique.ecommerce.coupon.entity.Coupon;
@@ -68,6 +69,14 @@ public class CouponService {
         return toResponse(findById(id));
     }
 
+    @Transactional(readOnly = true)
+    public List<PublicCouponResponse> getActivePublicCoupons() {
+        return couponRepository.findActivePublicCoupons(LocalDateTime.now())
+                .stream()
+                .map(this::toPublicResponse)
+                .toList();
+    }
+
     @Transactional
     public CouponResponse create(CouponRequest request) {
         String code = normalizeCode(request.code());
@@ -85,6 +94,7 @@ public class CouponService {
                 .usageLimit(request.usageLimit())
                 .perUserLimit(request.perUserLimit())
                 .active(request.active() == null || request.active())
+                .publiclyVisible(Boolean.TRUE.equals(request.publiclyVisible()))
                 .startsAt(request.startsAt())
                 .expiresAt(request.expiresAt())
                 .build();
@@ -109,6 +119,7 @@ public class CouponService {
         coupon.setUsageLimit(request.usageLimit());
         coupon.setPerUserLimit(request.perUserLimit());
         coupon.setActive(request.active() == null || request.active());
+        coupon.setPubliclyVisible(Boolean.TRUE.equals(request.publiclyVisible()));
         coupon.setStartsAt(request.startsAt());
         coupon.setExpiresAt(request.expiresAt());
 
@@ -313,10 +324,26 @@ public class CouponService {
                 coupon.getUsedCount(),
                 coupon.getPerUserLimit(),
                 coupon.isActive(),
+                coupon.isPubliclyVisible(),
                 coupon.getStartsAt(),
                 coupon.getExpiresAt(),
                 coupon.getCreatedAt(),
                 coupon.getUpdatedAt()
+        );
+    }
+
+    private PublicCouponResponse toPublicResponse(Coupon coupon) {
+        return new PublicCouponResponse(
+                coupon.getId(),
+                coupon.getCode(),
+                coupon.getName(),
+                coupon.getDescription(),
+                coupon.getDiscountType(),
+                coupon.getDiscountValue(),
+                coupon.getMinimumOrderAmount(),
+                coupon.getMaxDiscountAmount(),
+                coupon.getStartsAt(),
+                coupon.getExpiresAt()
         );
     }
 

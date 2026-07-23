@@ -41,6 +41,8 @@ public record CouponRequest(
 
         LocalDateTime startsAt,
 
-        LocalDateTime expiresAt
+        LocalDateTime expiresAt,
+
+        Boolean publiclyVisible
 ) {
 }

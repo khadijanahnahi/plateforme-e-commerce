@@ -7,6 +7,7 @@ import BestSellersSection from "../features/products/BestSellersSection";
 import VerifiedReviewsSection from "../features/reviews/VerifiedReviewsSection";
 import HomeBlogSection from "../features/blog/HomeBlogSection";
 import ProductSearchAutocomplete from "../components/search/ProductSearchAutocomplete";
+import PublicCouponOffers from "../components/coupon/PublicCouponOffers";
 import heroMonochrome from "../../images/hero-monochrome.webp";
 
 const heroHeadline = ["Élevez votre", "allure"];
@@ -196,6 +197,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      <PublicCouponOffers className="page home-public-coupon" variant="home" />
       <HomeCategoriesCarousel />
 
       {/*
