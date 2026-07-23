@@ -152,7 +152,7 @@ export default function FlashSaleSection() {
   }
 
   return (
-    <section className="page section-block flash-sale-section">
+    <section className="page section-block flash-sale-section" id="promotions">
       <div className="section-heading flash-header">
         <div>
           <span className="section-kicker">Flash Sale</span>
