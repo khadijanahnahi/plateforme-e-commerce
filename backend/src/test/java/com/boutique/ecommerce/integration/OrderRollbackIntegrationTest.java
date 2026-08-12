@@ -59,16 +59,8 @@ class OrderRollbackIntegrationTest extends PostgresIntegrationTestBase {
         Product insufficientProduct = productRepository.save(product(
                 category, "Insufficient product", "ROLLBACK-B-" + suffix, 1));
 
-        cartItemRepository.save(CartItem.builder()
-                .user(customer)
-                .product(availableProduct)
-                .quantity(2)
-                .build());
-        cartItemRepository.save(CartItem.builder()
-                .user(customer)
-                .product(insufficientProduct)
-                .quantity(2)
-                .build());
+        cartItemRepository.save(cartItemFor(customer, availableProduct, 2));
+        cartItemRepository.save(cartItemFor(customer, insufficientProduct, 2));
         authenticate(customer);
 
         CreateOrderRequest request = new CreateOrderRequest(

@@ -74,11 +74,7 @@ class OrderLifecycleIntegrationTest extends PostgresIntegrationTestBase {
                 .status(ProductStatus.ACTIVE)
                 .category(category)
                 .build());
-        cartItemRepository.save(CartItem.builder()
-                .user(customer)
-                .product(product)
-                .quantity(2)
-                .build());
+        cartItemRepository.save(cartItemFor(customer, product, 2));
         authenticate(customer);
     }
 

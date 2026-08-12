@@ -1,6 +1,8 @@
 package com.boutique.ecommerce.product.repository;
 
 import com.boutique.ecommerce.product.entity.Product;
+import com.boutique.ecommerce.product.entity.ProductAudience;
+import com.boutique.ecommerce.product.entity.ProductSize;
 import com.boutique.ecommerce.product.entity.ProductStatus;
 import java.util.Collection;
 import java.util.List;
@@ -111,6 +113,60 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             @Param("statuses") Collection<ProductStatus> statuses,
             @Param("searchPattern") String searchPattern,
             @Param("categoryId") Long categoryId,
+            Pageable pageable
+    );
+
+    @Query(
+            value = """
+                    select p
+                    from Product p
+                    join fetch p.category c
+                    where p.status in :statuses
+                      and (:categoryId is null or c.id = :categoryId)
+                      and (:audience is null or p.audience = :audience)
+                      and (:productSize is null or exists (
+                            select variant.id
+                            from ProductVariant variant
+                            where variant.product = p
+                              and variant.size = :productSize
+                              and variant.active = true
+                              and variant.stockQuantity > 0
+                          ))
+                      and (:searchPattern is null or (
+                            lower(p.name) like :searchPattern
+                            or lower(coalesce(p.description, '')) like :searchPattern
+                            or lower(coalesce(p.sku, '')) like :searchPattern
+                          ))
+                    order by p.createdAt desc
+                    """,
+            countQuery = """
+                    select count(p)
+                    from Product p
+                    join p.category c
+                    where p.status in :statuses
+                      and (:categoryId is null or c.id = :categoryId)
+                      and (:audience is null or p.audience = :audience)
+                      and (:productSize is null or exists (
+                            select variant.id
+                            from ProductVariant variant
+                            where variant.product = p
+                              and variant.size = :productSize
+                              and variant.active = true
+                              and variant.stockQuantity > 0
+                          ))
+                      and (:searchPattern is null or (
+                            lower(p.name) like :searchPattern
+                            or lower(coalesce(p.description, '')) like :searchPattern
+                            or lower(coalesce(p.sku, '')) like :searchPattern
+                          ))
+                    """
+    )
+    Page<Product> filterVisibleProductsPage(
+            @Param("statuses") Collection<ProductStatus> statuses,
+            @Param("searchPattern") String searchPattern,
+            @Param("categoryId") Long categoryId,
+            @Param("audience") ProductAudience audience,
+            @Param("productSize") ProductSize productSize,
             Pageable pageable
     );
 

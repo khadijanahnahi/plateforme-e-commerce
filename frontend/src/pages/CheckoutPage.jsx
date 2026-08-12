@@ -94,6 +94,9 @@ export default function CheckoutPage() {
           id: `direct-${directCheckout.productId}`,
           productName: directCheckout.productName,
           imageUrl: directCheckout.imageUrl,
+          variantId: directCheckout.variantId,
+          size: directCheckout.size,
+          variantSku: directCheckout.variantSku,
           quantity: directCheckout.quantity,
           unitPrice: directCheckout.unitPrice,
           subtotal: directCheckout.subtotal,
@@ -215,6 +218,7 @@ export default function CheckoutPage() {
         if (directCheckout) {
           const response = await http.post("/orders/direct", {
             productId: directCheckout.productId,
+            variantId: directCheckout.variantId,
             quantity: directCheckout.quantity,
             ...payload,
           });
@@ -335,6 +339,7 @@ export default function CheckoutPage() {
                   </div>
                   <div className="checkout-order-item-copy">
                     <strong>{item.productName}</strong>
+                    {item.size && item.size !== "TAILLE_UNIQUE" ? <span>Taille : {item.size}</span> : null}
                     <span>Quantité : {item.quantity}</span>
                     <small>{Number(item.unitPrice).toFixed(2)} DH / unité</small>
                   </div>

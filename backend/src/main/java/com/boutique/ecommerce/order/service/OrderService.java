@@ -22,7 +22,10 @@ import com.boutique.ecommerce.notification.OrderCreatedEvent;
 import com.boutique.ecommerce.notification.OrderStatusChangedEvent;
 import com.boutique.ecommerce.product.entity.Product;
 import com.boutique.ecommerce.product.entity.ProductStatus;
+import com.boutique.ecommerce.product.entity.ProductSize;
+import com.boutique.ecommerce.product.entity.ProductVariant;
 import com.boutique.ecommerce.product.repository.ProductRepository;
+import com.boutique.ecommerce.product.repository.ProductVariantRepository;
 import com.boutique.ecommerce.promotion.service.PromotionService;
 import com.boutique.ecommerce.promotion.service.PromotionService.EffectivePriceResult;
 import com.boutique.ecommerce.stock.service.StockMovementService;
@@ -51,6 +54,7 @@ public class OrderService {
     private final ApplicationEventPublisher eventPublisher;
     private final StockMovementService stockMovementService;
     private final StoreSettingsService storeSettingsService;
+    private final ProductVariantRepository productVariantRepository;
 
     public OrderService(
             OrderRepository orderRepository,
@@ -61,7 +65,8 @@ public class OrderService {
             PromotionService promotionService,
             ApplicationEventPublisher eventPublisher,
             StockMovementService stockMovementService,
-            StoreSettingsService storeSettingsService
+            StoreSettingsService storeSettingsService,
+            ProductVariantRepository productVariantRepository
     ) {
         this.orderRepository = orderRepository;
         this.cartItemRepository = cartItemRepository;
@@ -72,6 +77,7 @@ public class OrderService {
         this.eventPublisher = eventPublisher;
         this.stockMovementService = stockMovementService;
         this.storeSettingsService = storeSettingsService;
+        this.productVariantRepository = productVariantRepository;
     }
 
     @Transactional
@@ -97,17 +103,21 @@ public class OrderService {
         List<StockChange> stockChanges = new ArrayList<>();
         for (CartItem cartItem : cartItems) {
             Product product = cartItem.getProduct();
+            ProductVariant variant = cartItem.getVariant() == null
+                    ? resolveVariant(product, null)
+                    : cartItem.getVariant();
             validateProductForOrder(product);
-            validateStock(product, cartItem.getQuantity());
+            validateStock(variant, cartItem.getQuantity());
 
             EffectivePriceResult price = promotionService.getEffectivePrice(product);
-            OrderItem orderItem = createOrderItem(product, cartItem.getQuantity(), price);
+            OrderItem orderItem = createOrderItem(product, variant, cartItem.getQuantity(), price);
             order.addItem(orderItem);
             subtotalAmount = subtotalAmount.add(orderItem.getSubtotal());
 
             int stockBefore = product.getStockQuantity();
             int remainingStock = stockBefore - cartItem.getQuantity();
             product.setStockQuantity(remainingStock);
+            variant.setStockQuantity(variant.getStockQuantity() - cartItem.getQuantity());
             stockChanges.add(new StockChange(product, stockBefore, remainingStock));
             if (remainingStock == 0) {
                 product.setStatus(ProductStatus.OUT_OF_STOCK);
@@ -133,7 +143,8 @@ public class OrderService {
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found."));
 
         validateProductForOrder(product);
-        validateStock(product, request.quantity());
+        ProductVariant variant = resolveVariant(product, request.variantId());
+        validateStock(variant, request.quantity());
 
         Order order = createPendingOrder(
                 user,
@@ -146,7 +157,7 @@ public class OrderService {
                 request.shippingAddress()
         );
         EffectivePriceResult price = promotionService.getEffectivePrice(product);
-        OrderItem orderItem = createOrderItem(product, request.quantity(), price);
+        OrderItem orderItem = createOrderItem(product, variant, request.quantity(), price);
         order.addItem(orderItem);
         CouponCalculation couponCalculation = couponService.calculateDiscount(request.couponCode(), orderItem.getSubtotal(), user);
         applyTotals(order, orderItem.getSubtotal(), couponCalculation);
@@ -154,6 +165,7 @@ public class OrderService {
         int stockBefore = product.getStockQuantity();
         int remainingStock = stockBefore - request.quantity();
         product.setStockQuantity(remainingStock);
+        variant.setStockQuantity(variant.getStockQuantity() - request.quantity());
         if (remainingStock == 0) {
             product.setStatus(ProductStatus.OUT_OF_STOCK);
         }
@@ -258,12 +270,40 @@ public class OrderService {
         }
     }
 
-    private void validateStock(Product product, Integer requestedQuantity) {
+    private ProductVariant resolveVariant(Product product, Long variantId) {
+        if (variantId != null) {
+            ProductVariant variant = productVariantRepository.findByIdAndProductId(variantId, product.getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Product variant not found."));
+            if (!Boolean.TRUE.equals(variant.getActive())) {
+                throw new IllegalArgumentException("Product variant is not available.");
+            }
+            return variant;
+        }
+
+        List<ProductVariant> variants = productVariantRepository.findByProductIdAndActiveTrueOrderById(product.getId());
+        if (variants.isEmpty()) {
+            return productVariantRepository.save(ProductVariant.builder()
+                    .product(product)
+                    .size(ProductSize.TAILLE_UNIQUE)
+                    .stockQuantity(product.getStockQuantity())
+                    .active(true)
+                    .build());
+        }
+        if (variants.size() != 1) {
+            throw new IllegalArgumentException("Please select a product size.");
+        }
+        return variants.get(0);
+    }
+
+    private void validateStock(ProductVariant variant, Integer requestedQuantity) {
+        if (variant == null || !Boolean.TRUE.equals(variant.getActive())) {
+            throw new IllegalArgumentException("Product variant is not available.");
+        }
         if (requestedQuantity == null || requestedQuantity <= 0) {
             throw new IllegalArgumentException("Quantity must be greater than 0.");
         }
-        if (requestedQuantity > product.getStockQuantity()) {
-            throw new IllegalArgumentException("Insufficient stock for product.");
+        if (requestedQuantity > variant.getStockQuantity()) {
+            throw new IllegalArgumentException("Insufficient stock for selected size.");
         }
     }
 
@@ -283,9 +323,13 @@ public class OrderService {
     private void restoreStock(Order order) {
         for (OrderItem item : order.getItems()) {
             Product product = item.getProduct();
+            ProductVariant variant = item.getProductVariant();
             int stockBefore = product.getStockQuantity();
             int stockAfter = stockBefore + item.getQuantity();
             product.setStockQuantity(stockAfter);
+            if (variant != null) {
+                variant.setStockQuantity(variant.getStockQuantity() + item.getQuantity());
+            }
             if (product.getStatus() == ProductStatus.OUT_OF_STOCK && product.getStockQuantity() > 0) {
                 product.setStatus(ProductStatus.ACTIVE);
             }
@@ -395,6 +439,9 @@ public class OrderService {
                 .stream()
                 .map(item -> new OrderItemResponse(
                         item.getProduct().getId(),
+                        item.getProductVariant() == null ? null : item.getProductVariant().getId(),
+                        item.getVariantSize(),
+                        item.getVariantSku(),
                         item.getProductName(),
                         item.getUnitPrice(),
                         item.getOriginalPrice(),
@@ -428,9 +475,10 @@ public class OrderService {
         );
     }
 
-    private OrderItem createOrderItem(Product product, int quantity, EffectivePriceResult price) {
+    private OrderItem createOrderItem(Product product, ProductVariant variant, int quantity, EffectivePriceResult price) {
         return OrderItem.fromProduct(
                 product,
+                variant,
                 quantity,
                 price.effectivePrice(),
                 price.promotionActive() ? price.originalPrice() : null,

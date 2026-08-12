@@ -1,8 +1,10 @@
 package com.boutique.ecommerce.wishlist.dto;
 
 import com.boutique.ecommerce.product.entity.ProductStatus;
+import com.boutique.ecommerce.product.dto.ProductVariantResponse;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record WishlistItemResponse(
         Long id,
@@ -24,6 +26,7 @@ public record WishlistItemResponse(
         String categoryName,
         Double averageRating,
         Long reviewCount,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        List<ProductVariantResponse> variants
 ) {
 }

@@ -1,6 +1,7 @@
 package com.boutique.ecommerce.order.entity;
 
 import com.boutique.ecommerce.product.entity.Product;
+import com.boutique.ecommerce.product.entity.ProductVariant;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -52,6 +53,19 @@ public class OrderItem {
     )
     private Product product;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "product_variant_id",
+            foreignKey = @ForeignKey(name = "fk_order_item_product_variant")
+    )
+    private ProductVariant productVariant;
+
+    @Column(name = "variant_size", length = 20)
+    private String variantSize;
+
+    @Column(name = "variant_sku", length = 100)
+    private String variantSku;
+
     @Column(name = "product_name", nullable = false, length = 150)
     private String productName;
 
@@ -76,11 +90,12 @@ public class OrderItem {
 
     public static OrderItem fromProduct(Product product, int quantity) {
         BigDecimal unitPrice = product.getPrice();
-        return fromProduct(product, quantity, unitPrice, null, BigDecimal.ZERO, null);
+        return fromProduct(product, null, quantity, unitPrice, null, BigDecimal.ZERO, null);
     }
 
     public static OrderItem fromProduct(
             Product product,
+            ProductVariant variant,
             int quantity,
             BigDecimal unitPrice,
             BigDecimal originalPrice,
@@ -89,7 +104,10 @@ public class OrderItem {
     ) {
         return OrderItem.builder()
                 .product(product)
+                .productVariant(variant)
                 .productName(product.getName())
+                .variantSize(variant == null ? null : variant.getSize().name())
+                .variantSku(variant == null ? null : variant.getSku())
                 .unitPrice(unitPrice)
                 .originalPrice(originalPrice)
                 .discountAmount(discountAmount == null ? BigDecimal.ZERO : discountAmount)

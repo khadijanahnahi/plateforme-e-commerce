@@ -4,10 +4,26 @@ import { Link, useNavigate } from "react-router-dom";
 import { promotionApi } from "../../api/promotionApi";
 import { useAuth } from "../../contexts/AuthContext";
 import { useCart } from "../../hooks/useCart";
+import { getAutomaticVariant, requiresSizeSelection } from "../../utils/productVariants";
 
 function normalizePromotions(data) {
   const items = Array.isArray(data) ? data : data?.items ?? data?.content ?? [];
-  return items.filter((item) => item?.promotionActive !== false);
+  return items
+    .map((item) => ({
+      ...(item.product ?? {}),
+      ...item,
+      productId: item.productId ?? item.product?.id,
+      productName: item.productName ?? item.product?.name,
+      imageUrl: item.imageUrl ?? item.product?.imageUrl,
+      categoryName: item.categoryName ?? item.product?.categoryName,
+      stockQuantity: item.stockQuantity ?? item.product?.stockQuantity,
+      variants: item.variants ?? item.product?.variants ?? [],
+      promotionActive: item.promotionActive ?? item.product?.promotionActive ?? true,
+      promotionBadgeLabel: item.promotionBadgeLabel ?? item.badgeLabel ?? item.product?.promotionBadgeLabel,
+      promotionEndsAt: item.promotionEndsAt ?? item.endsAt ?? item.product?.promotionEndsAt,
+      effectivePrice: item.effectivePrice ?? item.product?.effectivePrice,
+    }))
+    .filter((item) => item?.promotionActive !== false);
 }
 
 function getProductId(item) {
@@ -138,9 +154,14 @@ export default function FlashSaleSection() {
       return;
     }
 
+    if (requiresSizeSelection(promotion)) {
+      navigate(`/products/${productId}`);
+      return;
+    }
+
     try {
-      await addToCart(productId, 1);
-      setMessage("Produit ajoute au panier.");
+      await addToCart(productId, 1, getAutomaticVariant(promotion)?.id ?? null);
+      setMessage("Produit ajouté au panier.");
       window.setTimeout(() => setMessage(""), 2400);
     } catch (error) {
       setMessage(error.response?.data?.message || "Impossible d'ajouter ce produit au panier.");
@@ -236,7 +257,7 @@ export default function FlashSaleSection() {
                       onClick={() => handleAddToCart(promotion)}
                       disabled={isOutOfStock}
                     >
-                      {isOutOfStock ? "Indisponible" : "Ajouter au panier"}
+                      {isOutOfStock ? "Indisponible" : requiresSizeSelection(promotion) ? "Choisir une taille" : "Ajouter au panier"}
                     </button>
                   </div>
                 </div>

@@ -3,6 +3,19 @@ import { NavLink } from "react-router-dom";
 import ProductSearchAutocomplete from "../search/ProductSearchAutocomplete";
 import { serviceGroups, shopDiscoveryLinks } from "./navigationConfig";
 
+function AccordionChevron() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="client-mobile-accordion-chevron"
+      fill="none"
+      viewBox="0 0 16 16"
+    >
+      <path d="m4 6 4 4 4-4" />
+    </svg>
+  );
+}
+
 function MobileAccordion({ children, id, label, onToggle, open }) {
   return (
     <section className={`client-mobile-accordion ${open ? "is-open" : ""}`}>
@@ -14,7 +27,7 @@ function MobileAccordion({ children, id, label, onToggle, open }) {
         type="button"
       >
         <span>{label}</span>
-        <span aria-hidden="true">+</span>
+        <AccordionChevron />
       </button>
       {open ? <div className="client-mobile-accordion-panel" id={`mobile-nav-${id}`}>{children}</div> : null}
     </section>

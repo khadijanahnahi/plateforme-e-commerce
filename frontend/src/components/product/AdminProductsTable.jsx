@@ -60,12 +60,17 @@ export default function AdminProductsTable({
                   <div className="stock-cell">
                     <strong>{product.stockQuantity}</strong>
                     <span className={`stock-badge ${stockBadge.className}`}>{stockBadge.label}</span>
+                    {(product.variants ?? []).some((variant) => variant.size !== "TAILLE_UNIQUE") ? <small>Stock par taille</small> : null}
                   </div>
                 </td>
                 <td><StatusBadge type="product" value={product.status} /></td>
                 <td className="table-actions">
                   <Button size="sm" variant="ghost" onClick={() => onEdit(product)}>Modifier</Button>
-                  <Button size="sm" variant="outline" onClick={() => onStockChange(product)}>Stock</Button>
+                  {(product.variants ?? []).some((variant) => variant.size !== "TAILLE_UNIQUE") ? (
+                    <Button size="sm" variant="outline" onClick={() => onEdit(product)}>Tailles</Button>
+                  ) : (
+                    <Button size="sm" variant="outline" onClick={() => onStockChange(product)}>Stock</Button>
+                  )}
                   <Button size="sm" variant="outline" onClick={() => onArchive(product.id)}>Archiver</Button>
                   <Button size="sm" variant="danger" onClick={() => onDelete(product.id)}>Supprimer</Button>
                 </td>

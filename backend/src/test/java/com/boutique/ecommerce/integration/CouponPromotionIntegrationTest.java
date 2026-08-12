@@ -169,11 +169,7 @@ class CouponPromotionIntegrationTest extends PostgresIntegrationTestBase {
                 PromotionStatus.ACTIVE, 1, "FLASH SALE"));
         Coupon coupon = createCoupon("ORDER25", DiscountType.FIXED_AMOUNT, "25.00", null, null,
                 10, 1, null, LocalDateTime.now().plusDays(1));
-        cartItemRepository.save(CartItem.builder()
-                .user(customer)
-                .product(product)
-                .quantity(2)
-                .build());
+        cartItemRepository.save(cartItemFor(customer, product, 2));
         authenticate(customer);
 
         var response = orderService.createOrder(new CreateOrderRequest(

@@ -63,7 +63,8 @@ public class BestSellerService {
                 product.averageRating(),
                 product.reviewCount(),
                 quantitySold,
-                product.stockQuantity()
+                product.stockQuantity(),
+                product.variants()
         );
     }
 

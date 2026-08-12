@@ -114,6 +114,7 @@ export default function CartPage() {
                   <div className="cart-item-info">
                     <span>Article {String(index + 1).padStart(2, "0")}</span>
                     <Link to={`/products/${item.productId}`}><h2>{item.productName}</h2></Link>
+                    {item.size && item.size !== "TAILLE_UNIQUE" ? <span className="cart-item-size">Taille {item.size}</span> : null}
                     <div className="cart-item-unit-price">
                       <strong>{unitPrice.toFixed(2)} DH</strong>
                       {hasPromotion ? <del>{originalPrice.toFixed(2)} DH</del> : null}

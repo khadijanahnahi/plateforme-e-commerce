@@ -1,8 +1,10 @@
 package com.boutique.ecommerce.product.dto;
 
 import com.boutique.ecommerce.product.entity.ProductStatus;
+import com.boutique.ecommerce.product.entity.ProductAudience;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record ProductResponse(
         Long id,
@@ -25,6 +27,8 @@ public record ProductResponse(
         Double averageRating,
         Long reviewCount,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+        ProductAudience audience,
+        List<ProductVariantResponse> variants
 ) {
 }

@@ -2,6 +2,7 @@ package com.boutique.ecommerce.cart.entity;
 
 import com.boutique.ecommerce.common.AuditableEntity;
 import com.boutique.ecommerce.product.entity.Product;
+import com.boutique.ecommerce.product.entity.ProductVariant;
 import com.boutique.ecommerce.user.entity.AppUser;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -58,6 +59,14 @@ public class CartItem extends AuditableEntity {
             foreignKey = @ForeignKey(name = "fk_cart_product")
     )
     private Product product;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(
+            name = "variant_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_cart_product_variant")
+    )
+    private ProductVariant variant;
 
     @Builder.Default
     @Column(nullable = false)

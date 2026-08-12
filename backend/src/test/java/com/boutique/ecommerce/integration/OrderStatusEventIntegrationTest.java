@@ -62,11 +62,7 @@ class OrderStatusEventIntegrationTest extends PostgresIntegrationTestBase {
                 .status(ProductStatus.ACTIVE)
                 .category(category)
                 .build());
-        cartItemRepository.save(CartItem.builder()
-                .user(customer)
-                .product(product)
-                .quantity(1)
-                .build());
+        cartItemRepository.save(cartItemFor(customer, product, 1));
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(customer.getEmail(), null, List.of()));
 

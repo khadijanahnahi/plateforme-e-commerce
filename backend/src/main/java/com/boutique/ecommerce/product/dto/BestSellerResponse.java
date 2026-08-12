@@ -1,6 +1,7 @@
 package com.boutique.ecommerce.product.dto;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public record BestSellerResponse(
         Long productId,
@@ -15,6 +16,7 @@ public record BestSellerResponse(
         Double averageRating,
         Long reviewCount,
         Long quantitySold,
-        Integer stockQuantity
+        Integer stockQuantity,
+        List<ProductVariantResponse> variants
 ) {
 }

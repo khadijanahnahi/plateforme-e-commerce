@@ -6,6 +6,7 @@ import AdminStatsCard from "../components/ui/AdminStatsCard";
 import { Button, ConfirmDialog, Input, Pagination, Select, Textarea, Toast } from "../components/ui";
 import {
   ADMIN_PRODUCTS_PAGE_SIZE,
+  CLOTHING_SIZES,
   useAdminProducts,
 } from "../hooks/useAdminProducts";
 
@@ -18,6 +19,9 @@ const emptyForm = {
   sku: "",
   status: "ACTIVE",
   categoryId: "",
+  audience: "UNISEXE",
+  hasSizes: false,
+  variants: CLOTHING_SIZES.map((size) => ({ size, stockQuantity: 0, sku: "" })),
 };
 
 const productStatusOptions = [
@@ -25,6 +29,12 @@ const productStatusOptions = [
   { value: "DRAFT", label: "Brouillon" },
   { value: "OUT_OF_STOCK", label: "Rupture" },
   { value: "ARCHIVED", label: "Archivé" },
+];
+
+const audienceOptions = [
+  { value: "UNISEXE", label: "Unisexe" },
+  { value: "HOMME", label: "Homme" },
+  { value: "FEMME", label: "Femme" },
 ];
 
 export default function AdminProductsPage() {
@@ -65,8 +75,17 @@ export default function AdminProductsPage() {
   const [deleting, setDeleting] = useState(false);
 
   function updateField(event) {
-    const { name, value } = event.target;
-    setForm((current) => ({ ...current, [name]: value }));
+    const { checked, name, type, value } = event.target;
+    setForm((current) => ({ ...current, [name]: type === "checkbox" ? checked : value }));
+  }
+
+  function updateVariant(size, field, value) {
+    setForm((current) => ({
+      ...current,
+      variants: current.variants.map((variant) => (
+        variant.size === size ? { ...variant, [field]: value } : variant
+      )),
+    }));
   }
 
   function openCreateModal() {
@@ -78,6 +97,7 @@ export default function AdminProductsPage() {
   }
 
   function openEditModal(product) {
+    const sizedVariants = (product.variants ?? []).filter((variant) => variant.size !== "TAILLE_UNIQUE");
     setEditingId(product.id);
     setForm({
       name: product.name ?? "",
@@ -88,6 +108,17 @@ export default function AdminProductsPage() {
       sku: product.sku ?? "",
       status: product.status ?? "ACTIVE",
       categoryId: product.categoryId ?? "",
+      audience: product.audience ?? "UNISEXE",
+      hasSizes: sizedVariants.length > 0,
+      variants: CLOTHING_SIZES.map((size) => {
+        const existing = sizedVariants.find((variant) => variant.size === size);
+        return {
+          id: existing?.id ?? null,
+          size,
+          stockQuantity: existing?.stockQuantity ?? 0,
+          sku: existing?.sku ?? "",
+        };
+      }),
     });
     setMessage("");
     setError("");
@@ -267,12 +298,55 @@ export default function AdminProductsPage() {
               <Textarea fullWidth label="Description" name="description" value={form.description} onChange={updateField} placeholder="Description du produit" />
               <div className="admin-form-row">
                 <Input fullWidth label="Prix (DH)" name="price" value={form.price} onChange={updateField} type="number" min="0" step="0.01" required />
-                <Input fullWidth label="Quantité en stock" name="stockQuantity" value={form.stockQuantity} onChange={updateField} type="number" min="0" required />
+                {form.hasSizes ? (
+                  <div className="product-total-stock" aria-live="polite">
+                    <span>Stock total calculé</span>
+                    <strong>{form.variants.reduce((total, variant) => total + Number(variant.stockQuantity || 0), 0)}</strong>
+                  </div>
+                ) : (
+                  <Input fullWidth label="Quantité en stock" name="stockQuantity" value={form.stockQuantity} onChange={updateField} type="number" min="0" required />
+                )}
               </div>
               <div className="admin-form-row">
                 <Input fullWidth label="SKU" name="sku" value={form.sku} onChange={updateField} placeholder="Ex. TSHIRT-BLK-001" />
                 <Select fullWidth label="Statut" name="status" value={form.status} onChange={updateField} options={productStatusOptions} />
               </div>
+              <div className="admin-form-row">
+                <Select fullWidth label="Public" name="audience" value={form.audience} onChange={updateField} options={audienceOptions} />
+                <label className="product-variant-toggle">
+                  <input type="checkbox" name="hasSizes" checked={form.hasSizes} onChange={updateField} />
+                  <span>
+                    <strong>Produit avec tailles</strong>
+                    <small>Activer XS, S, M, L, XL et XXL</small>
+                  </span>
+                </label>
+              </div>
+              {form.hasSizes ? (
+                <fieldset className="product-variants-editor">
+                  <legend>Stock par taille</legend>
+                  <p>Le stock total est calculé automatiquement depuis les tailles.</p>
+                  <div className="product-variants-grid">
+                    {form.variants.map((variant) => (
+                      <div className="product-variant-row" key={variant.size}>
+                        <strong>{variant.size}</strong>
+                        <Input
+                          aria-label={`Stock taille ${variant.size}`}
+                          min="0"
+                          type="number"
+                          value={variant.stockQuantity}
+                          onChange={(event) => updateVariant(variant.size, "stockQuantity", event.target.value)}
+                        />
+                        <Input
+                          aria-label={`SKU taille ${variant.size}`}
+                          placeholder={`SKU-${variant.size}`}
+                          value={variant.sku}
+                          onChange={(event) => updateVariant(variant.size, "sku", event.target.value)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </fieldset>
+              ) : null}
               <div className="product-image-upload">
                 <label>
                   <span>Image locale</span>

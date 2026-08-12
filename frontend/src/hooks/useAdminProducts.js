@@ -3,17 +3,32 @@ import { adminProductsApi, getApiErrorMessage } from "../api/adminProductsApi";
 
 export const productStatuses = ["DRAFT", "ACTIVE", "OUT_OF_STOCK", "ARCHIVED"];
 export const ADMIN_PRODUCTS_PAGE_SIZE = 10;
+export const CLOTHING_SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
 
 export function toProductRequest(form) {
+  const variants = form.hasSizes
+    ? form.variants.map((variant) => ({
+        id: variant.id ?? null,
+        size: variant.size,
+        stockQuantity: Number(variant.stockQuantity),
+        sku: variant.sku || null,
+        active: true,
+      }))
+    : [];
+
   return {
     name: form.name,
     description: form.description || null,
     price: Number(form.price),
-    stockQuantity: Number(form.stockQuantity),
+    stockQuantity: form.hasSizes
+      ? variants.reduce((total, variant) => total + variant.stockQuantity, 0)
+      : Number(form.stockQuantity),
     imageUrl: form.imageUrl || null,
     sku: form.sku || null,
     status: form.status,
     categoryId: Number(form.categoryId),
+    audience: form.audience,
+    variants,
   };
 }
 

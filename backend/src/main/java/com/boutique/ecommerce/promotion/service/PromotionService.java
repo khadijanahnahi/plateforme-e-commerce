@@ -264,7 +264,14 @@ public class PromotionService {
                 0.0,
                 0L,
                 product.getCreatedAt(),
-                product.getUpdatedAt()
+                product.getUpdatedAt(),
+                product.getAudience(),
+                product.getVariants().stream()
+                        .filter(variant -> Boolean.TRUE.equals(variant.getActive()))
+                        .map(variant -> new com.boutique.ecommerce.product.dto.ProductVariantResponse(
+                                variant.getId(), variant.getSize(), variant.getSku(),
+                                variant.getStockQuantity(), variant.getActive()))
+                        .toList()
         );
         return new PromotionProductResponse(
                 promotion.getId(),

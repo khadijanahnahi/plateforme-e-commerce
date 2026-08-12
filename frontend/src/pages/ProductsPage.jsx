@@ -6,6 +6,7 @@ import { AsyncState, Button, Pagination } from "../components/ui";
 import { useAuth } from "../contexts/AuthContext";
 import { useCart } from "../hooks/useCart";
 import { useWishlist } from "../hooks/useWishlist";
+import { getAddToCartKey, getAutomaticVariant, requiresSizeSelection } from "../utils/productVariants";
 
 const DIRECT_CHECKOUT_KEY = "shopsphere_direct_checkout";
 const CATALOG_PAGE_SIZE = 24;
@@ -20,12 +21,16 @@ export default function ProductsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const querySearch = searchParams.get("search") ?? "";
   const queryCategoryId = searchParams.get("categoryId") ?? "";
+  const queryAudience = searchParams.get("audience") ?? "";
+  const queryProductSize = searchParams.get("productSize") ?? "";
   const queryPage = parsePage(searchParams.get("page"));
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [pagination, setPagination] = useState({ page: queryPage, totalElements: 0, totalPages: 1 });
   const [search, setSearch] = useState(querySearch);
   const [categoryId, setCategoryId] = useState(queryCategoryId);
+  const [audience, setAudience] = useState(queryAudience);
+  const [productSize, setProductSize] = useState(queryProductSize);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const { isAuthenticated } = useAuth();
@@ -42,13 +47,21 @@ export default function ProductsPage() {
     });
   }
 
-  async function loadProducts(nextSearch = querySearch, nextCategoryId = queryCategoryId, nextPage = queryPage) {
+  async function loadProducts(
+    nextSearch = querySearch,
+    nextCategoryId = queryCategoryId,
+    nextAudience = queryAudience,
+    nextProductSize = queryProductSize,
+    nextPage = queryPage,
+  ) {
     setLoading(true);
     setError("");
     try {
       const response = await productApi.getProducts({
         search: nextSearch || undefined,
         categoryId: nextCategoryId || undefined,
+        audience: nextAudience || undefined,
+        productSize: nextProductSize || undefined,
         page: Math.max(0, nextPage - 1),
         size: CATALOG_PAGE_SIZE,
       });
@@ -80,12 +93,16 @@ export default function ProductsPage() {
     let mounted = true;
     setSearch(querySearch);
     setCategoryId(queryCategoryId);
+    setAudience(queryAudience);
+    setProductSize(queryProductSize);
     setLoading(true);
     setError("");
 
     productApi.getProducts({
       search: querySearch || undefined,
       categoryId: queryCategoryId || undefined,
+      audience: queryAudience || undefined,
+      productSize: queryProductSize || undefined,
       page: queryPage - 1,
       size: CATALOG_PAGE_SIZE,
     }).then((response) => {
@@ -97,7 +114,7 @@ export default function ProductsPage() {
     });
 
     return () => { mounted = false; };
-  }, [querySearch, queryCategoryId, queryPage]);
+  }, [querySearch, queryCategoryId, queryAudience, queryProductSize, queryPage]);
 
   async function handleFilter(event) {
     event.preventDefault();
@@ -106,6 +123,10 @@ export default function ProductsPage() {
     else nextParams.delete("search");
     if (categoryId) nextParams.set("categoryId", categoryId);
     else nextParams.delete("categoryId");
+    if (audience) nextParams.set("audience", audience);
+    else nextParams.delete("audience");
+    if (productSize) nextParams.set("productSize", productSize);
+    else nextParams.delete("productSize");
     nextParams.delete("page");
     setSearchParams(nextParams);
   }
@@ -119,8 +140,12 @@ export default function ProductsPage() {
   }
 
   async function handleAddToCart(product) {
+    if (requiresSizeSelection(product)) {
+      navigate(`/products/${product.id}`);
+      return;
+    }
     try {
-      await addToCart(product.id, 1);
+      await addToCart(product.id, 1, getAutomaticVariant(product)?.id ?? null);
     } catch { /* Le contexte affiche une notification compréhensible. */ }
   }
 
@@ -132,10 +157,18 @@ export default function ProductsPage() {
 
     const stockQuantity = Number(product.stockQuantity ?? 0);
     if (product.status !== "ACTIVE" || stockQuantity <= 0) return;
+    if (requiresSizeSelection(product)) {
+      navigate(`/products/${product.id}`);
+      return;
+    }
 
     const displayPrice = Number(product.effectivePrice ?? product.promotionalPrice ?? product.price ?? 0);
+    const variant = getAutomaticVariant(product);
     sessionStorage.setItem(DIRECT_CHECKOUT_KEY, JSON.stringify({
       productId: product.id,
+      variantId: variant?.id ?? null,
+      size: variant?.size ?? null,
+      variantSku: variant?.sku ?? null,
       productName: product.name,
       imageUrl: product.imageUrl,
       unitPrice: displayPrice,
@@ -176,6 +209,18 @@ export default function ProductsPage() {
             <option key={category.id} value={category.id}>{category.name}</option>
           ))}
         </select>
+        <select value={audience} onChange={(event) => setAudience(event.target.value)} aria-label="Genre">
+          <option value="">Tous les genres</option>
+          <option value="UNISEXE">Unisexe</option>
+          <option value="HOMME">Homme</option>
+          <option value="FEMME">Femme</option>
+        </select>
+        <select value={productSize} onChange={(event) => setProductSize(event.target.value)} aria-label="Taille">
+          <option value="">Toutes les tailles</option>
+          {['XS', 'S', 'M', 'L', 'XL', 'XXL'].map((size) => (
+            <option value={size} key={size}>{size}</option>
+          ))}
+        </select>
         <Button loading={loading} type="submit">Appliquer</Button>
       </form>
 
@@ -186,11 +231,11 @@ export default function ProductsPage() {
           emptyTitle="Aucun produit trouvé"
           error={error}
           loading={loading}
-          onRetry={() => loadProducts(querySearch, queryCategoryId, queryPage)}
+          onRetry={() => loadProducts(querySearch, queryCategoryId, queryAudience, queryProductSize, queryPage)}
         >
           {products.map((product) => (
             <ProductCard
-              addPending={isCartActionPending(`add:${product.id}`)}
+              addPending={isCartActionPending(getAddToCartKey(product))}
               isWishlisted={isWishlisted(product.id)}
               product={product}
               onAddToCart={handleAddToCart}

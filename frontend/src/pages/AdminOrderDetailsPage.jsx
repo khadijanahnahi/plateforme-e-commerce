@@ -148,7 +148,7 @@ export default function AdminOrderDetailsPage() {
                 <tbody>
                   {order.items.map((item) => (
                     <tr key={`${order.id}-${item.productId}-${item.productName}`}>
-                      <td>{item.productName}</td>
+                      <td>{item.productName}{item.size && item.size !== "TAILLE_UNIQUE" ? <small className="admin-muted">Taille : {item.size}</small> : null}</td>
                       <td>{Number(item.unitPrice).toFixed(2)} DH</td>
                       <td>{item.quantity}</td>
                       <td>{Number(item.subtotal).toFixed(2)} DH</td>

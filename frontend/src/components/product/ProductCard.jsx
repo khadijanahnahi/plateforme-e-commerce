@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "../ui";
+import { requiresSizeSelection } from "../../utils/productVariants";
 
 function formatMoney(value) {
   return `${Number(value ?? 0).toFixed(2)} DH`;
@@ -60,6 +61,7 @@ export default function ProductCard({
   const hasPromotion = Boolean(product.promotionActive) && Number(originalPrice) > Number(displayPrice);
   const outOfStock = Number(product.stockQuantity ?? 0) <= 0 || product.status === "OUT_OF_STOCK";
   const canBuy = product.status === "ACTIVE" && !outOfStock;
+  const needsSize = requiresSizeSelection(product);
   const promotionLabel = product.promotionBadgeLabel
     || (product.discountPercentage != null ? `-${Math.round(Number(product.discountPercentage))}%` : "Promotion");
 
@@ -115,7 +117,7 @@ export default function ProductCard({
             iconRight={<ArrowIcon />}
             onClick={() => onBuyNow?.(product)}
           >
-            {outOfStock ? "Produit indisponible" : "Acheter maintenant"}
+            {outOfStock ? "Produit indisponible" : needsSize ? "Choisir une taille" : "Acheter maintenant"}
           </Button>
           <Button
             className="catalog-add-button"
@@ -125,7 +127,7 @@ export default function ProductCard({
             variant="outline"
             onClick={() => onAddToCart?.(product)}
           >
-            {outOfStock ? "Rupture de stock" : "Ajouter au panier"}
+            {outOfStock ? "Rupture de stock" : needsSize ? "Choisir une taille" : "Ajouter au panier"}
           </Button>
         </div>
       </div>

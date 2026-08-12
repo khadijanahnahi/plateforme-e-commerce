@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { productApi } from "../../api/productApi";
 import { Button, Skeleton } from "../../components/ui";
 import { useCart } from "../../hooks/useCart";
+import { getAddToCartKey, getAutomaticVariant, requiresSizeSelection } from "../../utils/productVariants";
 
 function normalizeProducts(data) {
   if (Array.isArray(data)) return data;
@@ -46,7 +47,8 @@ function CartRecommendationCard({ product }) {
   const displayPrice = product.effectivePrice ?? product.promotionalPrice ?? product.price;
   const originalPrice = product.originalPrice ?? product.price;
   const hasPromotion = Boolean(product.promotionActive) && Number(originalPrice) > Number(displayPrice);
-  const pending = isCartActionPending(`add:${product.id}`);
+  const pending = isCartActionPending(getAddToCartKey(product));
+  const needsSize = requiresSizeSelection(product);
 
   return (
     <article className="cart-recommendation-card">
@@ -71,7 +73,11 @@ function CartRecommendationCard({ product }) {
 
       <div className="cart-recommendation-actions">
         <Link to={`/products/${product.id}`}>Voir</Link>
-        <Button loading={pending} size="sm" onClick={() => addToCart(product.id, 1)}>Ajouter</Button>
+        {needsSize ? (
+          <Link className="button button-primary" to={`/products/${product.id}`}>Choisir une taille</Link>
+        ) : (
+          <Button loading={pending} size="sm" onClick={() => addToCart(product.id, 1, getAutomaticVariant(product)?.id ?? null)}>Ajouter</Button>
+        )}
       </div>
     </article>
   );

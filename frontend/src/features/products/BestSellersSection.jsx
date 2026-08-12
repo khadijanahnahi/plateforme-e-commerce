@@ -5,6 +5,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useCart } from "../../hooks/useCart";
 import useInView from "../../hooks/useInView";
 import { Button, EmptyState, ErrorState, Skeleton } from "../../components/ui";
+import { getAddToCartKey, getAutomaticVariant, requiresSizeSelection } from "../../utils/productVariants";
 
 function normalizeList(data) {
   if (Array.isArray(data)) return data;
@@ -49,7 +50,11 @@ export default function BestSellersSection() {
       navigate("/login");
       return;
     }
-    await addToCart(product.productId, 1).catch(() => undefined);
+    if (requiresSizeSelection(product)) {
+      navigate(`/products/${product.productId}`);
+      return;
+    }
+    await addToCart(product.productId, 1, getAutomaticVariant(product)?.id ?? null).catch(() => undefined);
   }
 
   return (
@@ -92,7 +97,8 @@ export default function BestSellersSection() {
           {products.map((product, index) => {
             const outOfStock = Number(product.stockQuantity ?? 0) <= 0;
             const hasPromotion = product.promotionActive && Number(product.originalPrice) > Number(product.effectivePrice);
-            const pending = isCartActionPending(`add:${product.productId}`);
+            const pending = isCartActionPending(getAddToCartKey(product));
+            const needsSize = requiresSizeSelection(product);
 
             return (
               <article
@@ -143,7 +149,7 @@ export default function BestSellersSection() {
                       loading={pending}
                       onClick={() => handleAdd(product)}
                     >
-                      {outOfStock ? "Indisponible" : "Ajouter au panier"}
+                      {outOfStock ? "Indisponible" : needsSize ? "Choisir une taille" : "Ajouter au panier"}
                     </Button>
                   </div>
                 </div>

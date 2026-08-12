@@ -84,7 +84,7 @@ export default function OrdersPage() {
                         <div className="order-items-review-list">
                           {(order.items ?? []).map((item) => (
                             <div key={`${order.id}-${item.productId}`}>
-                              <span>{item.productName}</span>
+                              <span>{item.productName}{item.size && item.size !== "TAILLE_UNIQUE" ? ` · Taille ${item.size}` : ""}</span>
                               {order.status === "DELIVERED" && order.paymentStatus === "PAID" ? (
                                 <Link className="table-link" to={`/products/${item.productId}?review=1`}>Laisser un avis</Link>
                               ) : null}

@@ -388,6 +388,7 @@ export default function OrderDetailsPage() {
                             <div className="order-product-thumb">{productInitials(item.productName)}</div>
                             <div>
                               <strong>{item.productName}</strong>
+                              {item.size && item.size !== "TAILLE_UNIQUE" ? <small className="admin-muted">Taille : {item.size}</small> : null}
                               {item.promotionTitle ? <small className="admin-muted">{item.promotionTitle}</small> : null}
                             </div>
                           </div>

@@ -71,9 +71,10 @@ export function CartProvider({ children }) {
     return promise;
   }, [toast]);
 
-  async function addToCart(productId, quantity = 1) {
-    return runLockedAction(`add:${productId}`, async () => {
-      const response = await cartApi.addItem({ productId, quantity });
+  async function addToCart(productId, quantity = 1, variantId = null) {
+    const actionKey = variantId ? `add:${productId}:${variantId}` : `add:${productId}`;
+    return runLockedAction(actionKey, async () => {
+      const response = await cartApi.addItem({ productId, variantId, quantity });
       return syncCart(response.data);
     }, "Produit ajouté au panier.");
   }

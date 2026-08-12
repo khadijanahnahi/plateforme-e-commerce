@@ -1,9 +1,10 @@
 import { useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AsyncState, Button, EmptyState, Skeleton } from "../components/ui";
 import { useAuth } from "../contexts/AuthContext";
 import { useCart } from "../hooks/useCart";
 import { useWishlist } from "../hooks/useWishlist";
+import { getAutomaticVariant, requiresSizeSelection } from "../utils/productVariants";
 
 function formatPrice(value) {
   return `${Number(value ?? 0).toFixed(2)} DH`;
@@ -72,6 +73,7 @@ function WishlistSkeleton() {
 }
 
 export default function WishlistPage() {
+  const navigate = useNavigate();
   const { authLoading, isAuthenticated } = useAuth();
   const { addToCart, isCartActionPending } = useCart();
   const [bulkPending, setBulkPending] = useState(false);
@@ -86,14 +88,20 @@ export default function WishlistPage() {
   } = useWishlist();
 
   const availableItems = items.filter((item) => item.status === "ACTIVE" && Number(item.stockQuantity) > 0);
+  const directlyAddableItems = availableItems.filter((item) => !requiresSizeSelection(item));
   const wishlistValue = items.reduce(
     (total, item) => total + Number(item.effectivePrice ?? item.promotionalPrice ?? item.price ?? 0),
     0,
   );
 
   async function handleAddToCart(item) {
+    if (requiresSizeSelection(item)) {
+      navigate(`/products/${item.productId}`);
+      return;
+    }
+
     try {
-      await addToCart(item.productId, 1);
+      await addToCart(item.productId, 1, getAutomaticVariant(item)?.id ?? null);
     } catch { /* Le contexte affiche l'erreur. */ }
   }
 
@@ -104,12 +112,14 @@ export default function WishlistPage() {
   }
 
   async function handleAddAllToCart() {
-    if (bulkActionRef.current || availableItems.length === 0) return;
+    if (bulkActionRef.current || directlyAddableItems.length === 0) return;
 
     bulkActionRef.current = true;
     setBulkPending(true);
     try {
-      await Promise.allSettled(availableItems.map((item) => addToCart(item.productId, 1)));
+      await Promise.allSettled(directlyAddableItems.map((item) => (
+        addToCart(item.productId, 1, getAutomaticVariant(item)?.id ?? null)
+      )));
     } finally {
       bulkActionRef.current = false;
       setBulkPending(false);
@@ -223,10 +233,16 @@ export default function WishlistPage() {
                       <Button
                         disabled={!canAddToCart}
                         iconLeft={<CartIcon />}
-                        loading={isCartActionPending(`add:${item.productId}`)}
+                        loading={isCartActionPending(
+                          getAutomaticVariant(item)
+                            ? `add:${item.productId}:${getAutomaticVariant(item).id}`
+                            : `add:${item.productId}`
+                        )}
                         onClick={() => handleAddToCart(item)}
                       >
-                        {canAddToCart ? "Ajouter au panier" : "Indisponible"}
+                        {canAddToCart
+                          ? requiresSizeSelection(item) ? "Choisir une taille" : "Ajouter au panier"
+                          : "Indisponible"}
                       </Button>
                       <Button
                         aria-label={`Retirer ${item.productName} de la wishlist`}
@@ -270,13 +286,15 @@ export default function WishlistPage() {
             </dl>
 
             <Button
-              disabled={availableItems.length === 0}
+              disabled={directlyAddableItems.length === 0 || directlyAddableItems.length !== availableItems.length}
               fullWidth
               iconLeft={<CartIcon />}
               loading={bulkPending}
               onClick={handleAddAllToCart}
             >
-              Tout ajouter au panier
+              {directlyAddableItems.length !== availableItems.length
+                ? "Choisissez les tailles"
+                : "Tout ajouter au panier"}
             </Button>
 
             <Link className="wishlist-continue-link" to="/products">

@@ -44,14 +44,21 @@ export default function ProductDetailsPage() {
   const [reviews, setReviews] = useState([]);
   const [eligibility, setEligibility] = useState(null);
   const [reviewForm, setReviewForm] = useState({ rating: 5, comment: "" });
+  const [selectedVariantId, setSelectedVariantId] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [reviewError, setReviewError] = useState("");
   const [reviewMessage, setReviewMessage] = useState("");
 
-  const availableStock = product?.stockQuantity ?? 0;
-  const canBuy = product?.status === "ACTIVE" && availableStock > 0;
+  const activeVariants = (product?.variants ?? []).filter((variant) => variant.active !== false);
+  const selectedVariant = activeVariants.find((variant) => variant.id === selectedVariantId) ?? null;
+  const requiresSizeSelection = activeVariants.some((variant) => variant.size !== "TAILLE_UNIQUE");
+  const availableStock = Number(selectedVariant?.stockQuantity ?? (activeVariants.length === 0 ? product?.stockQuantity : 0) ?? 0);
+  const displayedStock = Number(selectedVariant?.stockQuantity ?? product?.stockQuantity ?? 0);
+  const canBuy = product?.status === "ACTIVE"
+    && availableStock > 0
+    && (!requiresSizeSelection || selectedVariant !== null);
   const displayPrice = getProductDisplayPrice(product);
   const originalPrice = getProductOriginalPrice(product);
   const promotionActive = hasActivePromotion(product);
@@ -67,9 +74,15 @@ export default function ProductDetailsPage() {
         ]);
 
         if (mounted) {
-          setProduct(productResponse.data);
+          const loadedProduct = productResponse.data;
+          const variants = (loadedProduct.variants ?? []).filter((variant) => variant.active !== false);
+          const automaticVariant = variants.length === 1 ? variants[0] : null;
+          setProduct(loadedProduct);
           setReviews(reviewsResponse.data);
-          setQuantity(productResponse.data.stockQuantity > 0 ? 1 : 0);
+          setSelectedVariantId(automaticVariant?.id ?? null);
+          setQuantity(automaticVariant
+            ? (Number(automaticVariant.stockQuantity) > 0 ? 1 : 0)
+            : (variants.length === 0 && Number(loadedProduct.stockQuantity) > 0 ? 1 : 0));
         }
       } catch (exception) {
         if (mounted) {
@@ -130,16 +143,22 @@ export default function ProductDetailsPage() {
     setQuantity((current) => Math.min(availableStock, current + 1));
   }
 
+  function selectVariant(variant) {
+    setSelectedVariantId(variant.id);
+    setQuantity(Number(variant.stockQuantity) > 0 ? 1 : 0);
+    setError("");
+  }
+
   async function addToCart() {
     setError("");
 
     if (!canBuy) {
-      setError("Product is not available.");
+      setError(requiresSizeSelection && !selectedVariant ? "Sélectionnez une taille disponible." : "Ce produit n'est pas disponible.");
       return;
     }
 
     try {
-      await addProductToCart(product.id, quantity);
+      await addProductToCart(product.id, quantity, selectedVariant?.id ?? null);
     } catch { /* Le contexte affiche l'erreur. */ }
   }
 
@@ -160,12 +179,15 @@ export default function ProductDetailsPage() {
     setError("");
 
     if (!canBuy) {
-      setError("Product is not available.");
+      setError(requiresSizeSelection && !selectedVariant ? "Sélectionnez une taille disponible." : "Ce produit n'est pas disponible.");
       return;
     }
 
     sessionStorage.setItem(DIRECT_CHECKOUT_KEY, JSON.stringify({
       productId: product.id,
+      variantId: selectedVariant?.id ?? null,
+      size: selectedVariant?.size ?? null,
+      variantSku: selectedVariant?.sku ?? null,
       productName: product.name,
       imageUrl: product.imageUrl,
       unitPrice: displayPrice,
@@ -243,6 +265,7 @@ export default function ProductDetailsPage() {
 
         <article className="details-info reveal-card" style={{ "--delay": "0.12s" }}>
           <span className="section-kicker">{product.categoryName}</span>
+          <span className="details-audience">{product.audience === "HOMME" ? "Homme" : product.audience === "FEMME" ? "Femme" : "Unisexe"}</span>
           <h1>{product.name}</h1>
 
           <div className="details-rating">
@@ -273,12 +296,41 @@ export default function ProductDetailsPage() {
           </div>
 
           <div className="details-stock">
-            {canBuy ? `In Stock (${availableStock})` : product.status === "OUT_OF_STOCK" ? "Out of stock" : "Unavailable"}
+            {product.status === "OUT_OF_STOCK"
+              ? "Rupture de stock"
+              : requiresSizeSelection && !selectedVariant
+                ? `Disponible en plusieurs tailles (${displayedStock})`
+                : canBuy ? `En stock (${availableStock})` : "Indisponible"}
           </div>
 
           <p className="details-description">
             {product.description ?? "Premium ShopSphere product with a clean monochrome aesthetic."}
           </p>
+
+          {requiresSizeSelection ? (
+            <fieldset className="product-size-selector">
+              <legend>Choisir une taille</legend>
+              <div className="product-size-options">
+                {activeVariants.map((variant) => {
+                  const unavailable = Number(variant.stockQuantity) <= 0;
+                  return (
+                    <button
+                      aria-pressed={selectedVariantId === variant.id}
+                      className={selectedVariantId === variant.id ? "is-selected" : ""}
+                      disabled={unavailable}
+                      key={variant.id}
+                      onClick={() => selectVariant(variant)}
+                      type="button"
+                    >
+                      <strong>{variant.size}</strong>
+                      <small>{unavailable ? "Épuisé" : `${variant.stockQuantity} en stock`}</small>
+                    </button>
+                  );
+                })}
+              </div>
+              {!selectedVariant ? <p>Sélectionnez votre taille avant d'ajouter le produit au panier.</p> : null}
+            </fieldset>
+          ) : null}
 
           <div className="quantity-card">
             <span>Quantite</span>
@@ -304,11 +356,11 @@ export default function ProductDetailsPage() {
             >
               {isWishlisted(product.id) ? "\u2665 Saved" : "\u2661 Save"}
             </Button>
-            <Button loading={isCartActionPending(`add:${product.id}`)} onClick={() => addToCart()} disabled={!canBuy}>
-              Add to Cart
+            <Button loading={isCartActionPending(`add:${product.id}:${selectedVariant?.id ?? "default"}`)} onClick={() => addToCart()} disabled={!canBuy}>
+              Ajouter au panier
             </Button>
             <Button onClick={buyNow} disabled={!canBuy}>
-              Buy Now
+              Acheter maintenant
             </Button>
           </div>
         </article>

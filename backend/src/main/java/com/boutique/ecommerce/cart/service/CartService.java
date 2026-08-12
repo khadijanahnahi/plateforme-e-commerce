@@ -10,7 +10,10 @@ import com.boutique.ecommerce.common.exception.ResourceNotFoundException;
 import com.boutique.ecommerce.common.exception.UnauthorizedException;
 import com.boutique.ecommerce.product.entity.Product;
 import com.boutique.ecommerce.product.entity.ProductStatus;
+import com.boutique.ecommerce.product.entity.ProductSize;
 import com.boutique.ecommerce.product.repository.ProductRepository;
+import com.boutique.ecommerce.product.entity.ProductVariant;
+import com.boutique.ecommerce.product.repository.ProductVariantRepository;
 import com.boutique.ecommerce.promotion.service.PromotionService;
 import com.boutique.ecommerce.promotion.service.PromotionService.EffectivePriceResult;
 import com.boutique.ecommerce.user.entity.AppUser;
@@ -29,17 +32,20 @@ public class CartService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final PromotionService promotionService;
+    private final ProductVariantRepository productVariantRepository;
 
     public CartService(
             CartItemRepository cartItemRepository,
             ProductRepository productRepository,
             UserRepository userRepository,
-            PromotionService promotionService
+            PromotionService promotionService,
+            ProductVariantRepository productVariantRepository
     ) {
         this.cartItemRepository = cartItemRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
         this.promotionService = promotionService;
+        this.productVariantRepository = productVariantRepository;
     }
 
     @Transactional(readOnly = true)
@@ -55,16 +61,18 @@ public class CartService {
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found."));
 
         validateProductCanBeAdded(product);
+        ProductVariant variant = resolveVariant(product, request.variantId());
 
-        CartItem cartItem = cartItemRepository.findByUserIdAndProductId(user.getId(), product.getId())
+        CartItem cartItem = cartItemRepository.findByUserIdAndVariantId(user.getId(), variant.getId())
                 .orElseGet(() -> CartItem.builder()
                         .user(user)
                         .product(product)
+                        .variant(variant)
                         .quantity(0)
                         .build());
 
         int newQuantity = cartItem.getQuantity() + request.quantity();
-        validateStock(product, newQuantity);
+        validateStock(variant, newQuantity);
         cartItem.setQuantity(newQuantity);
         cartItemRepository.save(cartItem);
 
@@ -79,7 +87,7 @@ public class CartService {
 
         Product product = cartItem.getProduct();
         validateProductCanBeAdded(product);
-        validateStock(product, request.quantity());
+        validateStock(cartItem.getVariant(), request.quantity());
         cartItem.setQuantity(request.quantity());
 
         return buildCartResponse(cartItemRepository.findByUserId(user.getId()));
@@ -118,12 +126,40 @@ public class CartService {
         }
     }
 
-    private void validateStock(Product product, Integer requestedQuantity) {
+    private ProductVariant resolveVariant(Product product, Long variantId) {
+        if (variantId != null) {
+            ProductVariant variant = productVariantRepository.findByIdAndProductId(variantId, product.getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Product variant not found."));
+            if (!Boolean.TRUE.equals(variant.getActive())) {
+                throw new IllegalArgumentException("Product variant is not available.");
+            }
+            return variant;
+        }
+
+        List<ProductVariant> variants = productVariantRepository.findByProductIdAndActiveTrueOrderById(product.getId());
+        if (variants.isEmpty()) {
+            return productVariantRepository.save(ProductVariant.builder()
+                    .product(product)
+                    .size(ProductSize.TAILLE_UNIQUE)
+                    .stockQuantity(product.getStockQuantity())
+                    .active(true)
+                    .build());
+        }
+        if (variants.size() != 1) {
+            throw new IllegalArgumentException("Please select a product size.");
+        }
+        return variants.get(0);
+    }
+
+    private void validateStock(ProductVariant variant, Integer requestedQuantity) {
+        if (variant == null || !Boolean.TRUE.equals(variant.getActive())) {
+            throw new IllegalArgumentException("Product variant is not available.");
+        }
         if (requestedQuantity == null || requestedQuantity <= 0) {
             throw new IllegalArgumentException("Quantity must be greater than 0.");
         }
-        if (requestedQuantity > product.getStockQuantity()) {
-            throw new IllegalArgumentException("Insufficient stock for product.");
+        if (requestedQuantity > variant.getStockQuantity()) {
+            throw new IllegalArgumentException("Insufficient stock for selected size.");
         }
     }
 
@@ -152,6 +188,9 @@ public class CartService {
         return new CartItemResponse(
                 cartItem.getId(),
                 product.getId(),
+                cartItem.getVariant().getId(),
+                cartItem.getVariant().getSize().name(),
+                cartItem.getVariant().getSku(),
                 product.getName(),
                 product.getImageUrl(),
                 unitPrice,
@@ -163,7 +202,7 @@ public class CartService {
                 price.badgeLabel(),
                 cartItem.getQuantity(),
                 subtotal,
-                product.getStockQuantity()
+                cartItem.getVariant().getStockQuantity()
         );
     }
 }

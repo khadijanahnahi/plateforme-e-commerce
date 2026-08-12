@@ -142,11 +142,7 @@ class PaymentInvoiceIntegrationTest extends PostgresIntegrationTestBase {
     }
 
     private OrderResponse createOrder() {
-        cartItemRepository.save(CartItem.builder()
-                .user(customer)
-                .product(product)
-                .quantity(1)
-                .build());
+        cartItemRepository.save(cartItemFor(customer, product, 1));
         return orderService.createOrder(new CreateOrderRequest(
                 customer.getFullName(),
                 customer.getPhone(),

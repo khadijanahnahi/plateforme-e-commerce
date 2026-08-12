@@ -12,8 +12,12 @@ import com.boutique.ecommerce.product.dto.ProductSearchSuggestionResponse;
 import com.boutique.ecommerce.product.dto.UpdateProductStatusRequest;
 import com.boutique.ecommerce.product.dto.UpdateProductStockRequest;
 import com.boutique.ecommerce.product.entity.Product;
+import com.boutique.ecommerce.product.entity.ProductAudience;
 import com.boutique.ecommerce.product.entity.ProductStatus;
+import com.boutique.ecommerce.product.entity.ProductSize;
+import com.boutique.ecommerce.product.entity.ProductVariant;
 import com.boutique.ecommerce.product.repository.ProductRepository;
+import com.boutique.ecommerce.product.repository.ProductVariantRepository;
 import com.boutique.ecommerce.promotion.repository.PromotionRepository;
 import com.boutique.ecommerce.promotion.service.PromotionService;
 import com.boutique.ecommerce.promotion.service.PromotionService.EffectivePriceResult;
@@ -24,6 +28,11 @@ import com.boutique.ecommerce.stock.service.StockMovementService;
 import com.boutique.ecommerce.wishlist.repository.WishlistItemRepository;
 import com.boutique.ecommerce.blog.repository.BlogPostRepository;
 import java.util.List;
+import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.Locale;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -49,6 +58,7 @@ public class ProductService {
     private final WishlistItemRepository wishlistItemRepository;
     private final StockMovementRepository stockMovementRepository;
     private final BlogPostRepository blogPostRepository;
+    private final ProductVariantRepository productVariantRepository;
 
     public ProductService(
             ProductRepository productRepository,
@@ -61,7 +71,8 @@ public class ProductService {
             PromotionRepository promotionRepository,
             WishlistItemRepository wishlistItemRepository,
             StockMovementRepository stockMovementRepository,
-            BlogPostRepository blogPostRepository
+            BlogPostRepository blogPostRepository,
+            ProductVariantRepository productVariantRepository
     ) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
@@ -74,6 +85,7 @@ public class ProductService {
         this.wishlistItemRepository = wishlistItemRepository;
         this.stockMovementRepository = stockMovementRepository;
         this.blogPostRepository = blogPostRepository;
+        this.productVariantRepository = productVariantRepository;
     }
 
     @Transactional(readOnly = true)
@@ -90,17 +102,24 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ProductResponse> getVisibleProductsPage(String search, Long categoryId, int page, int size) {
+    public Page<ProductResponse> getVisibleProductsPage(
+            String search,
+            Long categoryId,
+            ProductAudience audience,
+            ProductSize productSize,
+            int page,
+            int size
+    ) {
         String normalizedSearch = normalizeSearch(search);
         PageRequest pageRequest = PageRequest.of(Math.max(0, page), Math.min(48, Math.max(1, size)));
-        Page<Product> products = normalizedSearch == null
-                ? productRepository.findVisibleProductsPage(PUBLIC_STATUSES, categoryId, pageRequest)
-                : productRepository.searchVisibleProductsPage(
-                        PUBLIC_STATUSES,
-                        toSearchPattern(normalizedSearch),
-                        categoryId,
-                        pageRequest
-                );
+        Page<Product> products = productRepository.filterVisibleProductsPage(
+                PUBLIC_STATUSES,
+                normalizedSearch == null ? null : toSearchPattern(normalizedSearch),
+                categoryId,
+                audience,
+                productSize,
+                pageRequest
+        );
 
         return products.map(this::toResponse);
     }
@@ -159,17 +178,22 @@ public class ProductService {
         Category category = findActiveCategory(request.categoryId());
         String sku = normalizeOptional(request.sku());
         validateUniqueSku(sku, null);
+        validateVariantConfiguration(request);
 
+        int totalStock = resolveRequestedStock(request);
         Product product = Product.builder()
                 .name(normalizeRequired(request.name()))
                 .description(normalizeOptional(request.description()))
                 .price(request.price())
-                .stockQuantity(request.stockQuantity())
+                .stockQuantity(totalStock)
                 .imageUrl(normalizeOptional(request.imageUrl()))
                 .sku(sku)
-                .status(resolveStatus(request.status(), request.stockQuantity()))
+                .status(resolveStatus(request.status(), totalStock))
+                .audience(request.audience() == null ? ProductAudience.UNISEXE : request.audience())
                 .category(category)
                 .build();
+
+        addRequestedVariants(product, request);
 
         return toResponse(productRepository.save(product));
     }
@@ -181,16 +205,23 @@ public class ProductService {
         Category category = findActiveCategory(request.categoryId());
         String sku = normalizeOptional(request.sku());
         validateUniqueSku(sku, id);
+        validateVariantConfiguration(request);
 
         product.setName(normalizeRequired(request.name()));
         product.setDescription(normalizeOptional(request.description()));
         product.setPrice(request.price());
-        product.setStockQuantity(request.stockQuantity());
+        synchronizeVariants(product, request);
+        int totalStock = product.getVariants().stream()
+                .filter(variant -> Boolean.TRUE.equals(variant.getActive()))
+                .mapToInt(ProductVariant::getStockQuantity)
+                .sum();
+        product.setStockQuantity(totalStock);
         product.setImageUrl(normalizeOptional(request.imageUrl()));
         product.setSku(sku);
-        product.setStatus(resolveStatus(request.status(), request.stockQuantity()));
+        product.setStatus(resolveStatus(request.status(), totalStock));
+        product.setAudience(request.audience() == null ? ProductAudience.UNISEXE : request.audience());
         product.setCategory(category);
-        stockMovementService.recordManualAdjustment(product, stockBefore, request.stockQuantity());
+        stockMovementService.recordManualAdjustment(product, stockBefore, totalStock);
 
         return toResponse(product);
     }
@@ -198,8 +229,13 @@ public class ProductService {
     @Transactional
     public ProductResponse updateStock(Long id, UpdateProductStockRequest request) {
         Product product = findProduct(id);
+        List<ProductVariant> activeVariants = productVariantRepository.findByProductIdAndActiveTrueOrderById(id);
+        if (activeVariants.size() != 1) {
+            throw new IllegalArgumentException("Update each size stock from the product form.");
+        }
         int stockBefore = product.getStockQuantity();
         product.setStockQuantity(request.stockQuantity());
+        activeVariants.get(0).setStockQuantity(request.stockQuantity());
 
         if (request.stockQuantity() == 0 && product.getStatus() == ProductStatus.ACTIVE) {
             product.setStatus(ProductStatus.OUT_OF_STOCK);
@@ -337,8 +373,103 @@ public class ProductService {
                 averageRating,
                 reviewCount,
                 product.getCreatedAt(),
-                product.getUpdatedAt()
+                product.getUpdatedAt(),
+                product.getAudience(),
+                product.getVariants().stream()
+                        .filter(variant -> Boolean.TRUE.equals(variant.getActive()))
+                        .map(variant -> new com.boutique.ecommerce.product.dto.ProductVariantResponse(
+                                variant.getId(),
+                                variant.getSize(),
+                                variant.getSku(),
+                                variant.getStockQuantity(),
+                                variant.getActive()
+                        ))
+                        .toList()
         );
+    }
+
+    private int resolveRequestedStock(ProductRequest request) {
+        if (request.variants() == null || request.variants().isEmpty()) {
+            return request.stockQuantity();
+        }
+        return request.variants().stream()
+                .filter(variant -> variant.active() == null || variant.active())
+                .mapToInt(variant -> variant.stockQuantity())
+                .sum();
+    }
+
+    private void validateVariantConfiguration(ProductRequest request) {
+        if (request.variants() == null || request.variants().isEmpty()) {
+            return;
+        }
+
+        Set<ProductSize> sizes = new HashSet<>();
+        request.variants().forEach(variant -> {
+            if (variant.size() == null) {
+                throw new IllegalArgumentException("Each product variant must have a size.");
+            }
+            if (!sizes.add(variant.size())) {
+                throw new IllegalArgumentException("A product cannot contain the same size more than once.");
+            }
+        });
+
+        if (sizes.contains(ProductSize.TAILLE_UNIQUE) && sizes.size() > 1) {
+            throw new IllegalArgumentException("TAILLE_UNIQUE cannot be combined with clothing sizes.");
+        }
+    }
+
+    private void addRequestedVariants(Product product, ProductRequest request) {
+        if (request.variants() == null || request.variants().isEmpty()) {
+            product.addVariant(ProductVariant.builder()
+                    .size(ProductSize.TAILLE_UNIQUE)
+                    .sku(normalizeOptional(request.sku()))
+                    .stockQuantity(request.stockQuantity())
+                    .active(true)
+                    .build());
+            return;
+        }
+
+        request.variants().forEach(requested -> product.addVariant(ProductVariant.builder()
+                .size(requested.size())
+                .sku(normalizeOptional(requested.sku()))
+                .stockQuantity(requested.stockQuantity())
+                .active(requested.active() == null || requested.active())
+                .build()));
+    }
+
+    private void synchronizeVariants(Product product, ProductRequest request) {
+        if (request.variants() == null || request.variants().isEmpty()) {
+            ProductVariant defaultVariant = product.getVariants().stream()
+                    .filter(variant -> variant.getSize() == ProductSize.TAILLE_UNIQUE)
+                    .findFirst()
+                    .orElseGet(() -> {
+                        ProductVariant variant = ProductVariant.builder()
+                                .size(ProductSize.TAILLE_UNIQUE)
+                                .active(true)
+                                .stockQuantity(0)
+                                .build();
+                        product.addVariant(variant);
+                        return variant;
+                    });
+            product.getVariants().forEach(variant -> variant.setActive(variant == defaultVariant));
+            defaultVariant.setStockQuantity(request.stockQuantity());
+            defaultVariant.setSku(normalizeOptional(request.sku()));
+            return;
+        }
+
+        Map<ProductSize, ProductVariant> existingBySize = product.getVariants().stream()
+                .collect(Collectors.toMap(ProductVariant::getSize, Function.identity()));
+        product.getVariants().forEach(variant -> variant.setActive(false));
+        request.variants().forEach(requested -> {
+            ProductVariant variant = existingBySize.get(requested.size());
+            if (variant == null) {
+                variant = ProductVariant.builder().size(requested.size()).build();
+                product.addVariant(variant);
+            }
+            variant.setSku(normalizeOptional(requested.sku()));
+            variant.setStockQuantity(requested.stockQuantity());
+            variant.setActive(requested.active() == null || requested.active());
+        });
     }
 
     private ProductSearchSuggestionResponse toSearchSuggestionResponse(Product product) {

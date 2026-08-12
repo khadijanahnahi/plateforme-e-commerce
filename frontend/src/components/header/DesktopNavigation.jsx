@@ -6,6 +6,19 @@ const menuLabels = {
   services: "Aide & services",
 };
 
+function NavigationChevron() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="client-nav-chevron"
+      fill="none"
+      viewBox="0 0 16 16"
+    >
+      <path d="m4 6 4 4 4-4" />
+    </svg>
+  );
+}
+
 function isMenuCurrent(menuId, pathname) {
   if (menuId === "shop") return pathname.startsWith("/products");
   if (menuId === "categories") return pathname.startsWith("/categories");
@@ -41,8 +54,8 @@ export default function DesktopNavigation({
         }}
         type="button"
       >
-        {menuLabels[menuId]}
-        <span aria-hidden="true">⌄</span>
+        <span>{menuLabels[menuId]}</span>
+        <NavigationChevron />
       </button>
     );
   }

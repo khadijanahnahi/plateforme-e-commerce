@@ -124,7 +124,13 @@ public class WishlistService {
                 product.getCategory().getName(),
                 averageRating,
                 reviewCount,
-                item.getCreatedAt()
+                item.getCreatedAt(),
+                product.getVariants().stream()
+                        .filter(variant -> Boolean.TRUE.equals(variant.getActive()))
+                        .map(variant -> new com.boutique.ecommerce.product.dto.ProductVariantResponse(
+                                variant.getId(), variant.getSize(), variant.getSku(),
+                                variant.getStockQuantity(), variant.getActive()))
+                        .toList()
         );
     }
 
