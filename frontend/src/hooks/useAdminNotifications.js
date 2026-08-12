@@ -8,6 +8,7 @@ import {
   subscribeAdminDevice,
   unsubscribeAdminDevice,
 } from "../api/adminNotificationsApi";
+import { publishAdminRealtimeEvent } from "../events/adminRealtime";
 
 const SERVICE_WORKER_PATH = "/push-sw.js";
 
@@ -71,6 +72,7 @@ export function useAdminNotifications() {
               ...current.filter((item) => item.id !== notification.id),
             ].slice(0, 12));
             if (!notification.read) setUnreadCount((current) => current + 1);
+            publishAdminRealtimeEvent(notification);
           },
         });
       } catch (error) {

@@ -19,6 +19,7 @@ import com.boutique.ecommerce.order.entity.OrderStatus;
 import com.boutique.ecommerce.order.entity.PaymentStatus;
 import com.boutique.ecommerce.order.repository.OrderRepository;
 import com.boutique.ecommerce.notification.OrderCreatedEvent;
+import com.boutique.ecommerce.notification.OrderPaymentStatusChangedEvent;
 import com.boutique.ecommerce.notification.OrderStatusChangedEvent;
 import com.boutique.ecommerce.product.entity.Product;
 import com.boutique.ecommerce.product.entity.ProductStatus;
@@ -245,6 +246,8 @@ public class OrderService {
         }
 
         order.setPaymentStatus(newPaymentStatus);
+        eventPublisher.publishEvent(new OrderPaymentStatusChangedEvent(
+                order.getId(), oldPaymentStatus, newPaymentStatus));
         if (oldPaymentStatus == PaymentStatus.UNPAID && newPaymentStatus == PaymentStatus.PAID) {
             eventPublisher.publishEvent(new InvoiceRequestedEvent(order.getId()));
         }

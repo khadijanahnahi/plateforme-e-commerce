@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import http from "../api/http";
 import { ErrorState, Skeleton } from "../components/ui";
+import { applyOrderUpdate, subscribeClientOrderUpdates } from "../events/clientOrderRealtime";
 
 const statusLabels = {
   PENDING: "En attente",
@@ -63,6 +64,10 @@ export default function OrderSuccessPage() {
       mounted = false;
     };
   }, [orderId]);
+
+  useEffect(() => subscribeClientOrderUpdates((update) => {
+    setOrder((current) => applyOrderUpdate(current, update));
+  }), []);
 
   return (
     <section className="order-success-page">

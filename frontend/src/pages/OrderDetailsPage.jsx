@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import http from "../api/http";
+import { applyOrderUpdate, subscribeClientOrderUpdates } from "../events/clientOrderRealtime";
 
 const statusLabels = {
   PENDING: "En attente",
@@ -127,6 +128,10 @@ export default function OrderDetailsPage() {
       mounted = false;
     };
   }, [id]);
+
+  useEffect(() => subscribeClientOrderUpdates((update) => {
+    setOrder((current) => applyOrderUpdate(current, update));
+  }), []);
 
   useEffect(() => {
     let mounted = true;

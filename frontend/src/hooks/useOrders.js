@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { orderApi } from "../api/orderApi";
+import { applyOrderUpdate, subscribeClientOrderUpdates } from "../events/clientOrderRealtime";
 
 export function useOrders() {
   const [orders, setOrders] = useState([]);
@@ -25,6 +26,10 @@ export function useOrders() {
   useEffect(() => {
     loadOrders().catch(() => undefined);
   }, []);
+
+  useEffect(() => subscribeClientOrderUpdates((update) => {
+    setOrders((current) => current.map((order) => applyOrderUpdate(order, update)));
+  }), []);
 
   return { orders, setOrders, loading, error, loadOrders };
 }

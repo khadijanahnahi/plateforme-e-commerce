@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { adminOrdersApi } from "../api/adminOrdersApi";
+import { subscribeAdminRealtime } from "../events/adminRealtime";
 import { useToast } from "./useToast";
 
 export const orderStatuses = ["PENDING", "CONFIRMED", "SHIPPED", "DELIVERED", "CANCELLED"];
@@ -161,6 +162,13 @@ export function useAdminOrders(initialSearch = "") {
   useEffect(() => {
     loadOrders();
   }, []);
+
+  useEffect(() => subscribeAdminRealtime((notification) => {
+    if (notification?.type !== "ORDER_CREATED") return;
+    refreshOrders().catch(() => {
+      setError("Une nouvelle commande est disponible. Impossible d'actualiser la liste automatiquement.");
+    });
+  }), []);
 
   return {
     currentPage: safeCurrentPage,

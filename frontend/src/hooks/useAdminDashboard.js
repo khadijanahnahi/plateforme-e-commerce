@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { adminDashboardApi, getApiErrorMessage } from "../api/adminDashboardApi";
+import { subscribeAdminRealtime } from "../events/adminRealtime";
 
 export const defaultDashboardStats = {
   totalProducts: 0,
@@ -136,8 +137,8 @@ export function useAdminDashboard() {
   ].map(([status, value]) => ({ status, label: statusLabels[status], value: Number(value ?? 0) })), [stats]);
   const pendingReviews = useMemo(() => reviews.filter((review) => review.status === "PENDING").length, [reviews]);
 
-  async function loadStats(nextPeriod = period) {
-    setLoading(true);
+  async function loadStats(nextPeriod = period, { silent = false } = {}) {
+    if (!silent) setLoading(true);
     try {
       const overview = await adminDashboardApi.getOverview(nextPeriod);
       setStats({ ...defaultDashboardStats, ...overview.stats });
@@ -153,7 +154,7 @@ export function useAdminDashboard() {
     } catch (exception) {
       setError(getApiErrorMessage(exception, "Impossible de charger le tableau de bord."));
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }
 
@@ -164,6 +165,12 @@ export function useAdminDashboard() {
   useEffect(() => {
     loadStats(period);
   }, [period]);
+
+  useEffect(() => subscribeAdminRealtime((notification) => {
+    if (notification?.type === "ORDER_CREATED") {
+      loadStats(period, { silent: true });
+    }
+  }), [period]);
 
   return {
     cards,

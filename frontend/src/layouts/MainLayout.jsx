@@ -6,6 +6,7 @@ import ClientFooter from "../components/layout/ClientFooter";
 import { useAuth } from "../contexts/AuthContext";
 import { useCart } from "../hooks/useCart";
 import { useWishlist } from "../hooks/useWishlist";
+import { useClientOrderRealtime } from "../hooks/useClientOrderRealtime";
 
 export default function MainLayout() {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ export default function MainLayout() {
   const [searchTerm, setSearchTerm] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isAdmin = user?.roles?.some((role) => role === "ADMIN" || role === "ROLE_ADMIN");
+  useClientOrderRealtime(isAuthenticated && !isAdmin);
   const isAuthEntryPage = location.pathname === "/login" || location.pathname === "/register";
 
   useEffect(() => {

@@ -19336,9 +19336,13 @@ button.ui-button.home-category-arrow svg {
   border-radius: 24px;
 }
 
-.blog-shop-cta,
-.home-blog-section {
+.blog-shop-cta {
   margin-top: clamp(3rem, 6vw, 6rem);
+}
+
+.home-blog-section {
+  margin-top: 0;
+  padding-top: clamp(2.25rem, 4vw, 3.5rem);
 }
 
 .blog-shop-cta {
@@ -20789,7 +20793,8 @@ button.ui-button.home-category-arrow svg {
 /* Home verified reviews */
 .verified-reviews-section {
   width: min(94vw, 1480px);
-  padding-block: clamp(2.8rem, 5vw, 4.5rem);
+  padding-top: clamp(2.8rem, 5vw, 4.5rem);
+  padding-bottom: clamp(1.25rem, 2.2vw, 2rem);
   overflow: hidden;
 }
 
@@ -21204,7 +21209,8 @@ button.ui-button.home-category-arrow svg {
   .verified-reviews-section {
     width: 100%;
     padding-inline: 1rem;
-    padding-block: 2.7rem;
+    padding-top: 2.7rem;
+    padding-bottom: 1.5rem;
   }
 
   .verified-reviews-heading h2 {

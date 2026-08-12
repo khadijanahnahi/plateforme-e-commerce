@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { adminStockMovementsApi } from "../api/adminStockMovementsApi";
+import { subscribeAdminRealtime } from "../events/adminRealtime";
 
 export const ADMIN_STOCK_MOVEMENTS_PAGE_SIZE = 10;
 
@@ -37,8 +38,12 @@ export function useAdminStockMovements() {
     return movements.slice(start, start + ADMIN_STOCK_MOVEMENTS_PAGE_SIZE);
   }, [currentPage, movements]);
 
-  const loadData = useCallback(async (nextFilters = emptyStockMovementFilters, loadProducts = false) => {
-    setLoading(true);
+  const loadData = useCallback(async (
+    nextFilters = emptyStockMovementFilters,
+    loadProducts = false,
+    { silent = false } = {},
+  ) => {
+    if (!silent) setLoading(true);
     setError("");
     try {
       if (loadProducts) {
@@ -56,13 +61,19 @@ export function useAdminStockMovements() {
     } catch (exception) {
       setError(exception.response?.data?.message ?? "Impossible de charger l'historique du stock.");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
     loadData(emptyStockMovementFilters, true);
   }, [loadData]);
+
+  useEffect(() => subscribeAdminRealtime((notification) => {
+    if (notification?.type === "ORDER_CREATED") {
+      loadData(filters, false, { silent: true });
+    }
+  }), [filters, loadData]);
 
   function updateFilter(event) {
     const { name, value } = event.target;
