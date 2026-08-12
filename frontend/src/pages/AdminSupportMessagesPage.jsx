@@ -1,7 +1,7 @@
 import AdminStatsCard from "../components/ui/AdminStatsCard";
 import AdminSupportMessagesTable from "../components/support/AdminSupportMessagesTable";
 import SupportMessageDetailModal from "../components/support/SupportMessageDetailModal";
-import { AsyncState, Button, Input, Select } from "../components/ui";
+import { AsyncState, Button, DateTimeInput, Input, Select } from "../components/ui";
 import {
   supportMessageStatusLabels,
   supportMessageStatuses,
@@ -55,8 +55,8 @@ export default function AdminSupportMessagesPage() {
             <option key={status} value={status}>{supportMessageStatusLabels[status] ?? status}</option>
           ))}
         </Select>
-        <Input label="Date de debut" name="dateFrom" type="date" value={filters.dateFrom} onChange={updateFilter} />
-        <Input label="Date de fin" name="dateTo" type="date" value={filters.dateTo} onChange={updateFilter} />
+        <DateTimeInput label="Date de début" name="dateFrom" type="date" value={filters.dateFrom} onChange={updateFilter} />
+        <DateTimeInput label="Date de fin" name="dateTo" type="date" value={filters.dateTo} onChange={updateFilter} />
         <div className="support-filter-actions">
           <Button loading={loading} type="submit">Filtrer</Button>
           <Button disabled={loading} variant="outline" onClick={resetFilters}>Reset</Button>

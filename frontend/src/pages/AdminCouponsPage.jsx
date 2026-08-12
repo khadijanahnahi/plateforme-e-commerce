@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import http from "../api/http";
+import { queryClient } from "../api/queryClient";
+import { Input, Select } from "../components/ui";
 
 const emptyForm = {
   code: "",
@@ -130,6 +132,7 @@ export default function AdminCouponsPage() {
       }
       resetForm();
       await loadCoupons();
+      await queryClient.invalidateQueries({ queryKey: ["public", "coupons", "active"] });
     } catch (exception) {
       setError(getApiErrorMessage(exception, "Unable to save coupon."));
     }
@@ -142,6 +145,7 @@ export default function AdminCouponsPage() {
       await http.patch(`/admin/coupons/${coupon.id}/${coupon.active ? "deactivate" : "activate"}`);
       setMessage(coupon.active ? "Coupon deactivated." : "Coupon activated.");
       await loadCoupons();
+      await queryClient.invalidateQueries({ queryKey: ["public", "coupons", "active"] });
     } catch (exception) {
       setError(getApiErrorMessage(exception, "Unable to update coupon status."));
     }
@@ -159,10 +163,10 @@ export default function AdminCouponsPage() {
           <input name="name" value={form.name} onChange={updateField} placeholder="Coupon name" required />
           <textarea name="description" value={form.description} onChange={updateField} placeholder="Description" />
           <div className="admin-form-row">
-            <select name="discountType" value={form.discountType} onChange={updateField}>
+            <Select name="discountType" value={form.discountType} onChange={updateField}>
               <option value="PERCENTAGE">Percentage</option>
               <option value="FIXED_AMOUNT">Fixed amount</option>
-            </select>
+            </Select>
             <input name="discountValue" type="number" min="0" step="0.01" value={form.discountValue} onChange={updateField} placeholder="Discount value" required />
           </div>
           <div className="admin-form-row">
@@ -174,8 +178,8 @@ export default function AdminCouponsPage() {
             <input name="perUserLimit" type="number" min="1" value={form.perUserLimit} onChange={updateField} placeholder="Per user limit" />
           </div>
           <div className="admin-form-row">
-            <input name="startsAt" type="datetime-local" value={form.startsAt} onChange={updateField} />
-            <input name="expiresAt" type="datetime-local" value={form.expiresAt} onChange={updateField} />
+            <Input label="Début" name="startsAt" type="datetime-local" value={form.startsAt} onChange={updateField} />
+            <Input label="Expiration" name="expiresAt" type="datetime-local" value={form.expiresAt} onChange={updateField} />
           </div>
           <label className="check-row category-active-toggle">
             <input name="active" type="checkbox" checked={form.active} onChange={updateField} />

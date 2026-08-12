@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import AdminOrdersTable from "../components/order/AdminOrdersTable";
 import AdminStatsCard from "../components/ui/AdminStatsCard";
-import { ErrorState } from "../components/ui";
+import { ErrorState, Select } from "../components/ui";
 import {
   ADMIN_ORDERS_PAGE_SIZE,
   orderStatuses,
@@ -66,14 +66,14 @@ export default function AdminOrdersPage() {
             onChange={(event) => updateSearch(event.target.value)}
             placeholder="Search by order number, customer name or phone"
           />
-          <select value={statusFilter} onChange={(event) => updateStatusFilter(event.target.value)}>
+          <Select value={statusFilter} onChange={(event) => updateStatusFilter(event.target.value)}>
             <option value="">All statuses</option>
             {orderStatuses.map((status) => <option key={status} value={status}>{status}</option>)}
-          </select>
-          <select value={paymentFilter} onChange={(event) => updatePaymentFilter(event.target.value)}>
+          </Select>
+          <Select value={paymentFilter} onChange={(event) => updatePaymentFilter(event.target.value)}>
             <option value="">All payments</option>
             {paymentStatuses.map((status) => <option key={status} value={status}>{status}</option>)}
-          </select>
+          </Select>
           <button className="button button-secondary" type="button" onClick={resetFilters}>Reset</button>
         </div>
 

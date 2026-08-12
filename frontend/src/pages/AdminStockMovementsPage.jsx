@@ -1,4 +1,4 @@
-import { AsyncState, Button, Input, Pagination, Select } from "../components/ui";
+import { AsyncState, Button, DateTimeInput, Input, Pagination, Select } from "../components/ui";
 import {
   ADMIN_STOCK_MOVEMENTS_PAGE_SIZE,
   stockMovementTypes,
@@ -64,8 +64,8 @@ export default function AdminStockMovementsPage() {
           {stockMovementTypes.map((type) => <option key={type} value={type}>{movementLabels[type]}</option>)}
         </Select>
         <Input label="Commande (ID)" min="1" name="orderId" type="number" value={filters.orderId} onChange={updateFilter} />
-        <Input label="Date de début" name="dateFrom" type="date" value={filters.dateFrom} onChange={updateFilter} />
-        <Input label="Date de fin" name="dateTo" type="date" value={filters.dateTo} onChange={updateFilter} />
+        <DateTimeInput label="Date de début" name="dateFrom" type="date" value={filters.dateFrom} onChange={updateFilter} />
+        <DateTimeInput label="Date de fin" name="dateTo" type="date" value={filters.dateTo} onChange={updateFilter} />
         <div className="stock-filter-actions">
           <Button loading={loading} type="submit">Appliquer</Button>
           <Button disabled={loading} variant="outline" onClick={resetFilters}>Réinitialiser</Button>

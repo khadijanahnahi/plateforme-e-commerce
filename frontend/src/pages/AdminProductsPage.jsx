@@ -2,6 +2,7 @@ import { useState } from "react";
 import { adminProductsApi, getApiErrorMessage } from "../api/adminProductsApi";
 import AdminPageHeader from "../components/layout/AdminPageHeader";
 import AdminProductsTable from "../components/product/AdminProductsTable";
+import ProductImportModal from "../components/product/ProductImportModal";
 import AdminStatsCard from "../components/ui/AdminStatsCard";
 import { Button, ConfirmDialog, Input, Pagination, Select, Textarea, Toast } from "../components/ui";
 import {
@@ -53,6 +54,7 @@ export default function AdminProductsPage() {
     totalPages,
     archiveProduct,
     deleteProduct,
+    loadProducts,
     resetFilters,
     saveProduct,
     searchProducts,
@@ -73,6 +75,7 @@ export default function AdminProductsPage() {
   const [archiving, setArchiving] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   function updateField(event) {
     const { checked, name, type, value } = event.target;
@@ -223,6 +226,11 @@ export default function AdminProductsPage() {
   const firstShown = filteredProducts.length === 0 ? 0 : (currentPage - 1) * ADMIN_PRODUCTS_PAGE_SIZE + 1;
   const lastShown = Math.min(currentPage * ADMIN_PRODUCTS_PAGE_SIZE, filteredProducts.length);
 
+  async function handleProductsImported(report) {
+    await loadProducts(search);
+    setMessage(`${report.importedCount} produit${report.importedCount > 1 ? "s" : ""} importé${report.importedCount > 1 ? "s" : ""}.`);
+  }
+
   return (
     <section className="page admin-page">
       <AdminPageHeader
@@ -235,6 +243,14 @@ export default function AdminProductsPage() {
 
       <Toast message={message} open={Boolean(message)} onClose={() => setMessage("")} />
       {error ? <div className="admin-alert">{error}</div> : null}
+
+      <div className="admin-products-bulk-action">
+        <div>
+          <strong>Import catalogue en lot</strong>
+          <span>Ajoutez jusqu’à 100 produits et leurs photos en une seule opération.</span>
+        </div>
+        <Button variant="outline" onClick={() => setIsImportModalOpen(true)}>Importer CSV + ZIP</Button>
+      </div>
 
       <div className="admin-product-stats">
         <AdminStatsCard label="Total produits" value={productStats.total} />
@@ -382,6 +398,12 @@ export default function AdminProductsPage() {
         variant="danger"
         onClose={() => !archiving && setArchiveTargetId(null)}
         onConfirm={handleArchiveProduct}
+      />
+
+      <ProductImportModal
+        open={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onImported={handleProductsImported}
       />
 
       <ConfirmDialog

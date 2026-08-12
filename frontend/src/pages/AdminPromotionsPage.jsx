@@ -10,6 +10,7 @@ import {
   useAdminPromotions,
 } from "../hooks/useAdminPromotions";
 import useFeedbackToast from "../hooks/useFeedbackToast";
+import { Select } from "../components/ui";
 
 export default function AdminPromotionsPage() {
   const {
@@ -110,24 +111,24 @@ export default function AdminPromotionsPage() {
 
       <div className="admin-panel promotions-panel">
         <form className="admin-search promotions-toolbar" onSubmit={applyFilters}>
-          <select name="status" value={filters.status} onChange={updateFilter}>
+          <Select name="status" value={filters.status} onChange={updateFilter}>
             <option value="">Status: All</option>
             {promotionStatuses.map((status) => (
               <option key={status} value={status}>{status}</option>
             ))}
-          </select>
-          <select name="type" value={filters.type} onChange={updateFilter}>
+          </Select>
+          <Select name="type" value={filters.type} onChange={updateFilter}>
             <option value="">Type: All</option>
             {promotionTypes.map((type) => (
               <option key={type} value={type}>{type}</option>
             ))}
-          </select>
-          <select name="productId" value={filters.productId} onChange={updateFilter}>
+          </Select>
+          <Select name="productId" value={filters.productId} onChange={updateFilter}>
             <option value="">Product: All</option>
             {products.map((product) => (
               <option key={product.id} value={product.id}>{product.name}</option>
             ))}
-          </select>
+          </Select>
           <label className="check-row compact-check">
             <input name="activeOnly" type="checkbox" checked={filters.activeOnly} onChange={updateFilter} />
             <span>Active only</span>

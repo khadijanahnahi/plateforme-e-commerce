@@ -36,11 +36,26 @@ export default function BlogPage() {
   function submit(event) { event.preventDefault(); syncUrl(category, search); load(1); }
 
   return <main className="blog-page">
-    <section className="page blog-hero"><div><span className="section-kicker">Conseils & inspirations</span><h1>Le journal ShopSphere</h1><p>Des idées concrètes pour composer un quotidien plus simple, élégant et durable.</p></div><Link className="button button-primary" to="/products">Explorer la boutique</Link></section>
+    <section className="page blog-hero">
+      <div className="blog-hero-copy">
+        <span className="section-kicker">Conseils & inspirations</span>
+        <h1>Le journal <em>ShopSphere</em></h1>
+        <p>Des idées concrètes pour composer un quotidien plus simple, élégant et durable.</p>
+      </div>
+      <div className="blog-hero-action">
+        <span className="blog-hero-mark" aria-hidden="true">J</span>
+        <div><strong>Éditorial ShopSphere</strong><small>Style, matières et inspirations</small></div>
+        <Link className="button button-primary" to="/products">Explorer la boutique <span aria-hidden="true">→</span></Link>
+      </div>
+    </section>
     <div className="page blog-page-content">
       {!search && !category ? <BlogFeaturedArticle article={featured} /> : null}
       <form className="blog-toolbar" onSubmit={submit}><Input fullWidth aria-label="Rechercher un article" placeholder="Rechercher un article..." value={search} onChange={(event) => setSearch(event.target.value)} /><button className="button button-primary" type="submit">Rechercher</button></form>
       <BlogCategoryFilter categories={categories} selected={category} onChange={chooseCategory} />
+      {!error && !loading && posts.length ? <header className="blog-results-heading">
+        <div><span className="section-kicker">À lire maintenant</span><h2>{search || category ? "Résultats du journal" : "Dernières publications"}</h2></div>
+        <span>{posts.length} article{posts.length > 1 ? "s" : ""} sur cette page</span>
+      </header> : null}
       {error ? <ErrorState description={error} onRetry={() => load(page)} /> : loading ? <div className="blog-grid">{Array.from({ length: 6 }, (_, index) => <Skeleton className="blog-card-skeleton" key={index} />)}</div> : !posts.length ? <EmptyState title="Aucun article trouvé" description="Essayez un autre terme ou une autre catégorie." action={<button className="button button-secondary" type="button" onClick={() => { setSearch(""); chooseCategory(""); }}>Réinitialiser</button>} /> : <div className="blog-grid">{posts.map((article) => <BlogArticleCard article={article} key={article.id} />)}</div>}
       <Pagination page={page} totalPages={totalPages} onPageChange={(next) => load(next)} />
       <section className="blog-shop-cta"><div><span className="section-kicker">ShopSphere</span><h2>Du conseil à la sélection</h2><p>Retrouvez les pièces citées dans nos articles directement dans la boutique.</p></div><Link className="button button-primary" to="/products">Voir les produits →</Link></section>

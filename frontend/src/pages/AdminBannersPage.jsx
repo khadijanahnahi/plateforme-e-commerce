@@ -8,6 +8,7 @@ import {
   useAdminBanners,
 } from "../hooks/useAdminBanners";
 import useFeedbackToast from "../hooks/useFeedbackToast";
+import { Select } from "../components/ui";
 
 function labelPlacementFilter(placement) {
   if (placement === "ALL") return "Tous les emplacements";
@@ -106,7 +107,7 @@ export default function AdminBannersPage() {
 
         <div className="admin-panel admin-banners-list-panel">
           <div className="admin-search">
-            <select
+            <Select
               aria-label="Filtrer par emplacement"
               value={placementFilter}
               onChange={(event) => setPlacementFilter(event.target.value)}
@@ -116,7 +117,7 @@ export default function AdminBannersPage() {
                   {labelPlacementFilter(placement)}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
 
           <AdminBannersList

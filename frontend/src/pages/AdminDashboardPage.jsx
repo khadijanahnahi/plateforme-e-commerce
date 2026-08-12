@@ -4,6 +4,7 @@ import DashboardKpiGrid from "../components/dashboard/DashboardKpiGrid";
 import DashboardSkeleton from "../components/dashboard/DashboardSkeleton";
 import DashboardTables from "../components/dashboard/DashboardTables";
 import { dashboardPeriods, useAdminDashboard } from "../hooks/useAdminDashboard";
+import { Select } from "../components/ui";
 
 export default function AdminDashboardPage() {
   const {
@@ -25,11 +26,11 @@ export default function AdminDashboardPage() {
     <section className="page admin-page admin-dashboard-page">
       <div className="admin-actions dashboard-toolbar">
         <span>Période</span>
-        <select className="dashboard-period-select" value={period} onChange={(event) => updatePeriod(event.target.value)}>
+        <Select className="dashboard-period-select" value={period} onChange={(event) => updatePeriod(event.target.value)}>
           {dashboardPeriods.map((option) => (
             <option key={option.value} value={option.value}>{option.label}</option>
           ))}
-        </select>
+        </Select>
         <Link className="button button-secondary" to="/admin/products">Gérer les produits</Link>
         <Link className="button button-primary" to="/admin/orders">Voir les commandes</Link>
       </div>

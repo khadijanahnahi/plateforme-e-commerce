@@ -3,6 +3,7 @@ import {
   promotionStatuses,
   promotionTypes,
 } from "../../hooks/useAdminPromotions";
+import { Input, Select } from "../ui";
 
 export default function PromotionFormModal({
   activeProducts,
@@ -33,14 +34,14 @@ export default function PromotionFormModal({
         </div>
 
         <form className="admin-form" onSubmit={onSubmit}>
-          <select name="productId" value={form.productId} onChange={onFieldChange} required>
+          <Select name="productId" value={form.productId} onChange={onFieldChange} required>
             <option value="">Select product</option>
             {selectableProducts.map((product) => (
               <option key={product.id} value={product.id}>
                 {product.name} - {formatPromotionMoney(product.price)}
               </option>
             ))}
-          </select>
+          </Select>
           {activeProducts.length === 0 ? (
             <small className="admin-muted">No ACTIVE products available for a new promotion.</small>
           ) : null}
@@ -49,11 +50,11 @@ export default function PromotionFormModal({
           <textarea name="description" value={form.description} onChange={onFieldChange} placeholder="Description" />
 
           <div className="admin-form-row">
-            <select name="promotionType" value={form.promotionType} onChange={onFieldChange}>
+            <Select name="promotionType" value={form.promotionType} onChange={onFieldChange}>
               {promotionTypes.map((type) => (
                 <option key={type} value={type}>{type}</option>
               ))}
-            </select>
+            </Select>
             <input
               name="promotionalPrice"
               value={form.promotionalPrice}
@@ -67,16 +68,16 @@ export default function PromotionFormModal({
           </div>
 
           <div className="admin-form-row">
-            <input name="startsAt" value={form.startsAt} onChange={onFieldChange} type="datetime-local" required />
-            <input name="endsAt" value={form.endsAt} onChange={onFieldChange} type="datetime-local" required />
+            <Input label="Début" name="startsAt" value={form.startsAt} onChange={onFieldChange} type="datetime-local" required />
+            <Input label="Fin" name="endsAt" value={form.endsAt} onChange={onFieldChange} type="datetime-local" required />
           </div>
 
           <div className="admin-form-row">
-            <select name="status" value={form.status} onChange={onFieldChange}>
+            <Select name="status" value={form.status} onChange={onFieldChange}>
               {promotionStatuses.map((status) => (
                 <option key={status} value={status}>{status}</option>
               ))}
-            </select>
+            </Select>
             <input name="priority" value={form.priority} onChange={onFieldChange} type="number" min="0" placeholder="Priority" />
           </div>
 

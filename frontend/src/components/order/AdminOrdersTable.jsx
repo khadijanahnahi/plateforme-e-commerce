@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { allowedTransitions } from "../../hooks/useAdminOrders";
 import AdminStatusBadge from "../ui/AdminStatusBadge";
 import PaymentStatusBadge from "./PaymentStatusBadge";
-import { AsyncState, Button } from "../ui";
+import { AsyncState, Button, Select } from "../ui";
 
 function formatDate(value) {
   return value ? new Date(value).toLocaleString() : "-";
@@ -77,14 +77,14 @@ export default function AdminOrdersTable({
                 </td>
                 <td>
                   <div className="order-update-control">
-                    <select
+                    <Select
                       value={selectedStatus}
                       disabled={transitions.length === 0 || statusPending}
                       onChange={(event) => onSelectedStatusChange(order.id, event.target.value)}
                     >
                       <option value="">{transitions.length === 0 ? "No updates" : "Choose status"}</option>
                       {transitions.map((status) => <option key={status} value={status}>{status}</option>)}
-                    </select>
+                    </Select>
                     <Button
                       loading={statusPending}
                       size="sm"

@@ -6,13 +6,15 @@ function normalizeCoupons(data) {
   return data?.content ?? data?.items ?? [];
 }
 
-export function usePublicCoupons() {
+export function usePublicCoupons({ alwaysFresh = false } = {}) {
   return useQuery({
     queryKey: ["public", "coupons", "active"],
     queryFn: async () => {
       const response = await couponApi.getActivePublicCoupons();
       return normalizeCoupons(response.data);
     },
-    staleTime: 2 * 60_000,
+    staleTime: alwaysFresh ? 0 : 2 * 60_000,
+    refetchOnMount: alwaysFresh ? "always" : true,
+    refetchOnWindowFocus: alwaysFresh,
   });
 }

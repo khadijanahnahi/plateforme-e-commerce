@@ -36,6 +36,17 @@ export const adminProductsApi = {
       headers: { "Content-Type": "multipart/form-data" },
     });
   },
+
+  importProducts(formData, dryRun = true) {
+    return http.post("/admin/products/import", formData, {
+      params: { dryRun },
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+
+  downloadImportTemplate() {
+    return http.get("/admin/products/import/template", { responseType: "blob" });
+  },
 };
 
 export function getApiErrorMessage(exception, fallback) {

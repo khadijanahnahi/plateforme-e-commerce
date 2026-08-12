@@ -20,6 +20,14 @@ app:
     enabled: false
   email:
     enabled: false
+  web-push:
+    enabled: false
+    public-key: ""
+    private-key: ""
+    subject: mailto:test@shopsphere.local
+    storage-encryption-key: ""
+    ttl-seconds: 60
+    max-attempts: 1
 
 jwt:
   secret: tests-only-secret-key-with-at-least-sixty-four-characters-123456789

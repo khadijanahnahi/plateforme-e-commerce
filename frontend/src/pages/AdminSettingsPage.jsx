@@ -1,5 +1,6 @@
 import { useAdminSettings } from "../hooks/useAdminSettings";
 import useFeedbackToast from "../hooks/useFeedbackToast";
+import { Select } from "../components/ui";
 
 function SettingsSwitch({ checked, description, disabled = false, label, name, onChange }) {
   return (
@@ -34,7 +35,7 @@ export default function AdminSettingsPage() {
               <header><span>01</span><div><h2>Informations de la boutique</h2><p>Identité et coordonnées affichées aux clients.</p></div></header>
               <div className="settings-fields-grid">
                 <label><span>Nom de la boutique</span><input name="storeName" value={form.storeName} onChange={updateField} maxLength="120" required /></label>
-                <label><span>Devise</span><select name="currency" value={form.currency} onChange={updateField} required><option value="MAD">MAD — Dirham marocain</option><option value="EUR">EUR — Euro</option><option value="USD">USD — Dollar américain</option></select></label>
+                <Select label="Devise" name="currency" value={form.currency} onChange={updateField} required><option value="MAD">MAD — Dirham marocain</option><option value="EUR">EUR — Euro</option><option value="USD">USD — Dollar américain</option></Select>
                 <label><span>Email support</span><input name="supportEmail" type="email" value={form.supportEmail} onChange={updateField} required /></label>
                 <label><span>Téléphone support</span><input name="supportPhone" value={form.supportPhone} onChange={updateField} maxLength="40" /></label>
                 <label className="settings-field-full"><span>Adresse de la boutique</span><textarea name="storeAddress" value={form.storeAddress} onChange={updateField} rows="3" /></label>

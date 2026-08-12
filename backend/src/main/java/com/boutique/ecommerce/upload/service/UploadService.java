@@ -39,8 +39,18 @@ public class UploadService {
     }
 
     public UploadResponse uploadProductImage(MultipartFile file) {
-        validateCloudinaryConfig();
         validateImage(file);
+
+        try {
+            return uploadProductImage(file.getOriginalFilename(), file.getContentType(), file.getBytes());
+        } catch (IOException exception) {
+            throw new IllegalArgumentException("Unable to read image file.");
+        }
+    }
+
+    public UploadResponse uploadProductImage(String filename, String contentType, byte[] bytes) {
+        validateCloudinaryConfig();
+        validateImage(filename, contentType, bytes);
 
         try {
             Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
@@ -50,7 +60,7 @@ public class UploadService {
                     "secure", true
             ));
 
-            Map<?, ?> result = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
+            Map<?, ?> result = cloudinary.uploader().upload(bytes, ObjectUtils.asMap(
                     "folder", productFolder,
                     "resource_type", "image",
                     "use_filename", false,
@@ -80,12 +90,19 @@ public class UploadService {
             throw new IllegalArgumentException("Image file is required.");
         }
 
-        String contentType = file.getContentType();
+        validateImage(file.getOriginalFilename(), file.getContentType(), new byte[] {1});
+    }
+
+    private void validateImage(String filename, String contentType, byte[] bytes) {
+        if (bytes == null || bytes.length == 0) {
+            throw new IllegalArgumentException("Image file is required.");
+        }
+
         if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType.toLowerCase(Locale.ROOT))) {
             throw new IllegalArgumentException("Only JPG, JPEG, PNG and WEBP images are allowed.");
         }
 
-        String extension = getExtension(file.getOriginalFilename());
+        String extension = getExtension(filename);
         if (!ALLOWED_EXTENSIONS.contains(extension)) {
             throw new IllegalArgumentException("Only JPG, JPEG, PNG and WEBP images are allowed.");
         }

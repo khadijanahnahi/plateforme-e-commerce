@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { productApi } from "../api/productApi";
 import ProductCard from "../components/product/ProductCard";
-import { AsyncState, Button, Pagination } from "../components/ui";
+import { AsyncState, Button, Pagination, Select } from "../components/ui";
 import { useAuth } from "../contexts/AuthContext";
 import { useCart } from "../hooks/useCart";
 import { useWishlist } from "../hooks/useWishlist";
@@ -203,24 +203,24 @@ export default function ProductsPage() {
 
       <form className="catalog-filters" onSubmit={handleFilter}>
         <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Rechercher un produit" />
-        <select value={categoryId} onChange={(event) => setCategoryId(event.target.value)}>
+        <Select aria-label="Catégorie" value={categoryId} onChange={(event) => setCategoryId(event.target.value)}>
           <option value="">Toutes les catégories</option>
           {categories.map((category) => (
             <option key={category.id} value={category.id}>{category.name}</option>
           ))}
-        </select>
-        <select value={audience} onChange={(event) => setAudience(event.target.value)} aria-label="Genre">
+        </Select>
+        <Select value={audience} onChange={(event) => setAudience(event.target.value)} aria-label="Genre">
           <option value="">Tous les genres</option>
           <option value="UNISEXE">Unisexe</option>
           <option value="HOMME">Homme</option>
           <option value="FEMME">Femme</option>
-        </select>
-        <select value={productSize} onChange={(event) => setProductSize(event.target.value)} aria-label="Taille">
+        </Select>
+        <Select value={productSize} onChange={(event) => setProductSize(event.target.value)} aria-label="Taille">
           <option value="">Toutes les tailles</option>
           {['XS', 'S', 'M', 'L', 'XL', 'XXL'].map((size) => (
             <option value={size} key={size}>{size}</option>
           ))}
-        </select>
+        </Select>
         <Button loading={loading} type="submit">Appliquer</Button>
       </form>
 

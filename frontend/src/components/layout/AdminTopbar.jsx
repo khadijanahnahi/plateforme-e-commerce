@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import profileImage from "../../../images/profile.webp";
+import AdminNotificationCenter from "./AdminNotificationCenter";
 
 export default function AdminTopbar({ mobileOpen, onLogout, onToggleMobile, user }) {
   return (
@@ -23,6 +24,7 @@ export default function AdminTopbar({ mobileOpen, onLogout, onToggleMobile, user
 
       <div className="admin-topbar-actions">
         <NavLink className="auth-button signup-button" to="/">View Store</NavLink>
+        <AdminNotificationCenter />
         <NavLink className="profile-avatar-link admin-profile-link" to="/profile" aria-label="Open admin profile">
           <img src={profileImage} alt={user?.fullName ?? "Admin profile"} />
         </NavLink>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { publicSettingsApi } from "../api/publicSettingsApi";
 import { getSupportApiError, supportApi } from "../api/supportApi";
+import { Select } from "../components/ui";
 
 const supportHighlights = [
   {
@@ -184,17 +185,23 @@ export default function SupportPage() {
           </div>
 
           <div className="support-form-row">
-            <div className="support-field support-field-select">
-              <label htmlFor="support-subject">Sujet</label>
-              <select id="support-subject" name="subject" defaultValue="" aria-label="Sujet de la demande" required>
+            <Select
+              className="support-subject-select"
+              fullWidth
+              id="support-subject"
+              label="Sujet"
+              name="subject"
+              defaultValue=""
+              aria-label="Sujet de la demande"
+              required
+            >
                 <option value="" disabled>Choisir un sujet</option>
                 <option>Question sur une commande</option>
                 <option>Livraison & expédition</option>
                 <option>Retours & échanges</option>
                 <option>Aide sur mon compte</option>
                 <option>Autre</option>
-              </select>
-            </div>
+            </Select>
             <div className="support-field">
               <input id="support-orderNumber" name="orderNumber" placeholder=" " aria-label="Numéro de commande (facultatif)" />
               <label htmlFor="support-orderNumber">Numéro de commande (facultatif)</label>

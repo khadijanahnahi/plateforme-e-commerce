@@ -1,6 +1,7 @@
 import AdminReviewsTable from "../components/review/AdminReviewsTable";
 import { reviewStatuses, useAdminReviews } from "../hooks/useAdminReviews";
 import useFeedbackToast from "../hooks/useFeedbackToast";
+import { Select } from "../components/ui";
 
 export default function AdminReviewsPage() {
   const {
@@ -22,10 +23,10 @@ export default function AdminReviewsPage() {
 
       <div className="admin-panel">
         <div className="admin-search admin-review-toolbar">
-          <select value={statusFilter} onChange={(event) => updateStatusFilter(event.target.value)}>
+          <Select value={statusFilter} onChange={(event) => updateStatusFilter(event.target.value)}>
             <option value="">All statuses</option>
             {reviewStatuses.map((status) => <option key={status} value={status}>{status}</option>)}
-          </select>
+          </Select>
         </div>
 
         <AdminReviewsTable

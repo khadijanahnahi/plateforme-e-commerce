@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import http from "../api/http";
+import { Select } from "../components/ui";
 
 function getApiErrorMessage(exception, fallback) {
   const status = exception.response?.status;
@@ -127,11 +128,11 @@ export default function AdminCustomersPage() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
-          <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+          <Select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
             <option value="">All</option>
             <option value="true">Active</option>
             <option value="false">Inactive</option>
-          </select>
+          </Select>
           <button className="customers-reset-button" type="button" onClick={resetFilters}>
             Reset filters
           </button>

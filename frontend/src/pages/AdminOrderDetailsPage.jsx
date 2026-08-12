@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import http from "../api/http";
+import { Select } from "../components/ui";
 
 const orderStatuses = ["PENDING", "CONFIRMED", "SHIPPED", "DELIVERED", "CANCELLED"];
 
@@ -131,9 +132,9 @@ export default function AdminOrderDetailsPage() {
           <div className="admin-panel">
             <div className="admin-detail-toolbar">
               <h2>Items</h2>
-              <select value={order.status} onChange={(event) => updateStatus(event.target.value)}>
+              <Select value={order.status} onChange={(event) => updateStatus(event.target.value)}>
                 {orderStatuses.map((status) => <option key={status} value={status}>{status}</option>)}
-              </select>
+              </Select>
             </div>
             <div className="admin-table-wrap">
               <table className="admin-table">

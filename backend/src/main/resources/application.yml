@@ -22,8 +22,8 @@ spring:
     baseline-version: 0
   servlet:
     multipart:
-      max-file-size: 5MB
-      max-request-size: 5MB
+      max-file-size: ${APP_UPLOAD_MAX_FILE_SIZE:100MB}
+      max-request-size: ${APP_UPLOAD_MAX_REQUEST_SIZE:105MB}
   mail:
     host: ${AWS_SES_SMTP_HOST:}
     port: ${AWS_SES_SMTP_PORT:587}
@@ -85,6 +85,15 @@ app:
     refresh-cookie:
       secure: ${APP_REFRESH_COOKIE_SECURE:false}
       same-site: ${APP_REFRESH_COOKIE_SAME_SITE:Lax}
+  web-push:
+    enabled: ${APP_WEB_PUSH_ENABLED:false}
+    public-key: ${APP_WEB_PUSH_PUBLIC_KEY:}
+    private-key: ${APP_WEB_PUSH_PRIVATE_KEY:}
+    subject: ${APP_WEB_PUSH_SUBJECT:mailto:admin@shopsphere.local}
+    storage-encryption-key: ${APP_WEB_PUSH_STORAGE_ENCRYPTION_KEY:}
+    ttl-seconds: ${APP_WEB_PUSH_TTL_SECONDS:3600}
+    max-attempts: ${APP_WEB_PUSH_MAX_ATTEMPTS:5}
+    worker-delay-ms: ${APP_WEB_PUSH_WORKER_DELAY_MS:5000}
 
 cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME:}

@@ -1,6 +1,7 @@
 export { default as Button } from "./Button";
 export { default as AsyncState } from "./AsyncState";
 export { default as ConfirmDialog } from "./ConfirmDialog";
+export { default as DateTimeInput } from "./DateTimeInput";
 export { default as EmptyState } from "./EmptyState";
 export { default as ErrorState } from "./ErrorState";
 export { default as Input } from "./Input";

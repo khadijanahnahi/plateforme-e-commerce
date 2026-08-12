@@ -6,6 +6,7 @@ import { AsyncState, Button, Input, Textarea } from "../components/ui";
 import useAsyncAction from "../hooks/useAsyncAction";
 import { useToast } from "../hooks/useToast";
 import PublicCouponOffers from "../components/coupon/PublicCouponOffers";
+import { queryClient } from "../api/queryClient";
 
 const DIRECT_CHECKOUT_KEY = "shopsphere_direct_checkout";
 
@@ -199,6 +200,10 @@ export default function CheckoutPage() {
         const message = getApiErrorMessage(exception, "Code promo invalide.");
         setCouponMessage(message);
         toast.error(message);
+        await queryClient.invalidateQueries({
+          queryKey: ["public", "coupons", "active"],
+          refetchType: "active",
+        });
       }
     });
   }

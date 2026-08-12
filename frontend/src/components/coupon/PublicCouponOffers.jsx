@@ -38,7 +38,9 @@ export default function PublicCouponOffers({
   onApply,
   variant = "home",
 }) {
-  const { data: coupons = [], isLoading } = usePublicCoupons();
+  const { data: coupons = [], isLoading } = usePublicCoupons({
+    alwaysFresh: variant === "checkout",
+  });
   const [pendingCode, setPendingCode] = useState("");
   const toast = useToast();
   const visibleCoupons = coupons.slice(0, limit);

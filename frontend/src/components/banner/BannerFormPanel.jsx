@@ -1,4 +1,5 @@
 import { bannerPlacements } from "../../hooks/useAdminBanners";
+import { Input, Select } from "../ui";
 
 function labelPlacement(placement) {
   if (placement === "HOME_HERO") return "Home hero";
@@ -38,16 +39,16 @@ export default function BannerFormPanel({
         <input name="targetUrl" value={form.targetUrl} onChange={onFieldChange} placeholder="/products or https://..." />
       </div>
       <div className="admin-form-row">
-        <select name="placement" value={form.placement} onChange={onFieldChange}>
+        <Select name="placement" value={form.placement} onChange={onFieldChange}>
           {bannerPlacements.map((placement) => (
             <option key={placement} value={placement}>{labelPlacement(placement)}</option>
           ))}
-        </select>
+        </Select>
         <input name="priority" type="number" value={form.priority} onChange={onFieldChange} placeholder="Priority" />
       </div>
       <div className="admin-form-row">
-        <input name="startsAt" type="datetime-local" value={form.startsAt} onChange={onFieldChange} />
-        <input name="endsAt" type="datetime-local" value={form.endsAt} onChange={onFieldChange} />
+        <Input label="Début" name="startsAt" type="datetime-local" value={form.startsAt} onChange={onFieldChange} />
+        <Input label="Fin" name="endsAt" type="datetime-local" value={form.endsAt} onChange={onFieldChange} />
       </div>
       <label className="check-row category-active-toggle">
         <input name="active" type="checkbox" checked={form.active} onChange={onFieldChange} />
