@@ -69,9 +69,9 @@ jobs:
           skip-dirs: backend/target,frontend/dist,frontend/node_modules
 
   backend:
-    name: Backend fast tests
+    name: Backend tests and Sonar
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: backend
@@ -111,7 +111,6 @@ jobs:
           SONAR_PROJECT_KEY: ${{ vars.SONAR_BACKEND_PROJECT_KEY }}
         run: >-
           mvn -B
-          -Dtest=EcommerceApplicationTests,BlogContentServiceTest,BlogMediaStorageServiceTest,PromotionServiceTest,InvoicePdfServiceTest
           verify
           org.sonarsource.scanner.maven:sonar-maven-plugin:5.7.0.6970:sonar
           -Dsonar.host.url=${SONAR_HOST_URL}

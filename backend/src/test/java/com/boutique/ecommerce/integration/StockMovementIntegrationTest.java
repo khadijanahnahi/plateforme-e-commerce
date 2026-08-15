@@ -7,7 +7,9 @@ import com.boutique.ecommerce.category.entity.Category;
 import com.boutique.ecommerce.category.repository.CategoryRepository;
 import com.boutique.ecommerce.product.dto.UpdateProductStockRequest;
 import com.boutique.ecommerce.product.entity.Product;
+import com.boutique.ecommerce.product.entity.ProductSize;
 import com.boutique.ecommerce.product.entity.ProductStatus;
+import com.boutique.ecommerce.product.entity.ProductVariant;
 import com.boutique.ecommerce.product.repository.ProductRepository;
 import com.boutique.ecommerce.product.service.ProductService;
 import com.boutique.ecommerce.stock.entity.StockMovement;
@@ -68,6 +70,13 @@ class StockMovementIntegrationTest extends PostgresIntegrationTestBase {
                 .sku("STOCK-" + suffix)
                 .status(ProductStatus.ACTIVE)
                 .category(category)
+                .build());
+        productVariantRepository.save(ProductVariant.builder()
+                .product(product)
+                .size(ProductSize.TAILLE_UNIQUE)
+                .sku(product.getSku() + "-UNIQUE")
+                .stockQuantity(product.getStockQuantity())
+                .active(true)
                 .build());
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(admin.getEmail(), null, List.of()));
