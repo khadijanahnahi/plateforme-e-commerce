@@ -111,7 +111,7 @@ jobs:
           SONAR_PROJECT_KEY: ${{ vars.SONAR_BACKEND_PROJECT_KEY }}
         run: >-
           mvn -B
-          -Dtest=EcommerceApplicationTests,BlogContentServiceTest,BlogMediaStorageServiceTest,PromotionServiceTest
+          -Dtest=EcommerceApplicationTests,BlogContentServiceTest,BlogMediaStorageServiceTest,PromotionServiceTest,InvoicePdfServiceTest
           verify
           org.sonarsource.scanner.maven:sonar-maven-plugin:5.7.0.6970:sonar
           -Dsonar.host.url=${SONAR_HOST_URL}
