@@ -3,19 +3,58 @@ import { clearAccessToken, getAccessToken, setAccessToken } from "./authTokenSto
 
 const baseURL = import.meta.env.VITE_API_URL || "/api";
 
-const http = axios.create({
+const axiosSecurityOptions = {
   baseURL,
   withCredentials: true,
-});
+  withXSRFToken: true,
+  xsrfCookieName: "XSRF-TOKEN",
+  xsrfHeaderName: "X-XSRF-TOKEN",
+};
 
-const refreshClient = axios.create({
+const http = axios.create(axiosSecurityOptions);
+
+const refreshClient = axios.create(axiosSecurityOptions);
+
+const csrfClient = axios.create({
   baseURL,
   withCredentials: true,
 });
 
 let refreshRequest = null;
+let csrfRequest = null;
 
-http.interceptors.request.use((config) => {
+function hasCsrfCookie() {
+  return document.cookie
+    .split(";")
+    .some((cookie) => cookie.trim().startsWith("XSRF-TOKEN="));
+}
+
+export async function ensureCsrfToken(force = false) {
+  if (!force && hasCsrfCookie()) {
+    return;
+  }
+
+  csrfRequest ??= csrfClient.get("/auth/csrf").finally(() => {
+    csrfRequest = null;
+  });
+
+  await csrfRequest;
+}
+
+function requiresCsrf(method) {
+  return ["post", "put", "patch", "delete"].includes(method?.toLowerCase());
+}
+
+async function prepareSecureRequest(config) {
+  if (requiresCsrf(config.method)) {
+    await ensureCsrfToken();
+  }
+
+  return config;
+}
+
+http.interceptors.request.use(async (config) => {
+  await prepareSecureRequest(config);
   const accessToken = getAccessToken();
 
   if (accessToken) {
@@ -24,6 +63,8 @@ http.interceptors.request.use((config) => {
 
   return config;
 });
+
+refreshClient.interceptors.request.use(prepareSecureRequest);
 
 http.interceptors.response.use(
   (response) => response,

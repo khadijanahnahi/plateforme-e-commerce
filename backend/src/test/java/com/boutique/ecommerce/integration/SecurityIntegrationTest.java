@@ -1,7 +1,10 @@
 package com.boutique.ecommerce.integration;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 import com.boutique.ecommerce.order.entity.Order;
 import com.boutique.ecommerce.order.entity.OrderStatus;
@@ -20,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -80,6 +84,29 @@ class SecurityIntegrationTest extends PostgresIntegrationTestBase {
     void publicCatalogEndpointRemainsAccessible() throws Exception {
         mockMvc.perform(get("/api/categories"))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void stateChangingRequestRequiresCsrfToken() throws Exception {
+        String invalidSupportRequest = "{}";
+
+        mockMvc.perform(post("/api/support-messages")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalidSupportRequest))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(post("/api/support-messages")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalidSupportRequest))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void csrfBootstrapPublishesTokenCookie() throws Exception {
+        mockMvc.perform(get("/api/auth/csrf"))
+                .andExpect(status().isNoContent())
+                .andExpect(cookie().exists("XSRF-TOKEN"));
     }
 
     private AppUser createUser(RoleName roleName) {
