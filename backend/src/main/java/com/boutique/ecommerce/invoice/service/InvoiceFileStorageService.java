@@ -9,9 +9,11 @@ import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import io.minio.StatObjectArgs;
 import io.minio.errors.ErrorResponseException;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -33,11 +35,14 @@ public class InvoiceFileStorageService {
                 .build();
     }
 
-    public String store(Path sourcePdf, String invoiceNumber) {
-        if (isMinioEnabled()) {
-            return storeInMinio(sourcePdf, invoiceNumber);
+    public String store(byte[] pdfContent, String invoiceNumber) {
+        if (pdfContent == null || pdfContent.length == 0) {
+            throw new IllegalArgumentException("Invoice PDF content must not be empty.");
         }
-        return storeLocally(sourcePdf, invoiceNumber);
+        if (isMinioEnabled()) {
+            return storeInMinio(pdfContent, invoiceNumber);
+        }
+        return storeLocally(pdfContent, invoiceNumber);
     }
 
     public boolean exists(String location) {
@@ -60,27 +65,36 @@ public class InvoiceFileStorageService {
         return downloadLocal(location);
     }
 
-    private String storeLocally(Path sourcePdf, String invoiceNumber) {
+    private String storeLocally(byte[] pdfContent, String invoiceNumber) {
         try {
             Path storageDirectory = Path.of(invoiceProperties.getStoragePath()).toAbsolutePath().normalize();
             Files.createDirectories(storageDirectory);
-            Path targetPath = storageDirectory.resolve(invoiceNumber + ".pdf");
-            Files.copy(sourcePdf, targetPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            Path targetPath = storageDirectory.resolve(invoiceNumber + ".pdf").normalize();
+            if (!targetPath.startsWith(storageDirectory)) {
+                throw new IllegalArgumentException("Invalid invoice file name.");
+            }
+            Files.write(
+                    targetPath,
+                    pdfContent,
+                    StandardOpenOption.CREATE,
+                    StandardOpenOption.TRUNCATE_EXISTING,
+                    StandardOpenOption.WRITE
+            );
             return targetPath.toString();
         } catch (Exception exception) {
             throw new IllegalStateException("Unable to store invoice PDF locally.", exception);
         }
     }
 
-    private String storeInMinio(Path sourcePdf, String invoiceNumber) {
+    private String storeInMinio(byte[] pdfContent, String invoiceNumber) {
         try {
             ensureBucketExists();
             String objectName = normalizePrefix(invoiceProperties.getMinioPrefix()) + invoiceNumber + ".pdf";
-            try (InputStream inputStream = Files.newInputStream(sourcePdf)) {
+            try (InputStream inputStream = new ByteArrayInputStream(pdfContent)) {
                 minioClient.putObject(PutObjectArgs.builder()
                         .bucket(invoiceProperties.getMinioBucket())
                         .object(objectName)
-                        .stream(inputStream, Files.size(sourcePdf), -1)
+                        .stream(inputStream, pdfContent.length, -1)
                         .contentType("application/pdf")
                         .build());
             }

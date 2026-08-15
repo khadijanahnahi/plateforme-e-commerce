@@ -13,8 +13,6 @@ import com.boutique.ecommerce.order.entity.PaymentStatus;
 import com.boutique.ecommerce.settings.repository.StoreSettingsRepository;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -33,18 +31,15 @@ class InvoicePdfServiceTest {
     private StoreSettingsRepository storeSettingsRepository;
 
     @Test
-    void generatePdfBuildsStoresAndCleansUpTheDocument() throws Exception {
+    void generatePdfBuildsAndStoresTheDocumentInMemory() {
         InvoicePdfService service = new InvoicePdfService(invoiceFileStorageService, storeSettingsRepository);
         Invoice invoice = invoiceFixture();
-        AtomicReference<Path> generatedPath = new AtomicReference<>();
         AtomicReference<byte[]> generatedBytes = new AtomicReference<>();
 
         when(storeSettingsRepository.findById(any())).thenReturn(Optional.empty());
-        when(invoiceFileStorageService.store(any(Path.class), eq("INV-TEST-v2")))
+        when(invoiceFileStorageService.store(any(byte[].class), eq("INV-TEST-v2")))
                 .thenAnswer(invocation -> {
-                    Path path = invocation.getArgument(0);
-                    generatedPath.set(path);
-                    generatedBytes.set(Files.readAllBytes(path));
+                    generatedBytes.set(invocation.getArgument(0));
                     return "invoices/INV-TEST-v2.pdf";
                 });
 
@@ -53,8 +48,6 @@ class InvoicePdfServiceTest {
         assertThat(location).isEqualTo("invoices/INV-TEST-v2.pdf");
         assertThat(generatedBytes.get()).isNotNull().hasSizeGreaterThan(500);
         assertThat(new String(generatedBytes.get(), 0, 4, StandardCharsets.US_ASCII)).isEqualTo("%PDF");
-        assertThat(generatedPath.get()).isNotNull();
-        assertThat(Files.exists(generatedPath.get())).isFalse();
     }
 
     private Invoice invoiceFixture() {

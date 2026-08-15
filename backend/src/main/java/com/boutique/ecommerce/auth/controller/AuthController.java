@@ -1,6 +1,7 @@
 package com.boutique.ecommerce.auth.controller;
 
 import com.boutique.ecommerce.auth.dto.AuthResponse;
+import com.boutique.ecommerce.auth.dto.CsrfTokenResponse;
 import com.boutique.ecommerce.auth.dto.LoginRequest;
 import com.boutique.ecommerce.auth.dto.RefreshTokenRequest;
 import com.boutique.ecommerce.auth.dto.RegisterRequest;
@@ -45,9 +46,8 @@ public class AuthController {
     }
 
     @GetMapping("/csrf")
-    public ResponseEntity<Void> csrf(CsrfToken csrfToken) {
-        csrfToken.getToken();
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<CsrfTokenResponse> csrf(CsrfToken csrfToken) {
+        return ResponseEntity.ok(new CsrfTokenResponse(csrfToken.getHeaderName(), csrfToken.getToken()));
     }
 
     @PostMapping("/register")

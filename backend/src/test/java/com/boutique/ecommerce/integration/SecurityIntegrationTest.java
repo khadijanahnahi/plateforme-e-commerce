@@ -3,6 +3,7 @@ package com.boutique.ecommerce.integration;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
@@ -105,8 +106,11 @@ class SecurityIntegrationTest extends PostgresIntegrationTestBase {
     @Test
     void csrfBootstrapPublishesTokenCookie() throws Exception {
         mockMvc.perform(get("/api/auth/csrf"))
-                .andExpect(status().isNoContent())
-                .andExpect(cookie().exists("XSRF-TOKEN"));
+                .andExpect(status().isOk())
+                .andExpect(cookie().exists("XSRF-TOKEN"))
+                .andExpect(cookie().httpOnly("XSRF-TOKEN", true))
+                .andExpect(jsonPath("$.headerName").value("X-XSRF-TOKEN"))
+                .andExpect(jsonPath("$.token").isNotEmpty());
     }
 
     private AppUser createUser(RoleName roleName) {

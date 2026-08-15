@@ -6,9 +6,6 @@ const baseURL = import.meta.env.VITE_API_URL || "/api";
 const axiosSecurityOptions = {
   baseURL,
   withCredentials: true,
-  withXSRFToken: true,
-  xsrfCookieName: "XSRF-TOKEN",
-  xsrfHeaderName: "X-XSRF-TOKEN",
 };
 
 const http = axios.create(axiosSecurityOptions);
@@ -22,23 +19,26 @@ const csrfClient = axios.create({
 
 let refreshRequest = null;
 let csrfRequest = null;
-
-function hasCsrfCookie() {
-  return document.cookie
-    .split(";")
-    .some((cookie) => cookie.trim().startsWith("XSRF-TOKEN="));
-}
+let csrfToken = null;
+let csrfHeaderName = "X-XSRF-TOKEN";
 
 export async function ensureCsrfToken(force = false) {
-  if (!force && hasCsrfCookie()) {
-    return;
+  if (!force && csrfToken) {
+    return csrfToken;
   }
 
-  csrfRequest ??= csrfClient.get("/auth/csrf").finally(() => {
-    csrfRequest = null;
-  });
+  csrfRequest ??= csrfClient
+    .get("/auth/csrf")
+    .then(({ data }) => {
+      csrfToken = data.token;
+      csrfHeaderName = data.headerName || csrfHeaderName;
+      return csrfToken;
+    })
+    .finally(() => {
+      csrfRequest = null;
+    });
 
-  await csrfRequest;
+  return csrfRequest;
 }
 
 function requiresCsrf(method) {
@@ -47,7 +47,12 @@ function requiresCsrf(method) {
 
 async function prepareSecureRequest(config) {
   if (requiresCsrf(config.method)) {
-    await ensureCsrfToken();
+    const token = await ensureCsrfToken();
+    if (typeof config.headers?.set === "function") {
+      config.headers.set(csrfHeaderName, token);
+    } else {
+      config.headers = { ...config.headers, [csrfHeaderName]: token };
+    }
   }
 
   return config;

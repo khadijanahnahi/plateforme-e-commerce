@@ -17,11 +17,8 @@ import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 import java.awt.Color;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.format.DateTimeFormatter;
 import org.springframework.stereotype.Service;
 
@@ -50,30 +47,24 @@ public class InvoicePdfService {
     }
 
     public String generatePdf(Invoice invoice) {
-        Path tempPdf = null;
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        Document document = new Document(PageSize.A4, 42, 42, 42, 42);
         try {
-            tempPdf = Files.createTempFile("shopsphere-invoice-", ".pdf");
-
-            try (OutputStream outputStream = Files.newOutputStream(tempPdf)) {
-                Document document = new Document(PageSize.A4, 42, 42, 42, 42);
-                PdfWriter.getInstance(document, outputStream);
-                document.open();
-                buildDocument(document, invoice);
-                document.close();
-            }
-
-            return invoiceFileStorageService.store(tempPdf, invoice.getInvoiceNumber() + "-" + TEMPLATE_VERSION);
-        } catch (DocumentException | IOException exception) {
+            PdfWriter.getInstance(document, outputStream);
+            document.open();
+            buildDocument(document, invoice);
+        } catch (DocumentException exception) {
             throw new IllegalStateException("Unable to generate invoice PDF.", exception);
         } finally {
-            if (tempPdf != null) {
-                try {
-                    Files.deleteIfExists(tempPdf);
-                } catch (IOException ignored) {
-                    // Temporary PDF cleanup failure must not break invoice generation.
-                }
+            if (document.isOpen()) {
+                document.close();
             }
         }
+
+        return invoiceFileStorageService.store(
+                outputStream.toByteArray(),
+                invoice.getInvoiceNumber() + "-" + TEMPLATE_VERSION
+        );
     }
 
     private void buildDocument(Document document, Invoice invoice) throws DocumentException {
