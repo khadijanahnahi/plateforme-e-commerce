@@ -175,3 +175,33 @@ jobs:
             -Dsonar.projectName=ShopSphere-Frontend
             -Dsonar.qualitygate.wait=true
             -Dsonar.qualitygate.timeout=300
+
+      - name: Explain SonarQube processing failure
+        if: failure()
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        shell: bash
+        run: |
+          report_file=".scannerwork/report-task.txt"
+
+          if [ ! -f "$report_file" ]; then
+            echo "::warning::Aucun rapport de tache SonarQube n'a ete genere. Consultez les logs du scanner."
+            exit 0
+          fi
+
+          task_url=$(awk -F= '$1 == "ceTaskUrl" { print $2 }' "$report_file")
+          if [ -z "$task_url" ]; then
+            echo "::warning::L'URL de la tache SonarQube est absente du rapport."
+            exit 0
+          fi
+
+          response=$(curl --fail --silent --show-error --user "${SONAR_TOKEN}:" "$task_url")
+          status=$(printf '%s' "$response" | jq -r '.task.status // "UNKNOWN"')
+          message=$(printf '%s' "$response" | jq -r '.task.errorMessage // empty')
+
+          echo "Statut de traitement SonarQube : $status"
+          if [ -n "$message" ]; then
+            echo "::error title=Echec du traitement SonarQube::$message"
+          else
+            echo "::warning::SonarQube n'a retourne aucun detail supplementaire. Consultez Administration > Background tasks."
+          fi
