@@ -1,5 +1,7 @@
 # Ecommerce Boutique
 
+Qualité et sécurité CI : voir [la configuration SonarQube et AI Code Assurance](docs/sonarqube.md).
+
 Architecture initiale du projet :
 
 - `frontend/` : application client en React + Vite

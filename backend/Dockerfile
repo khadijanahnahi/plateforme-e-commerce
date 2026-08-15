@@ -14,10 +14,11 @@ WORKDIR /app
 
 COPY --from=build /app/target/*.jar app.jar
 
-RUN addgroup -S shopsphere && adduser -S shopsphere -G shopsphere
+RUN addgroup -S -g 10001 shopsphere \
+    && adduser -S -D -H -u 10001 -G shopsphere shopsphere
 RUN mkdir -p /app/storage/invoices && chown -R shopsphere:shopsphere /app
 
-USER shopsphere
+USER 10001:10001
 
 EXPOSE 8080
 

@@ -17,7 +17,8 @@ USER root
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist /usr/share/nginx/html
 
-RUN chown -R 101:0 /usr/share/nginx/html /etc/nginx/conf.d
+RUN rm -f /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh \
+    && chown -R 101:0 /usr/share/nginx/html /etc/nginx/conf.d
 
 USER 101
 
