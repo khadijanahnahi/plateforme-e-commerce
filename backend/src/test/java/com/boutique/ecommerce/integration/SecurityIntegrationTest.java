@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.boutique.ecommerce.order.entity.Order;
 import com.boutique.ecommerce.order.entity.OrderStatus;
@@ -17,6 +18,8 @@ import com.boutique.ecommerce.user.entity.Role;
 import com.boutique.ecommerce.user.entity.RoleName;
 import com.boutique.ecommerce.user.repository.RoleRepository;
 import com.boutique.ecommerce.user.repository.UserRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.Cookie;
 import java.math.BigDecimal;
 import java.util.Set;
 import java.util.UUID;
@@ -26,6 +29,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
@@ -37,6 +41,7 @@ class SecurityIntegrationTest extends PostgresIntegrationTestBase {
     @Autowired private RoleRepository roleRepository;
     @Autowired private OrderRepository orderRepository;
     @Autowired private JwtService jwtService;
+    @Autowired private ObjectMapper objectMapper;
 
     @Test
     void anonymousIsUnauthorizedOnProtectedEndpoint() throws Exception {
@@ -111,6 +116,26 @@ class SecurityIntegrationTest extends PostgresIntegrationTestBase {
                 .andExpect(cookie().httpOnly("XSRF-TOKEN", true))
                 .andExpect(jsonPath("$.headerName").value("X-XSRF-TOKEN"))
                 .andExpect(jsonPath("$.token").isNotEmpty());
+    }
+
+    @Test
+    void csrfBootstrapTokenIsAcceptedWhenSpaEchoesItInHeader() throws Exception {
+        MvcResult bootstrap = mockMvc.perform(get("/api/auth/csrf"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Cookie csrfCookie = bootstrap.getResponse().getCookie("XSRF-TOKEN");
+        assertNotNull(csrfCookie);
+        String maskedToken = objectMapper.readTree(bootstrap.getResponse().getContentAsString())
+                .path("token")
+                .asText();
+
+        mockMvc.perform(post("/api/support-messages")
+                        .cookie(csrfCookie)
+                        .header("X-XSRF-TOKEN", maskedToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest());
     }
 
     private AppUser createUser(RoleName roleName) {

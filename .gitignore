@@ -23,3 +23,9 @@ backend/storage/
 
 .DS_Store
 Thumbs.db
+
+**/.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log

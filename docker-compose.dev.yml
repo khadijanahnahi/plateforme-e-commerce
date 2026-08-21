@@ -1,0 +1,14 @@
+# Local development override.
+# Do not use this file on a public server.
+services:
+  postgres:
+    ports:
+      - "127.0.0.1:5433:5432"
+
+  minio:
+    ports:
+      - "127.0.0.1:9001:9001"
+
+networks:
+  data:
+    internal: false

@@ -10,6 +10,7 @@ public class AdminSeedProperties {
     private String email;
     private String phone;
     private String password;
+    private boolean resetPassword;
 
     public boolean isEnabled() {
         return enabled;
@@ -49,5 +50,13 @@ public class AdminSeedProperties {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public boolean isResetPassword() {
+        return resetPassword;
+    }
+
+    public void setResetPassword(boolean resetPassword) {
+        this.resetPassword = resetPassword;
     }
 }

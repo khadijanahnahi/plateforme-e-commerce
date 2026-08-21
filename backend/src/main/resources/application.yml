@@ -73,12 +73,15 @@ app:
     email: ${APP_ADMIN_EMAIL:admin@shopsphere.local}
     phone: ${APP_ADMIN_PHONE:+212600000000}
     password: ${APP_ADMIN_PASSWORD:Admin@12345}
+    reset-password: ${APP_ADMIN_RESET_PASSWORD:false}
   email:
     enabled: ${APP_EMAIL_ENABLED:false}
     from: ${APP_EMAIL_FROM:no-reply@shopsphere.local}
     store-name: ${APP_EMAIL_STORE_NAME:ShopSphere}
   frontend:
     url: ${FRONTEND_URL:http://localhost:5173}
+  upload:
+    storage-provider: ${APP_UPLOAD_STORAGE_PROVIDER:cloudinary}
   invoice:
     storage-path: ${APP_INVOICE_STORAGE_PATH:./storage/invoices}
     storage-provider: ${APP_INVOICE_STORAGE_PROVIDER:local}
@@ -87,6 +90,8 @@ app:
     minio-secret-key: ${MINIO_SECRET_KEY:minioadmin}
     minio-bucket: ${MINIO_BUCKET:shopsphere-invoices}
     minio-prefix: ${MINIO_INVOICE_PREFIX:invoices}
+    s3-bucket: ${APP_INVOICE_S3_BUCKET:shopsphere-invoices}
+    s3-prefix: ${APP_INVOICE_S3_PREFIX:invoices}
   blog:
     storage-provider: ${APP_BLOG_STORAGE_PROVIDER:local}
     local-path: ${APP_BLOG_STORAGE_PATH:./storage/blog}
@@ -113,6 +118,24 @@ app:
     ttl-seconds: ${APP_WEB_PUSH_TTL_SECONDS:3600}
     max-attempts: ${APP_WEB_PUSH_MAX_ATTEMPTS:5}
     worker-delay-ms: ${APP_WEB_PUSH_WORKER_DELAY_MS:5000}
+  cloud:
+    enabled: ${APP_CLOUD_ENABLED:false}
+    region: ${AWS_REGION:us-east-1}
+    endpoint: ${AWS_ENDPOINT_URL:}
+    access-key: ${AWS_ACCESS_KEY_ID:test}
+    secret-key: ${AWS_SECRET_ACCESS_KEY:test}
+    s3:
+      product-media-bucket: ${APP_PRODUCT_MEDIA_S3_BUCKET:shopsphere-media}
+      product-media-prefix: ${APP_PRODUCT_MEDIA_S3_PREFIX:products}
+      product-media-public-url-prefix: ${APP_PRODUCT_MEDIA_PUBLIC_URL_PREFIX:}
+    sqs:
+      enabled: ${APP_CLOUD_SQS_ENABLED:false}
+      order-events-queue-url: ${APP_ORDER_EVENTS_QUEUE_URL:}
+      worker-delay-ms: ${APP_CLOUD_SQS_WORKER_DELAY_MS:5000}
+      max-messages: ${APP_CLOUD_SQS_MAX_MESSAGES:5}
+    secrets:
+      enabled: ${APP_CLOUD_SECRETS_ENABLED:false}
+      runtime-secret-name: ${APP_RUNTIME_SECRET_NAME:shopsphere/runtime}
 
 cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME:}

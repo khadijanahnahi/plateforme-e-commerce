@@ -12,6 +12,8 @@ public class AppInvoiceProperties {
     private String minioSecretKey = "minioadmin";
     private String minioBucket = "shopsphere-invoices";
     private String minioPrefix = "invoices";
+    private String s3Bucket = "shopsphere-invoices";
+    private String s3Prefix = "invoices";
 
     public String getStoragePath() {
         return storagePath;
@@ -67,5 +69,21 @@ public class AppInvoiceProperties {
 
     public void setMinioPrefix(String minioPrefix) {
         this.minioPrefix = minioPrefix;
+    }
+
+    public String getS3Bucket() {
+        return s3Bucket;
+    }
+
+    public void setS3Bucket(String s3Bucket) {
+        this.s3Bucket = s3Bucket;
+    }
+
+    public String getS3Prefix() {
+        return s3Prefix;
+    }
+
+    public void setS3Prefix(String s3Prefix) {
+        this.s3Prefix = s3Prefix;
     }
 }

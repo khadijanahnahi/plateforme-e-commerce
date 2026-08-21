@@ -1,5 +1,7 @@
 package com.boutique.ecommerce.upload.service;
 
+import com.boutique.ecommerce.cloud.config.AwsCloudProperties;
+import com.boutique.ecommerce.cloud.service.S3ObjectStorageService;
 import com.boutique.ecommerce.upload.dto.UploadResponse;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
@@ -7,6 +9,8 @@ import java.io.IOException;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,17 +29,26 @@ public class UploadService {
     private final String apiKey;
     private final String apiSecret;
     private final String productFolder;
+    private final String storageProvider;
+    private final AwsCloudProperties awsCloudProperties;
+    private final ObjectProvider<S3ObjectStorageService> s3ObjectStorageService;
 
     public UploadService(
             @Value("${cloudinary.cloud-name:}") String cloudName,
             @Value("${cloudinary.api-key:}") String apiKey,
             @Value("${cloudinary.api-secret:}") String apiSecret,
-            @Value("${cloudinary.product-folder:shopsphere/products}") String productFolder
+            @Value("${cloudinary.product-folder:shopsphere/products}") String productFolder,
+            @Value("${app.upload.storage-provider:cloudinary}") String storageProvider,
+            AwsCloudProperties awsCloudProperties,
+            ObjectProvider<S3ObjectStorageService> s3ObjectStorageService
     ) {
         this.cloudName = cloudName;
         this.apiKey = apiKey;
         this.apiSecret = apiSecret;
         this.productFolder = productFolder;
+        this.storageProvider = storageProvider;
+        this.awsCloudProperties = awsCloudProperties;
+        this.s3ObjectStorageService = s3ObjectStorageService;
     }
 
     public UploadResponse uploadProductImage(MultipartFile file) {
@@ -49,8 +62,11 @@ public class UploadService {
     }
 
     public UploadResponse uploadProductImage(String filename, String contentType, byte[] bytes) {
-        validateCloudinaryConfig();
         validateImage(filename, contentType, bytes);
+        if (isS3Enabled()) {
+            return uploadProductImageToS3(filename, contentType, bytes);
+        }
+        validateCloudinaryConfig();
 
         try {
             Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
@@ -77,6 +93,19 @@ public class UploadService {
         } catch (IOException exception) {
             throw new IllegalArgumentException("Unable to upload image to Cloudinary.");
         }
+    }
+
+    private UploadResponse uploadProductImageToS3(String filename, String contentType, byte[] bytes) {
+        S3ObjectStorageService storageService = s3ObjectStorageService.getIfAvailable();
+        if (storageService == null) {
+            throw new IllegalArgumentException("S3 storage is not configured.");
+        }
+        String extension = getExtension(filename);
+        String prefix = normalizePrefix(awsCloudProperties.getS3().getProductMediaPrefix());
+        String key = prefix + UUID.randomUUID() + "." + extension;
+        String bucket = awsCloudProperties.getS3().getProductMediaBucket();
+        storageService.putObject(bucket, key, bytes, contentType);
+        return new UploadResponse(storageService.productImagePublicUrl(bucket, key));
     }
 
     private void validateCloudinaryConfig() {
@@ -114,5 +143,16 @@ public class UploadService {
         }
 
         return filename.substring(filename.lastIndexOf('.') + 1).toLowerCase(Locale.ROOT);
+    }
+
+    private boolean isS3Enabled() {
+        return "s3".equalsIgnoreCase(storageProvider);
+    }
+
+    private String normalizePrefix(String prefix) {
+        if (prefix == null || prefix.isBlank()) {
+            return "";
+        }
+        return prefix.endsWith("/") ? prefix : prefix + "/";
     }
 }

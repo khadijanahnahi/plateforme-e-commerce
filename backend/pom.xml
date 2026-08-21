@@ -21,6 +21,7 @@
         <java.version>17</java.version>
         <tomcat.version>10.1.55</tomcat.version>
         <jacoco.version>0.8.15</jacoco.version>
+        <aws.sdk.version>2.25.70</aws.sdk.version>
         <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
@@ -77,6 +78,21 @@
             <groupId>io.minio</groupId>
             <artifactId>minio</artifactId>
             <version>8.6.0</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <version>${aws.sdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>sqs</artifactId>
+            <version>${aws.sdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>secretsmanager</artifactId>
+            <version>${aws.sdk.version}</version>
         </dependency>
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>

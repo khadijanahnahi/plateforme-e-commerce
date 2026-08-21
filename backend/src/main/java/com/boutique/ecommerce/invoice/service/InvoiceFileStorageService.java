@@ -1,6 +1,7 @@
 package com.boutique.ecommerce.invoice.service;
 
 import com.boutique.ecommerce.common.exception.ResourceNotFoundException;
+import com.boutique.ecommerce.cloud.service.S3ObjectStorageService;
 import com.boutique.ecommerce.invoice.config.AppInvoiceProperties;
 import io.minio.BucketExistsArgs;
 import io.minio.GetObjectArgs;
@@ -14,6 +15,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -26,9 +28,14 @@ public class InvoiceFileStorageService {
 
     private final AppInvoiceProperties invoiceProperties;
     private final MinioClient minioClient;
+    private final ObjectProvider<S3ObjectStorageService> s3ObjectStorageService;
 
-    public InvoiceFileStorageService(AppInvoiceProperties invoiceProperties) {
+    public InvoiceFileStorageService(
+            AppInvoiceProperties invoiceProperties,
+            ObjectProvider<S3ObjectStorageService> s3ObjectStorageService
+    ) {
         this.invoiceProperties = invoiceProperties;
+        this.s3ObjectStorageService = s3ObjectStorageService;
         this.minioClient = MinioClient.builder()
                 .endpoint(invoiceProperties.getMinioEndpoint())
                 .credentials(invoiceProperties.getMinioAccessKey(), invoiceProperties.getMinioSecretKey())
@@ -42,6 +49,9 @@ public class InvoiceFileStorageService {
         if (isMinioEnabled()) {
             return storeInMinio(pdfContent, invoiceNumber);
         }
+        if (isS3Enabled()) {
+            return storeInS3(pdfContent, invoiceNumber);
+        }
         return storeLocally(pdfContent, invoiceNumber);
     }
 
@@ -52,6 +62,10 @@ public class InvoiceFileStorageService {
         if (location.startsWith(MINIO_PREFIX)) {
             return minioExists(location);
         }
+        if (S3ObjectStorageService.isS3Location(location)) {
+            S3ObjectStorageService storageService = requireS3Storage();
+            return storageService.exists(location);
+        }
         return Files.exists(Path.of(location));
     }
 
@@ -61,6 +75,9 @@ public class InvoiceFileStorageService {
         }
         if (location.startsWith(MINIO_PREFIX)) {
             return downloadFromMinio(location);
+        }
+        if (S3ObjectStorageService.isS3Location(location)) {
+            return downloadFromS3(location);
         }
         return downloadLocal(location);
     }
@@ -101,6 +118,20 @@ public class InvoiceFileStorageService {
             return MINIO_PREFIX + invoiceProperties.getMinioBucket() + "/" + objectName;
         } catch (Exception exception) {
             throw new IllegalStateException("Unable to store invoice PDF in MinIO.", exception);
+        }
+    }
+
+    private String storeInS3(byte[] pdfContent, String invoiceNumber) {
+        try {
+            String objectName = normalizePrefix(invoiceProperties.getS3Prefix()) + invoiceNumber + ".pdf";
+            return requireS3Storage().putObject(
+                    invoiceProperties.getS3Bucket(),
+                    objectName,
+                    pdfContent,
+                    "application/pdf"
+            );
+        } catch (Exception exception) {
+            throw new IllegalStateException("Unable to store invoice PDF in S3.", exception);
         }
     }
 
@@ -151,6 +182,15 @@ public class InvoiceFileStorageService {
         }
     }
 
+    private InvoiceFile downloadFromS3(String location) {
+        try {
+            S3ObjectStorageService.StoredObject object = requireS3Storage().getObject(location);
+            return new InvoiceFile(new InputStreamResource(object.inputStream()), object.contentLength());
+        } catch (Exception exception) {
+            throw new ResourceNotFoundException("Invoice PDF file not found.");
+        }
+    }
+
     private void ensureBucketExists() throws Exception {
         boolean exists = minioClient.bucketExists(BucketExistsArgs.builder()
                 .bucket(invoiceProperties.getMinioBucket())
@@ -164,6 +204,18 @@ public class InvoiceFileStorageService {
 
     private boolean isMinioEnabled() {
         return "minio".equalsIgnoreCase(invoiceProperties.getStorageProvider());
+    }
+
+    private boolean isS3Enabled() {
+        return "s3".equalsIgnoreCase(invoiceProperties.getStorageProvider());
+    }
+
+    private S3ObjectStorageService requireS3Storage() {
+        S3ObjectStorageService storageService = s3ObjectStorageService.getIfAvailable();
+        if (storageService == null) {
+            throw new IllegalStateException("S3 storage is not configured.");
+        }
+        return storageService;
     }
 
     private String normalizePrefix(String prefix) {

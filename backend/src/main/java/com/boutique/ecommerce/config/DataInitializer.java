@@ -6,6 +6,7 @@ import com.boutique.ecommerce.user.entity.RoleName;
 import com.boutique.ecommerce.user.repository.RoleRepository;
 import com.boutique.ecommerce.user.repository.UserRepository;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Set;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -54,12 +55,14 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         String normalizedEmail = adminSeedProperties.getEmail().trim().toLowerCase();
-        if (userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
-            return;
-        }
-
         Role adminRole = roleRepository.findByName(RoleName.ADMIN)
                 .orElseThrow(() -> new IllegalStateException("ADMIN role is missing."));
+
+        AppUser existingAdmin = userRepository.findByEmailIgnoreCase(normalizedEmail).orElse(null);
+        if (existingAdmin != null) {
+            resetExistingAdminPassword(existingAdmin, adminRole);
+            return;
+        }
 
         AppUser admin = AppUser.builder()
                 .fullName(defaultIfBlank(adminSeedProperties.getFullName(), "ShopSphere Admin"))
@@ -70,6 +73,19 @@ public class DataInitializer implements CommandLineRunner {
                 .roles(Set.of(adminRole))
                 .build();
 
+        userRepository.save(admin);
+    }
+
+    private void resetExistingAdminPassword(AppUser admin, Role adminRole) {
+        if (!adminSeedProperties.isResetPassword()) {
+            return;
+        }
+
+        admin.setPassword(passwordEncoder.encode(adminSeedProperties.getPassword()));
+        admin.setEnabled(true);
+        Set<Role> roles = new HashSet<>(admin.getRoles());
+        roles.add(adminRole);
+        admin.setRoles(roles);
         userRepository.save(admin);
     }
 

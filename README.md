@@ -9,6 +9,30 @@ Architecture initiale du projet :
 - `backend/uploads/` : stockage local initial des images produits
 - `docker-compose.yml` : base de données PostgreSQL pour le développement local
 
+## Démarrage local
+
+Le fichier `docker-compose.yml` garde les ports internes fermés pour la production.
+Pour lancer le backend localement avec Maven, utilisez l'override de développement :
+
+```powershell
+docker compose --env-file .env.production -f docker-compose.yml -f docker-compose.dev.yml up -d postgres minio
+
+cd backend
+.\run-backend.ps1
+```
+
+Dans ce mode, PostgreSQL est disponible uniquement en local sur `127.0.0.1:5433`,
+ce qui correspond à la configuration de `backend/run-backend.ps1`.
+
+Pour lancer toute la stack Docker sans backend Maven :
+
+```powershell
+docker compose --env-file .env.production up --build
+```
+
+Le frontend Docker est alors disponible sur `http://127.0.0.1:8088` et le backend
+reste interne au réseau Docker.
+
 ## Frontend
 
 Structure prévue :

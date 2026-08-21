@@ -1,0 +1,20 @@
+# Local AWS emulator for cloud-integration demos.
+# Usage:
+# docker compose -f docker-compose.localstack.yml up -d localstack
+services:
+  localstack:
+    image: localstack/localstack:3.8.1
+    container_name: shopsphere-localstack
+    restart: unless-stopped
+    environment:
+      AWS_DEFAULT_REGION: us-east-1
+      SERVICES: s3,sqs,secretsmanager,logs
+      DEBUG: ${LOCALSTACK_DEBUG:-0}
+    ports:
+      - "127.0.0.1:4566:4566"
+    volumes:
+      - localstack_data:/var/lib/localstack
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+volumes:
+  localstack_data:
