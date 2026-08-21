@@ -62,8 +62,8 @@ export default function LoginPage() {
 
     try {
       const response = await http.post("/auth/login", {
-        email: form.email,
-        password: form.password,
+        email: form.email.trim(),
+        password: form.password.trim(),
       });
 
       login(response.data);

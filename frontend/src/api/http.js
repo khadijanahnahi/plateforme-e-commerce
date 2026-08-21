@@ -41,6 +41,12 @@ export async function ensureCsrfToken(force = false) {
   return csrfRequest;
 }
 
+export function clearCsrfToken() {
+  csrfRequest = null;
+  csrfToken = null;
+  csrfHeaderName = "X-XSRF-TOKEN";
+}
+
 function requiresCsrf(method) {
   return ["post", "put", "patch", "delete"].includes(method?.toLowerCase());
 }
@@ -93,6 +99,7 @@ http.interceptors.response.use(
     originalRequest._retry = true;
 
     try {
+      await ensureCsrfToken(true);
       refreshRequest ??= refreshClient
         .post("/auth/refresh")
         .then((response) => {

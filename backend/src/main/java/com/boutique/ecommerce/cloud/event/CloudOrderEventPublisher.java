@@ -13,6 +13,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
+import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
+import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
+import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 
@@ -22,11 +25,18 @@ public class CloudOrderEventPublisher {
 
     private static final Logger log = LoggerFactory.getLogger(CloudOrderEventPublisher.class);
 
+    private final EventBridgeClient eventBridgeClient;
     private final SqsClient sqsClient;
     private final AwsCloudProperties properties;
     private final ObjectMapper objectMapper;
 
-    public CloudOrderEventPublisher(SqsClient sqsClient, AwsCloudProperties properties, ObjectMapper objectMapper) {
+    public CloudOrderEventPublisher(
+            EventBridgeClient eventBridgeClient,
+            SqsClient sqsClient,
+            AwsCloudProperties properties,
+            ObjectMapper objectMapper
+    ) {
+        this.eventBridgeClient = eventBridgeClient;
         this.sqsClient = sqsClient;
         this.properties = properties;
         this.objectMapper = objectMapper;
@@ -63,13 +73,31 @@ public class CloudOrderEventPublisher {
                     "occurredAt", Instant.now().toString(),
                     "payload", payload
             ));
-            sqsClient.sendMessage(SendMessageRequest.builder()
-                    .queueUrl(properties.getSqs().getOrderEventsQueueUrl())
-                    .messageBody(body)
-                    .build());
-            log.info("Published cloud order event to SQS. type={}", type);
+            if (properties.getEventbridge().isEnabled()) {
+                eventBridgeClient.putEvents(PutEventsRequest.builder()
+                        .entries(PutEventsRequestEntry.builder()
+                                .eventBusName(properties.getEventbridge().getEventBusName())
+                                .source(properties.getEventbridge().getSource())
+                                .detailType(type)
+                                .detail(body)
+                                .time(Instant.now())
+                                .build())
+                        .build());
+                log.info("Published cloud order event to EventBridge. type={}", type);
+                return;
+            }
+
+            publishToSqs(body, type);
         } catch (Exception exception) {
-            log.error("Unable to publish cloud order event to SQS. type={}", type, exception);
+            log.error("Unable to publish cloud order event. type={}", type, exception);
         }
+    }
+
+    private void publishToSqs(String body, String type) {
+        sqsClient.sendMessage(SendMessageRequest.builder()
+                .queueUrl(properties.getSqs().getOrderEventsQueueUrl())
+                .messageBody(body)
+                .build());
+        log.info("Published cloud order event to SQS. type={}", type);
     }
 }

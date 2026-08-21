@@ -57,6 +57,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(csrfTokenRepository)
+                        .ignoringRequestMatchers("/api/admin/uploads/**")
                         .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()))
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .exceptionHandling(exceptions -> exceptions
@@ -68,6 +69,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/support-messages").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/banners/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/media/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/promotions/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/reviews/latest").permitAll()

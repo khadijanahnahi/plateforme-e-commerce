@@ -1,0 +1,36 @@
+app:
+  upload:
+    storage-provider: s3
+  invoice:
+    storage-provider: s3
+    s3-bucket: ${APP_INVOICE_S3_BUCKET}
+    s3-prefix: ${APP_INVOICE_S3_PREFIX:invoices}
+  cloud:
+    enabled: true
+    region: ${AWS_REGION:eu-west-3}
+    endpoint: ""
+    access-key: ${AWS_ACCESS_KEY_ID:}
+    secret-key: ${AWS_SECRET_ACCESS_KEY:}
+    s3:
+      product-media-bucket: ${APP_PRODUCT_MEDIA_S3_BUCKET}
+      product-media-prefix: ${APP_PRODUCT_MEDIA_S3_PREFIX:products}
+      product-media-public-url-prefix: ${APP_PRODUCT_MEDIA_PUBLIC_URL_PREFIX:/api/media}
+    sqs:
+      enabled: true
+      # Keep messages visible in AWS Console for the recruiter demo.
+      worker-enabled: ${APP_CLOUD_SQS_WORKER_ENABLED:false}
+      order-events-queue-url: ${APP_ORDER_EVENTS_QUEUE_URL}
+      worker-delay-ms: ${APP_CLOUD_SQS_WORKER_DELAY_MS:5000}
+      max-messages: ${APP_CLOUD_SQS_MAX_MESSAGES:5}
+    eventbridge:
+      enabled: true
+      event-bus-name: ${APP_EVENTBRIDGE_BUS_NAME}
+      source: ${APP_EVENTBRIDGE_SOURCE:shopsphere.backend}
+    secrets:
+      enabled: true
+      runtime-secret-name: ${APP_RUNTIME_SECRET_NAME:shopsphere-demo/runtime}
+
+management:
+  health:
+    mail:
+      enabled: false

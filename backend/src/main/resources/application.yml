@@ -130,6 +130,7 @@ app:
       product-media-public-url-prefix: ${APP_PRODUCT_MEDIA_PUBLIC_URL_PREFIX:}
     sqs:
       enabled: ${APP_CLOUD_SQS_ENABLED:false}
+      worker-enabled: ${APP_CLOUD_SQS_WORKER_ENABLED:true}
       order-events-queue-url: ${APP_ORDER_EVENTS_QUEUE_URL:}
       worker-delay-ms: ${APP_CLOUD_SQS_WORKER_DELAY_MS:5000}
       max-messages: ${APP_CLOUD_SQS_MAX_MESSAGES:5}

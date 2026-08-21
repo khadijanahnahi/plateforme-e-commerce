@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import http from "../api/http";
+import http, { clearCsrfToken } from "../api/http";
 import { clearAccessToken, setAccessToken } from "../api/authTokenStore";
 
 const AuthContext = createContext(null);
@@ -65,6 +65,7 @@ export function AuthProvider({ children }) {
 
   function clearAuth() {
     clearAccessToken();
+    clearCsrfToken();
     setAccessTokenState(null);
     setUser(null);
   }

@@ -8,10 +8,11 @@ public class AwsCloudProperties {
     private boolean enabled = false;
     private String region = "us-east-1";
     private String endpoint = "";
-    private String accessKey = "test";
-    private String secretKey = "test";
+    private String accessKey = "";
+    private String secretKey = "";
     private final S3 s3 = new S3();
     private final Sqs sqs = new Sqs();
+    private final EventBridge eventbridge = new EventBridge();
     private final Secrets secrets = new Secrets();
 
     public boolean isEnabled() {
@@ -62,6 +63,10 @@ public class AwsCloudProperties {
         return sqs;
     }
 
+    public EventBridge getEventbridge() {
+        return eventbridge;
+    }
+
     public Secrets getSecrets() {
         return secrets;
     }
@@ -98,6 +103,7 @@ public class AwsCloudProperties {
 
     public static class Sqs {
         private boolean enabled = false;
+        private boolean workerEnabled = true;
         private String orderEventsQueueUrl = "";
         private int workerDelayMs = 5000;
         private int maxMessages = 5;
@@ -108,6 +114,14 @@ public class AwsCloudProperties {
 
         public void setEnabled(boolean enabled) {
             this.enabled = enabled;
+        }
+
+        public boolean isWorkerEnabled() {
+            return workerEnabled;
+        }
+
+        public void setWorkerEnabled(boolean workerEnabled) {
+            this.workerEnabled = workerEnabled;
         }
 
         public String getOrderEventsQueueUrl() {
@@ -132,6 +146,36 @@ public class AwsCloudProperties {
 
         public void setMaxMessages(int maxMessages) {
             this.maxMessages = maxMessages;
+        }
+    }
+
+    public static class EventBridge {
+        private boolean enabled = false;
+        private String eventBusName = "default";
+        private String source = "shopsphere.backend";
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public String getEventBusName() {
+            return eventBusName;
+        }
+
+        public void setEventBusName(String eventBusName) {
+            this.eventBusName = eventBusName;
+        }
+
+        public String getSource() {
+            return source;
+        }
+
+        public void setSource(String source) {
+            this.source = source;
         }
     }
 
