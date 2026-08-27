@@ -31,7 +31,7 @@ export function useAdminReviews() {
       await refreshReviews("");
       setError("");
     } catch (exception) {
-      setError(getApiErrorMessage(exception, "Unable to load reviews."));
+      setError(getApiErrorMessage(exception, "Impossible de charger les avis."));
     } finally {
       setLoading(false);
     }
@@ -44,7 +44,7 @@ export function useAdminReviews() {
     try {
       await refreshReviews(status);
     } catch (exception) {
-      setError(getApiErrorMessage(exception, "Unable to filter reviews."));
+      setError(getApiErrorMessage(exception, "Impossible de filtrer les avis."));
     } finally {
       setLoading(false);
     }
@@ -58,7 +58,7 @@ export function useAdminReviews() {
       setMessage("Review approved.");
       await refreshReviews();
     } catch (exception) {
-      setError(getApiErrorMessage(exception, "Unable to update review."));
+      setError(getApiErrorMessage(exception, "Impossible de modifier l’avis."));
     }
   }
 
@@ -70,7 +70,7 @@ export function useAdminReviews() {
       setMessage("Review rejected.");
       await refreshReviews();
     } catch (exception) {
-      setError(getApiErrorMessage(exception, "Unable to update review."));
+      setError(getApiErrorMessage(exception, "Impossible de modifier l’avis."));
     }
   }
 
@@ -82,7 +82,7 @@ export function useAdminReviews() {
       setMessage("Review deleted.");
       await refreshReviews();
     } catch (exception) {
-      setError(getApiErrorMessage(exception, "Unable to delete review."));
+      setError(getApiErrorMessage(exception, "Impossible de supprimer l’avis."));
     }
   }
 

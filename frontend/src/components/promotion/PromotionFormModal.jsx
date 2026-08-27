@@ -27,15 +27,15 @@ export default function PromotionFormModal({
       >
         <div className="modal-header">
           <div>
-            <span className="section-kicker">Promotion form</span>
-            <h2 id="promotion-modal-title">{editingId ? "Edit promotion" : "Create promotion"}</h2>
+            <span className="section-kicker">Formulaire de promotion</span>
+            <h2 id="promotion-modal-title">{editingId ? "Modifier la promotion" : "Créer une promotion"}</h2>
           </div>
-          <button className="modal-close" type="button" onClick={onClose}>Close</button>
+          <button className="modal-close" type="button" onClick={onClose}>Fermer</button>
         </div>
 
         <form className="admin-form" onSubmit={onSubmit}>
           <Select name="productId" value={form.productId} onChange={onFieldChange} required>
-            <option value="">Select product</option>
+            <option value="">Sélectionner un produit</option>
             {selectableProducts.map((product) => (
               <option key={product.id} value={product.id}>
                 {product.name} - {formatPromotionMoney(product.price)}
@@ -43,10 +43,10 @@ export default function PromotionFormModal({
             ))}
           </Select>
           {activeProducts.length === 0 ? (
-            <small className="admin-muted">No ACTIVE products available for a new promotion.</small>
+            <small className="admin-muted">Aucun produit actif disponible pour une nouvelle promotion.</small>
           ) : null}
 
-          <input name="title" value={form.title} onChange={onFieldChange} placeholder="Promotion title" required />
+          <input name="title" value={form.title} onChange={onFieldChange} placeholder="Titre de la promotion" required />
           <textarea name="description" value={form.description} onChange={onFieldChange} placeholder="Description" />
 
           <div className="admin-form-row">
@@ -62,7 +62,7 @@ export default function PromotionFormModal({
               type="number"
               min="0.01"
               step="0.01"
-              placeholder="Promotional price"
+              placeholder="Prix promotionnel"
               required
             />
           </div>
@@ -78,20 +78,20 @@ export default function PromotionFormModal({
                 <option key={status} value={status}>{status}</option>
               ))}
             </Select>
-            <input name="priority" value={form.priority} onChange={onFieldChange} type="number" min="0" placeholder="Priority" />
+              <input name="priority" value={form.priority} onChange={onFieldChange} type="number" min="0" placeholder="Priorité" />
           </div>
 
-          <input name="badgeLabel" value={form.badgeLabel} onChange={onFieldChange} placeholder="Badge label, example FLASH SALE" />
+          <input name="badgeLabel" value={form.badgeLabel} onChange={onFieldChange} placeholder="Libellé du badge, exemple PROMOTION" />
 
           <div className="admin-form-note">
-            Backend keeps the final price source of truth. This form only sends the promotion data.
+            Le serveur reste la source de vérité du prix final. Ce formulaire envoie uniquement les données de promotion.
           </div>
 
           <div className="admin-form-actions">
             <button className="button button-primary" type="submit">
-              {editingId ? "Update promotion" : "Create promotion"}
+              {editingId ? "Modifier la promotion" : "Créer la promotion"}
             </button>
-            <button className="button button-secondary" type="button" onClick={onClose}>Cancel</button>
+            <button className="button button-secondary" type="button" onClick={onClose}>Annuler</button>
           </div>
         </form>
       </div>

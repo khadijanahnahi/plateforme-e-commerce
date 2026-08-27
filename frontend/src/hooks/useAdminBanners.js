@@ -63,7 +63,7 @@ export function useAdminBanners() {
       await refreshBanners();
       setError("");
     } catch (exception) {
-      setError(getApiErrorMessage(exception, "Unable to load banners."));
+      setError(getApiErrorMessage(exception, "Impossible de charger les bannières."));
     } finally {
       setLoading(false);
     }
@@ -84,7 +84,7 @@ export function useAdminBanners() {
       await refreshBanners();
       return true;
     } catch (exception) {
-      setError(getApiErrorMessage(exception, "Unable to save banner."));
+      setError(getApiErrorMessage(exception, "Impossible d’enregistrer la bannière."));
       return false;
     }
   }
@@ -103,7 +103,7 @@ export function useAdminBanners() {
       }
       await refreshBanners();
     } catch (exception) {
-      setError(getApiErrorMessage(exception, "Unable to update banner status."));
+      setError(getApiErrorMessage(exception, "Impossible de modifier le statut de la bannière."));
     }
   }
 
@@ -117,7 +117,7 @@ export function useAdminBanners() {
       await refreshBanners();
       return true;
     } catch (exception) {
-      setError(getApiErrorMessage(exception, "Unable to delete banner."));
+      setError(getApiErrorMessage(exception, "Impossible de supprimer la bannière."));
       return false;
     }
   }
@@ -139,7 +139,7 @@ export function useAdminBanners() {
       setMessage("Banner image uploaded.");
       return response.data.imageUrl;
     } catch (exception) {
-      setError(getApiErrorMessage(exception, "Unable to upload banner image."));
+      setError(getApiErrorMessage(exception, "Impossible d’importer l’image de la bannière."));
       return "";
     } finally {
       setImageUploading(false);

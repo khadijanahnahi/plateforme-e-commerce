@@ -74,7 +74,7 @@ export function useAdminOrders(initialSearch = "") {
       await refreshOrders();
       setError("");
     } catch (exception) {
-      setError(exception.response?.data?.message ?? "Unable to load orders.");
+      setError(exception.response?.data?.message ?? "Impossible de charger les commandes.");
     } finally {
       setLoading(false);
     }

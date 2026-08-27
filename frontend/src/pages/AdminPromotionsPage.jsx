@@ -100,10 +100,10 @@ export default function AdminPromotionsPage() {
   return (
     <section className="page admin-page">
       <AdminPageHeader
-        kicker="Admin marketing"
+        kicker="Marketing"
         title="Promotions"
-        description="Manage flash sales, seasonal deals and product discounts."
-        actionLabel="Create Promotion"
+        description="Gérez les promotions saisonnières et les remises sur les produits."
+        actionLabel="Créer une promotion"
         onAction={openCreateModal}
       />
 
@@ -112,33 +112,33 @@ export default function AdminPromotionsPage() {
       <div className="admin-panel promotions-panel">
         <form className="admin-search promotions-toolbar" onSubmit={applyFilters}>
           <Select name="status" value={filters.status} onChange={updateFilter}>
-            <option value="">Status: All</option>
+            <option value="">Statut : tous</option>
             {promotionStatuses.map((status) => (
               <option key={status} value={status}>{status}</option>
             ))}
           </Select>
           <Select name="type" value={filters.type} onChange={updateFilter}>
-            <option value="">Type: All</option>
+            <option value="">Type : tous</option>
             {promotionTypes.map((type) => (
               <option key={type} value={type}>{type}</option>
             ))}
           </Select>
           <Select name="productId" value={filters.productId} onChange={updateFilter}>
-            <option value="">Product: All</option>
+            <option value="">Produit : tous</option>
             {products.map((product) => (
               <option key={product.id} value={product.id}>{product.name}</option>
             ))}
           </Select>
           <label className="check-row compact-check">
             <input name="activeOnly" type="checkbox" checked={filters.activeOnly} onChange={updateFilter} />
-            <span>Active only</span>
+            <span>Actives uniquement</span>
           </label>
-          <button className="button button-secondary" type="submit">Apply</button>
-          <button className="button button-secondary" type="button" onClick={resetFilters}>Reset</button>
+          <button className="button button-secondary" type="submit">Appliquer</button>
+          <button className="button button-secondary" type="button" onClick={resetFilters}>Réinitialiser</button>
         </form>
 
         <div className="admin-list-summary">
-          Showing {promotions.length} promotion{promotions.length === 1 ? "" : "s"}
+          {promotions.length} promotion{promotions.length === 1 ? "" : "s"} affichée{promotions.length === 1 ? "" : "s"}
         </div>
 
         <AdminPromotionsTable

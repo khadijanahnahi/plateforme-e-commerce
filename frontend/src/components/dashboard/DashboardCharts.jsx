@@ -1,10 +1,10 @@
 import {
-  Area,
-  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
   Cell,
+  Line,
+  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -29,19 +29,13 @@ export default function DashboardCharts({ ordersByStatus, revenueByDay, topProdu
         {revenueByDay.length ? (
           <div className="dashboard-chart-canvas">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={revenueByDay} margin={{ top: 12, right: 8, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="revenueFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#7b2d42" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="#7b2d42" stopOpacity={0.02} />
-                  </linearGradient>
-                </defs>
+              <LineChart data={revenueByDay} margin={{ top: 12, right: 8, left: 0, bottom: 0 }}>
                 <CartesianGrid stroke="#e8e2da" strokeDasharray="3 5" vertical={false} />
                 <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fill: "#716a63", fontSize: 12 }} />
                 <YAxis axisLine={false} tickLine={false} width={65} tick={{ fill: "#716a63", fontSize: 12 }} tickFormatter={(value) => `${value} DH`} />
                 <Tooltip formatter={(value) => [formatDashboardMoney(value), "Revenu"]} labelStyle={{ color: "#111" }} />
-                <Area type="monotone" dataKey="revenue" stroke="#7b2d42" strokeWidth={2.5} fill="url(#revenueFill)" />
-              </AreaChart>
+                <Line type="monotone" dataKey="revenue" stroke="#7b2d42" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" dot={{ r: 4, fill: "#7b2d42", stroke: "#ffffff", strokeWidth: 2 }} activeDot={{ r: 6, fill: "#7b2d42", stroke: "#ffffff", strokeWidth: 2 }} connectNulls />
+              </LineChart>
             </ResponsiveContainer>
           </div>
         ) : <EmptyChart>Aucune donnée de revenu pour cette période.</EmptyChart>}

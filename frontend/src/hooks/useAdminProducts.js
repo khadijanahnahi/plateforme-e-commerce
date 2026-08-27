@@ -84,7 +84,7 @@ export function useAdminProducts() {
       setCategories(categoriesResponse.data.filter((category) => category.active));
       setError("");
     } catch (exception) {
-      setError(getApiErrorMessage(exception, "Unable to load admin products."));
+      setError(getApiErrorMessage(exception, "Impossible de charger les produits."));
     } finally {
       setLoading(false);
     }
@@ -98,7 +98,7 @@ export function useAdminProducts() {
       await loadProducts(search);
       setError("");
     } catch (exception) {
-      setError(getApiErrorMessage(exception, "Unable to search products."));
+      setError(getApiErrorMessage(exception, "Impossible de rechercher les produits."));
     } finally {
       setLoading(false);
     }
@@ -114,7 +114,7 @@ export function useAdminProducts() {
       await loadProducts("");
       setError("");
     } catch (exception) {
-      setError(getApiErrorMessage(exception, "Unable to reset filters."));
+      setError(getApiErrorMessage(exception, "Impossible de réinitialiser les filtres."));
     } finally {
       setLoading(false);
     }

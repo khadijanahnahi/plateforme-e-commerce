@@ -5,10 +5,10 @@
   z-index: 1000;
   width: 100%;
   padding: 0;
-  border-bottom: 1px solid #e7e1d8;
+  border-bottom: 1px solid #262626;
   border-radius: 0;
-  background: rgba(255, 253, 249, 0.94);
-  box-shadow: 0 8px 28px rgba(38, 31, 27, 0.07);
+  background: #000000;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
   backdrop-filter: blur(18px) saturate(1.12);
   -webkit-backdrop-filter: blur(18px) saturate(1.12);
 }
@@ -77,7 +77,7 @@
 .client-logo {
   justify-self: start;
   min-width: 0;
-  color: #161616;
+  color: #ffffff;
   font-family: Georgia, "Times New Roman", serif;
   font-size: clamp(2rem, 2.25vw, 2.45rem);
   font-weight: 900;
@@ -112,7 +112,7 @@
 .client-desktop-nav a {
   position: relative;
   padding: 0.65rem 0;
-  color: #4f4a45;
+  color: #f5f5f5;
   font-family: var(--client-header-font);
   font-size: 0.93rem;
   font-weight: 650;
@@ -685,7 +685,7 @@
   align-items: center;
   gap: 0.35rem;
   border: 0;
-  color: #4f4a45;
+  color: #f5f5f5;
   background: transparent;
   font-family: var(--client-header-font);
   font-size: 0.9rem;
@@ -699,7 +699,7 @@
 }
 
 .client-nav-trigger > span {
-  color: #8a847d;
+  color: #c7cdd6;
   font-size: 0.86rem;
   transform: translateY(-1px);
   transition: transform 200ms ease, color 200ms ease;
@@ -707,7 +707,7 @@
 
 .client-nav-trigger[aria-expanded="true"] > span {
   color: #8e314a;
-  transform: translateY(1px) rotate(180deg);
+  transform: translateY(-1px);
 }
 
 .client-desktop-nav > a::after,
@@ -752,12 +752,10 @@
   right: 0;
   left: 0;
   overflow: hidden;
-  border-top: 1px solid #e7e1d8;
-  border-bottom: 1px solid #e7e1d8;
-  background:
-    radial-gradient(circle at 84% 0%, rgba(142, 49, 74, 0.08), transparent 28%),
-    rgba(255, 253, 249, 0.99);
-  box-shadow: 0 30px 70px rgba(38, 31, 27, 0.16);
+  border-top: 1px solid #262626;
+  border-bottom: 1px solid #262626;
+  background: #000000;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(22px);
   animation: clientMegaMenuIn 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -802,14 +800,14 @@
 .client-mega-intro {
   min-width: 0;
   padding: 1.1rem;
-  border: 1px solid #e7e1d8;
+  border: 1px solid #2b2b2b;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.82);
+  background: #0d0d0d;
 }
 
 .client-mega-column.is-emphasized {
   border-color: rgba(142, 49, 74, 0.3);
-  background: linear-gradient(145deg, rgba(142, 49, 74, 0.09), rgba(255, 255, 255, 0.88));
+  background: linear-gradient(145deg, rgba(142, 49, 74, 0.24), #0d0d0d);
 }
 
 .client-mega-eyebrow {
@@ -847,7 +845,7 @@
   flex-direction: column;
   gap: 0.24rem;
   border-radius: 13px;
-  color: #25211f;
+  color: #f5f5f5;
   text-decoration: none;
   transition: color 180ms ease, background 180ms ease, transform 180ms ease;
 }
@@ -857,7 +855,7 @@
 }
 
 .client-mega-link small {
-  color: #77716a;
+  color: #a4a4a4;
   font: 500 0.72rem/1.35 var(--client-header-font);
 }
 
@@ -902,10 +900,10 @@
   align-items: center;
   gap: 0.7rem;
   overflow: hidden;
-  border: 1px solid #e7e1d8;
+  border: 1px solid #2b2b2b;
   border-radius: 15px;
-  color: #25211f;
-  background: #ffffff;
+  color: #f5f5f5;
+  background: #161616;
   text-decoration: none;
   transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 }
@@ -927,7 +925,7 @@
   overflow: hidden;
   border-radius: 11px;
   color: #8e314a;
-  background: #f4f0e9;
+  background: #262626;
 }
 
 .client-category-menu-media img {
@@ -955,7 +953,7 @@
 }
 
 .client-category-menu-card small {
-  color: #77716a;
+  color: #a4a4a4;
   font: 500 0.69rem/1 var(--client-header-font);
 }
 
@@ -993,13 +991,13 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  background: linear-gradient(150deg, rgba(142, 49, 74, 0.1), rgba(255, 255, 255, 0.92));
+  background: linear-gradient(150deg, rgba(142, 49, 74, 0.24), #0d0d0d);
 }
 
 .client-mega-intro h2 {
   max-width: 340px;
   margin: 0 0 1.2rem;
-  color: #161616;
+  color: #ffffff;
   font: 750 clamp(1.4rem, 2vw, 2rem)/1.08 var(--client-header-font);
   letter-spacing: -0.035em;
 }
@@ -1016,15 +1014,15 @@
   align-items: flex-start;
   justify-content: center;
   gap: 0.4rem;
-  border: 1px dashed #d8d0c6;
+  border: 1px dashed #464646;
   border-radius: 15px;
-  color: #77716a;
-  background: #fbfaf7;
+  color: #a4a4a4;
+  background: #161616;
   font-family: var(--client-header-font);
 }
 
 .client-mega-state strong {
-  color: #25211f;
+  color: #f5f5f5;
 }
 
 .client-mega-state button {

@@ -47,7 +47,7 @@ export default function AdminLayout() {
         <button
           className="admin-sidebar-backdrop"
           type="button"
-          aria-label="Close admin navigation"
+          aria-label="Fermer la navigation d’administration"
           onClick={() => setMobileOpen(false)}
         />
       ) : null}

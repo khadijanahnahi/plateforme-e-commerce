@@ -5,6 +5,7 @@ import http from "../../api/http";
 import { Button, EmptyState, ErrorState, Skeleton } from "../ui";
 
 const CARD_GAP = 18;
+const HOME_CATEGORY_LIMIT = 4;
 
 function normalizeListResponse(data) {
   if (Array.isArray(data)) return data;
@@ -68,8 +69,12 @@ export default function HomeCategoriesCarousel() {
       return normalizeListResponse(response.data);
     },
   });
+  const featuredCategories = [...categories]
+    .filter((category) => Number(category.productCount ?? 0) > 0)
+    .sort((first, second) => Number(second.productCount ?? 0) - Number(first.productCount ?? 0))
+    .slice(0, HOME_CATEGORY_LIMIT);
   const cardsPerView = getCardsPerView(viewportWidth);
-  const maxIndex = Math.max(0, categories.length - cardsPerView);
+  const maxIndex = Math.max(0, featuredCategories.length - cardsPerView);
   const cardWidth = viewportWidth > 0
     ? (viewportWidth - CARD_GAP * (cardsPerView - 1)) / cardsPerView
     : 0;
@@ -118,7 +123,7 @@ export default function HomeCategoriesCarousel() {
     else showPrevious();
   }
 
-  const showControls = !loading && categories.length > cardsPerView;
+  const showControls = !loading && featuredCategories.length > cardsPerView;
 
   return (
     <section className="page section-block home-categories-section" aria-labelledby="home-categories-title">
@@ -170,15 +175,15 @@ export default function HomeCategoriesCarousel() {
             onRetry={loadCategories}
           />
         ) : null}
-        {!loading && !error && categories.length === 0 ? (
+        {!loading && !error && featuredCategories.length === 0 ? (
           <EmptyState
             description="Les categories actives apparaitront prochainement."
             title="Aucune categorie disponible"
           />
         ) : null}
-        {!loading && !error && categories.length > 0 ? (
+        {!loading && !error && featuredCategories.length > 0 ? (
           <div className="home-categories-track" style={trackStyle}>
-            {categories.map((category, index) => (
+            {featuredCategories.map((category, index) => (
               <Link
                 className="home-category-carousel-card"
                 key={category.id}

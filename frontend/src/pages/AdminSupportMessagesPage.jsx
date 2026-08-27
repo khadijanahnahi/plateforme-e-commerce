@@ -35,22 +35,22 @@ export default function AdminSupportMessagesPage() {
   return (
     <section className="page admin-page admin-support-messages-page">
       <div className="admin-stats-grid">
-        <AdminStatsCard label="Total Messages" value={stats.total} />
-        <AdminStatsCard label="New" value={stats.new} />
-        <AdminStatsCard label="In Progress" value={stats.inProgress} />
-        <AdminStatsCard label="Resolved" value={stats.resolved} />
+        <AdminStatsCard label="Total des messages" value={stats.total} />
+        <AdminStatsCard label="Nouveaux" value={stats.new} />
+        <AdminStatsCard label="En cours" value={stats.inProgress} />
+        <AdminStatsCard label="Résolus" value={stats.resolved} />
       </div>
 
       <form className="admin-panel admin-support-filters" onSubmit={applyFilters}>
         <Input
-          label="Search"
+          label="Rechercher"
           name="search"
           value={filters.search}
           onChange={updateFilter}
-          placeholder="Search by name, email, subject or order number..."
+          placeholder="Rechercher par nom, email, sujet ou numéro de commande..."
         />
-        <Select label="Status" name="status" value={filters.status} onChange={updateFilter}>
-          <option value="">All statuses</option>
+        <Select label="Statut" name="status" value={filters.status} onChange={updateFilter}>
+          <option value="">Tous les statuts</option>
           {supportMessageStatuses.map((status) => (
             <option key={status} value={status}>{supportMessageStatusLabels[status] ?? status}</option>
           ))}
@@ -59,7 +59,7 @@ export default function AdminSupportMessagesPage() {
         <DateTimeInput label="Date de fin" name="dateTo" type="date" value={filters.dateTo} onChange={updateFilter} />
         <div className="support-filter-actions">
           <Button loading={loading} type="submit">Filtrer</Button>
-          <Button disabled={loading} variant="outline" onClick={resetFilters}>Reset</Button>
+          <Button disabled={loading} variant="outline" onClick={resetFilters}>Réinitialiser</Button>
         </div>
       </form>
 

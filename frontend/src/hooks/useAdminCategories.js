@@ -61,7 +61,7 @@ export function useAdminCategories() {
       await refreshCategories();
       setError("");
     } catch (exception) {
-      setError(getApiErrorMessage(exception, "Unable to load categories."));
+      setError(getApiErrorMessage(exception, "Impossible de charger les catégories."));
     } finally {
       setLoading(false);
     }
@@ -82,7 +82,7 @@ export function useAdminCategories() {
       await refreshCategories();
       return true;
     } catch (exception) {
-      setError(getApiErrorMessage(exception, "Unable to save category."));
+      setError(getApiErrorMessage(exception, "Impossible d’enregistrer la catégorie."));
       return false;
     }
   }
@@ -101,7 +101,7 @@ export function useAdminCategories() {
       }
       await refreshCategories();
     } catch (exception) {
-      setError(getApiErrorMessage(exception, "Unable to update category status."));
+      setError(getApiErrorMessage(exception, "Impossible de modifier le statut de la catégorie."));
     }
   }
 
@@ -122,7 +122,7 @@ export function useAdminCategories() {
       setMessage("Category image uploaded.");
       return response.data.imageUrl;
     } catch (exception) {
-      setError(getApiErrorMessage(exception, "Unable to upload category image."));
+      setError(getApiErrorMessage(exception, "Impossible d’importer l’image de la catégorie."));
       return "";
     } finally {
       setImageUploading(false);

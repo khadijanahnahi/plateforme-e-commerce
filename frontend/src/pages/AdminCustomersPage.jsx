@@ -49,7 +49,7 @@ export default function AdminCustomersPage() {
         }
       } catch (exception) {
         if (mounted) {
-          setError(getApiErrorMessage(exception, "Unable to load customers."));
+          setError(getApiErrorMessage(exception, "Impossible de charger les clients."));
         }
       } finally {
         if (mounted) {
@@ -114,9 +114,9 @@ export default function AdminCustomersPage() {
           <small>Disabled or blocked accounts</small>
         </article>
         <article className="customers-stat-card customers-stat-card-wide">
-          <span>Total Spent</span>
+          <span>Total dépensé</span>
           <strong>{formatMoney(stats.revenue)}</strong>
-          <small>Revenue excluding cancelled orders</small>
+          <small>Chiffre d’affaires hors commandes annulées</small>
         </article>
       </div>
 
@@ -124,17 +124,17 @@ export default function AdminCustomersPage() {
         <div className="customers-toolbar">
           <input
             type="search"
-            placeholder="Search by name, email or phone..."
+            placeholder="Rechercher par nom, email ou téléphone..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
           <Select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
-            <option value="">All</option>
-            <option value="true">Active</option>
-            <option value="false">Inactive</option>
+            <option value="">Tous</option>
+            <option value="true">Actifs</option>
+            <option value="false">Inactifs</option>
           </Select>
           <button className="customers-reset-button" type="button" onClick={resetFilters}>
-            Reset filters
+            Réinitialiser les filtres
           </button>
         </div>
 
@@ -142,13 +142,13 @@ export default function AdminCustomersPage() {
           <table className="admin-table customers-table">
             <thead>
               <tr>
-                <th>Customer</th>
+                <th>Client</th>
                 <th>Email</th>
-                <th>Phone</th>
-                <th>Orders</th>
-                <th>Total spent</th>
-                <th>Registered</th>
-                <th>Status</th>
+                <th>Téléphone</th>
+                <th>Commandes</th>
+                <th>Total dépensé</th>
+                <th>Inscription</th>
+                <th>Statut</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -156,15 +156,15 @@ export default function AdminCustomersPage() {
               {loading ? (
                 <tr>
                   <td colSpan="8">
-                    <div className="customers-state">Loading customers...</div>
+                    <div className="customers-state">Chargement des clients...</div>
                   </td>
                 </tr>
               ) : filteredCustomers.length === 0 ? (
                 <tr>
                   <td colSpan="8">
                     <div className="customers-state">
-                      <strong>No customers found</strong>
-                      <span>Try another search term or reset filters.</span>
+                      <strong>Aucun client trouvé</strong>
+                      <span>Essayez un autre terme ou réinitialisez les filtres.</span>
                     </div>
                   </td>
                 </tr>

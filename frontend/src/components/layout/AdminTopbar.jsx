@@ -8,7 +8,7 @@ export default function AdminTopbar({ mobileOpen, onLogout, onToggleMobile, user
       <button
         className="admin-sidebar-toggle"
         type="button"
-        aria-label={mobileOpen ? "Close admin navigation" : "Open admin navigation"}
+        aria-label={mobileOpen ? "Fermer la navigation d’administration" : "Ouvrir la navigation d’administration"}
         aria-expanded={mobileOpen}
         onClick={onToggleMobile}
       >
@@ -18,17 +18,17 @@ export default function AdminTopbar({ mobileOpen, onLogout, onToggleMobile, user
       </button>
 
       <div className="admin-topbar-title">
-        <span>Admin Workspace</span>
-        <strong>{user?.fullName ?? "Administrator"}</strong>
+        <span>Espace d’administration</span>
+        <strong>{user?.fullName ?? "Administrateur"}</strong>
       </div>
 
       <div className="admin-topbar-actions">
-        <NavLink className="auth-button signup-button" to="/">View Store</NavLink>
+        <NavLink className="auth-button signup-button" to="/">Voir la boutique</NavLink>
         <AdminNotificationCenter />
-        <NavLink className="profile-avatar-link admin-profile-link" to="/profile" aria-label="Open admin profile">
-          <img src={profileImage} alt={user?.fullName ?? "Admin profile"} />
+        <NavLink className="profile-avatar-link admin-profile-link" to="/profile" aria-label="Ouvrir le profil administrateur">
+          <img src={profileImage} alt={user?.fullName ?? "Profil administrateur"} />
         </NavLink>
-        <button className="auth-button logout-button" type="button" onClick={onLogout}>Logout</button>
+        <button className="auth-button logout-button" type="button" onClick={onLogout}>Déconnexion</button>
       </div>
     </header>
   );

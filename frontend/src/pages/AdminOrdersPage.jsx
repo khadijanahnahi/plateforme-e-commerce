@@ -54,24 +54,24 @@ export default function AdminOrdersPage() {
 
       <div className="admin-panel">
         <div className="admin-orders-summary">
-          <AdminStatsCard label="Total Orders" value={summary.total} />
-          <AdminStatsCard label="Pending" value={summary.pending} />
-          <AdminStatsCard label="Delivered" value={summary.delivered} />
-          <AdminStatsCard label="Unpaid" value={summary.unpaid} />
+          <AdminStatsCard label="Total des commandes" value={summary.total} />
+          <AdminStatsCard label="En attente" value={summary.pending} />
+          <AdminStatsCard label="Livrées" value={summary.delivered} />
+          <AdminStatsCard label="Impayées" value={summary.unpaid} />
         </div>
 
         <div className="admin-search admin-orders-toolbar">
           <input
             value={search}
             onChange={(event) => updateSearch(event.target.value)}
-            placeholder="Search by order number, customer name or phone"
+            placeholder="Rechercher par numéro, client ou téléphone"
           />
           <Select value={statusFilter} onChange={(event) => updateStatusFilter(event.target.value)}>
-            <option value="">All statuses</option>
+            <option value="">Tous les statuts</option>
             {orderStatuses.map((status) => <option key={status} value={status}>{status}</option>)}
           </Select>
           <Select value={paymentFilter} onChange={(event) => updatePaymentFilter(event.target.value)}>
-            <option value="">All payments</option>
+            <option value="">Tous les paiements</option>
             {paymentStatuses.map((status) => <option key={status} value={status}>{status}</option>)}
           </Select>
           <button className="button button-secondary" type="button" onClick={resetFilters}>Reset</button>

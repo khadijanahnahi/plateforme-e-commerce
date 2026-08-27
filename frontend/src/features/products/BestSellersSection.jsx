@@ -28,6 +28,7 @@ function Stars({ rating = 0 }) {
 }
 
 export default function BestSellersSection() {
+  const BEST_SELLER_LIMIT = 4;
   const reveal = useInView();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
@@ -38,9 +39,9 @@ export default function BestSellersSection() {
     isLoading: loading,
     refetch: loadProducts,
   } = useQuery({
-    queryKey: ["public", "products", "best-sellers", 8],
+    queryKey: ["public", "products", "best-sellers", BEST_SELLER_LIMIT],
     queryFn: async () => {
-      const response = await productApi.getBestSellers(8);
+      const response = await productApi.getBestSellers(BEST_SELLER_LIMIT);
       return normalizeList(response.data);
     },
   });
@@ -61,7 +62,7 @@ export default function BestSellersSection() {
     <section ref={reveal.ref} className={`page section-block best-sellers-section ${reveal.isVisible ? "is-visible" : ""}`}>
       <div className="section-heading best-sellers-heading">
         <div className="best-sellers-heading-copy">
-          <span className="section-kicker">Best-sellers</span>
+          <span className="section-kicker">Meilleures ventes</span>
           <h2>Les favoris de nos clients</h2>
           <p>Découvrez les produits les plus commandés sur ShopSphere.</p>
         </div>

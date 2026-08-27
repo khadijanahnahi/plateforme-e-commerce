@@ -39,7 +39,7 @@ export default function AdminCustomerDetailsPage() {
         }
       } catch (exception) {
         if (mounted) {
-          setError(exception.response?.data?.message ?? "Unable to load customer.");
+          setError(exception.response?.data?.message ?? "Impossible de charger le client.");
         }
       } finally {
         if (mounted) {
@@ -83,7 +83,7 @@ export default function AdminCustomerDetailsPage() {
           </article>
           <article className="customers-detail-card">
             <span>Account</span>
-            <strong>{customer.active ? "ACTIVE" : "INACTIVE"}</strong>
+            <strong>{customer.active ? "Actif" : "Inactif"}</strong>
             <p>Registered {formatDate(customer.registeredAt)}</p>
           </article>
           <article className="customers-detail-card">

@@ -176,7 +176,7 @@ export default function FlashSaleSection() {
     <section className="page section-block flash-sale-section" id="promotions">
       <div className="section-heading flash-header">
         <div>
-          <span className="section-kicker">Flash Sale</span>
+          <span className="section-kicker">Promotions</span>
           <h2>Drops limités, stocks en mouvement</h2>
           <p>Promotions actives, prix recalculés côté serveur et stocks affichés en temps réel.</p>
         </div>
@@ -224,13 +224,13 @@ export default function FlashSaleSection() {
                 style={{ animationDelay: `${0.12 + index * 0.08}s` }}
               >
                 <div className="product-image">
-                  <span className="favorite-chip">{promotion.promotionBadgeLabel || "FLASH SALE"}</span>
+                  <span className="favorite-chip">{promotion.promotionBadgeLabel || "PROMOTION"}</span>
                   {discount ? <span className="flash-discount">-{discount}%</span> : null}
                   <div className="product-placeholder flash-image-shell">
                     {promotion.imageUrl ? (
                       <img className="flash-product-image" src={promotion.imageUrl} alt={productName} />
                     ) : (
-                      <span>{promotion.categoryName ?? "Deal"}</span>
+                      <span>{promotion.categoryName ?? "Offre"}</span>
                     )}
                   </div>
                 </div>

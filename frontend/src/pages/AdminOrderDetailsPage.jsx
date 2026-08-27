@@ -33,7 +33,7 @@ export default function AdminOrderDetailsPage() {
         }
       } catch (exception) {
         if (mounted) {
-          setError(exception.response?.data?.message ?? "Unable to load order.");
+          setError(exception.response?.data?.message ?? "Impossible de charger la commande.");
         }
       } finally {
         if (mounted) {

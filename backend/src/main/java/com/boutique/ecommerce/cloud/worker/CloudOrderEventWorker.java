@@ -11,6 +11,7 @@ import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 
 @Component
+@ConditionalOnProperty(prefix = "app.cloud", name = "enabled", havingValue = "true")
 @ConditionalOnProperty(prefix = "app.cloud.sqs", name = "worker-enabled", havingValue = "true", matchIfMissing = true)
 public class CloudOrderEventWorker {
 

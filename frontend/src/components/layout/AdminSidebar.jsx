@@ -2,33 +2,33 @@ import { NavLink } from "react-router-dom";
 
 const adminSections = [
   {
-    title: "Overview",
+    title: "Vue d’ensemble",
     links: [
-      { icon: "dashboard", label: "Dashboard", to: "/admin/dashboard" },
+      { icon: "dashboard", label: "Tableau de bord", to: "/admin/dashboard" },
     ],
   },
   {
-    title: "Sales",
+    title: "Ventes",
     links: [
-      { icon: "order", label: "Orders", to: "/admin/orders" },
+      { icon: "order", label: "Commandes", to: "/admin/orders" },
       { icon: "return", label: "Retours", to: "/admin/return-requests" },
-      { icon: "stock", label: "Stock History", to: "/admin/stock-movements" },
+      { icon: "stock", label: "Historique du stock", to: "/admin/stock-movements" },
     ],
   },
   {
-    title: "Catalog",
+    title: "Catalogue",
     links: [
-      { icon: "product", label: "Products", to: "/admin/products" },
-      { icon: "category", label: "Categories", to: "/admin/categories" },
-      { icon: "review", label: "Reviews", to: "/admin/reviews" },
+      { icon: "product", label: "Produits", to: "/admin/products" },
+      { icon: "category", label: "Catégories", to: "/admin/categories" },
+      { icon: "review", label: "Avis", to: "/admin/reviews" },
     ],
   },
   {
     title: "Marketing",
     links: [
-      { icon: "banner", label: "Banners", to: "/admin/banners" },
+      { icon: "banner", label: "Bannières", to: "/admin/banners" },
       { icon: "promotion", label: "Promotions", to: "/admin/promotions" },
-      { icon: "coupon", label: "Coupons", to: "/admin/coupons" },
+      { icon: "coupon", label: "Codes promotionnels", to: "/admin/coupons" },
     ],
   },
   {
@@ -41,16 +41,16 @@ const adminSections = [
     ],
   },
   {
-    title: "Customers",
+    title: "Clients",
     links: [
-      { icon: "customer", label: "Customers", to: "/admin/customers" },
+      { icon: "customer", label: "Clients", to: "/admin/customers" },
       { icon: "support", label: "Support", to: "/admin/support-messages" },
     ],
   },
   {
-    title: "System",
+    title: "Système",
     links: [
-      { icon: "settings", label: "Settings", to: "/admin/settings" },
+      { icon: "settings", label: "Paramètres", to: "/admin/settings" },
     ],
   },
 ];
@@ -84,20 +84,20 @@ export default function AdminSidebar({ collapsed, mobileOpen, onNavigate, onTogg
       <div className="admin-sidebar-brand-row">
         <NavLink className="admin-sidebar-brand" to="/admin/dashboard" onClick={onNavigate}>
           <span className="admin-sidebar-monogram">S<span>•</span></span>
-          <span className="admin-sidebar-brand-copy"><strong>ShopSphere Admin</strong><small>Commerce Console</small></span>
+          <span className="admin-sidebar-brand-copy"><strong>Administration ShopSphere</strong><small>Console commerciale</small></span>
         </NavLink>
         <button
           className="admin-sidebar-collapse"
           type="button"
-          aria-label={collapsed ? "Expand admin sidebar" : "Collapse admin sidebar"}
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={collapsed ? "Développer la barre latérale" : "Réduire la barre latérale"}
+          title={collapsed ? "Développer la barre latérale" : "Réduire la barre latérale"}
           onClick={onToggleCollapsed}
         >
           <svg aria-hidden="true" viewBox="0 0 24 24"><path d={collapsed ? "m9 18 6-6-6-6" : "m15 18-6-6 6-6"} /></svg>
         </button>
       </div>
 
-      <nav className="admin-sidebar-nav" aria-label="Admin navigation">
+      <nav className="admin-sidebar-nav" aria-label="Navigation d’administration">
         {adminSections.map((section) => (
           <div className="admin-sidebar-section" key={section.title}>
             <span className="admin-sidebar-section-title">{section.title}</span>

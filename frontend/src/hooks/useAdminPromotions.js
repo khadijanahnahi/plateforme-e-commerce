@@ -125,7 +125,7 @@ export function useAdminPromotions() {
       setProducts(productsResponse.data);
       setError("");
     } catch (exception) {
-      setError(getApiErrorMessage(exception, "Unable to load promotions."));
+      setError(getApiErrorMessage(exception, "Impossible de charger les promotions."));
     } finally {
       setLoading(false);
     }
@@ -144,7 +144,7 @@ export function useAdminPromotions() {
     try {
       await refreshPromotions();
     } catch (exception) {
-      setError(getApiErrorMessage(exception, "Unable to filter promotions."));
+      setError(getApiErrorMessage(exception, "Impossible de filtrer les promotions."));
     } finally {
       setLoading(false);
     }
@@ -159,7 +159,7 @@ export function useAdminPromotions() {
     try {
       await refreshPromotions(nextFilters);
     } catch (exception) {
-      setError(getApiErrorMessage(exception, "Unable to reset promotion filters."));
+      setError(getApiErrorMessage(exception, "Impossible de réinitialiser les filtres de promotion."));
     } finally {
       setLoading(false);
     }
@@ -186,7 +186,7 @@ export function useAdminPromotions() {
       await Promise.all([refreshPromotions(), refreshProducts()]);
       return true;
     } catch (exception) {
-      setError(getApiErrorMessage(exception, "Unable to save promotion."));
+      setError(getApiErrorMessage(exception, "Impossible d’enregistrer la promotion."));
       return false;
     }
   }
@@ -199,7 +199,7 @@ export function useAdminPromotions() {
       setMessage("Promotion activated.");
       await refreshPromotions();
     } catch (exception) {
-      setError(getApiErrorMessage(exception, "Unable to activate promotion."));
+      setError(getApiErrorMessage(exception, "Impossible d’activer la promotion."));
     }
   }
 
@@ -211,7 +211,7 @@ export function useAdminPromotions() {
       setMessage("Promotion deactivated.");
       await refreshPromotions();
     } catch (exception) {
-      setError(getApiErrorMessage(exception, "Unable to deactivate promotion."));
+      setError(getApiErrorMessage(exception, "Impossible de désactiver la promotion."));
     }
   }
 
@@ -223,7 +223,7 @@ export function useAdminPromotions() {
       setMessage("Promotion expired.");
       await refreshPromotions();
     } catch (exception) {
-      setError(getApiErrorMessage(exception, "Unable to expire promotion."));
+      setError(getApiErrorMessage(exception, "Impossible d’expirer la promotion."));
     }
   }
 
@@ -235,7 +235,7 @@ export function useAdminPromotions() {
       setMessage("Promotion deleted.");
       await refreshPromotions();
     } catch (exception) {
-      setError(getApiErrorMessage(exception, "Unable to delete promotion."));
+      setError(getApiErrorMessage(exception, "Impossible de supprimer la promotion."));
     }
   }
 
