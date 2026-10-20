@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: shopsphere
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/part-of: shopsphere
+data:
+  POSTGRES_DB: ecommerce_db
+  POSTGRES_USER: ecommerce_user
+

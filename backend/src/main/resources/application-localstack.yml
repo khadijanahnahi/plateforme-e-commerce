@@ -1,0 +1,31 @@
+app:
+  upload:
+    storage-provider: s3
+  invoice:
+    storage-provider: s3
+    s3-bucket: ${APP_INVOICE_S3_BUCKET:shopsphere-invoices}
+    s3-prefix: ${APP_INVOICE_S3_PREFIX:invoices}
+  cloud:
+    enabled: true
+    region: ${AWS_REGION:us-east-1}
+    endpoint: ${AWS_ENDPOINT_URL:http://localhost:4566}
+    access-key: ${AWS_ACCESS_KEY_ID:test}
+    secret-key: ${AWS_SECRET_ACCESS_KEY:test}
+    s3:
+      product-media-bucket: ${APP_PRODUCT_MEDIA_S3_BUCKET:shopsphere-media}
+      product-media-prefix: ${APP_PRODUCT_MEDIA_S3_PREFIX:products}
+      product-media-public-url-prefix: ${APP_PRODUCT_MEDIA_PUBLIC_URL_PREFIX:http://localhost:4566/shopsphere-media}
+    sqs:
+      enabled: true
+      worker-enabled: ${APP_CLOUD_SQS_WORKER_ENABLED:true}
+      order-events-queue-url: ${APP_ORDER_EVENTS_QUEUE_URL:http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/shopsphere-events}
+      worker-delay-ms: ${APP_CLOUD_SQS_WORKER_DELAY_MS:5000}
+      max-messages: ${APP_CLOUD_SQS_MAX_MESSAGES:5}
+    secrets:
+      enabled: true
+      runtime-secret-name: ${APP_RUNTIME_SECRET_NAME:shopsphere/runtime}
+
+cloudinary:
+  cloud-name: unused-localstack
+  api-key: unused-localstack
+  api-secret: unused-localstack

@@ -1,0 +1,10 @@
+{
+  "name": "ShopSphere Admin",
+  "short_name": "ShopSphere",
+  "start_url": "/admin/dashboard",
+  "display": "standalone",
+  "background_color": "#f7f4ee",
+  "theme_color": "#8e314a",
+  "lang": "fr",
+  "description": "Console d'administration ShopSphere"
+}

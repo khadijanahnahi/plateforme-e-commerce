@@ -1,0 +1,206 @@
+name: ShopSphere CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - "frontend/**"
+      - ".github/workflows/ci.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - "frontend/**"
+      - ".github/workflows/ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: shopsphere-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ai-disclosure:
+    name: AI contribution disclosure
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - name: Require exactly one AI declaration
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        shell: bash
+        run: |
+          no_ai_count=$(grep -Fic -- "- [x] Aucun code généré par IA" <<< "$PR_BODY" || true)
+          ai_count=$(grep -Fic -- "- [x] Assistance IA utilisée et déclarée ci-dessous" <<< "$PR_BODY" || true)
+
+          if [ $((no_ai_count + ai_count)) -ne 1 ]; then
+            echo "::error::Cochez exactement une déclaration IA dans le modèle de pull request."
+            exit 1
+          fi
+
+  security:
+    name: Security scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TRIVY_DISABLE_VEX_NOTICE: "true"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Scan dependencies, config and secrets with Trivy
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+          skip-dirs: backend/target,frontend/dist,frontend/node_modules
+
+  backend:
+    name: Backend tests and Sonar
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Validate SonarQube configuration
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION }}
+          SONAR_PROJECT_KEY: ${{ vars.SONAR_BACKEND_PROJECT_KEY }}
+        shell: bash
+        run: |
+          for variable in SONAR_TOKEN SONAR_ORGANIZATION SONAR_PROJECT_KEY; do
+            if [ -z "${!variable:-}" ]; then
+              echo "::error::La configuration SonarQube est incomplète : $variable est absent."
+              exit 1
+            fi
+          done
+
+      - name: Test and analyze backend with Quality Gate
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL || 'https://sonarcloud.io' }}
+          SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION }}
+          SONAR_PROJECT_KEY: ${{ vars.SONAR_BACKEND_PROJECT_KEY }}
+        run: >-
+          mvn -B
+          verify
+          org.sonarsource.scanner.maven:sonar-maven-plugin:5.7.0.6970:sonar
+          -Dsonar.host.url=${SONAR_HOST_URL}
+          -Dsonar.organization=${SONAR_ORGANIZATION}
+          -Dsonar.projectKey=${SONAR_PROJECT_KEY}
+          -Dsonar.projectName=ShopSphere-Backend
+          -Dsonar.qualitygate.wait=true
+          -Dsonar.qualitygate.timeout=300
+
+  frontend:
+    name: Frontend build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build React app
+        run: npm run build
+
+      - name: Validate SonarQube configuration
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION }}
+          SONAR_PROJECT_KEY: ${{ vars.SONAR_FRONTEND_PROJECT_KEY }}
+        shell: bash
+        run: |
+          for variable in SONAR_TOKEN SONAR_ORGANIZATION SONAR_PROJECT_KEY; do
+            if [ -z "${!variable:-}" ]; then
+              echo "::error::La configuration SonarQube est incomplète : $variable est absent."
+              exit 1
+            fi
+          done
+
+      - name: Analyze frontend and enforce Quality Gate
+        uses: SonarSource/sonarqube-scan-action@v8.2.1
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL || 'https://sonarcloud.io' }}
+        with:
+          projectBaseDir: frontend
+          args: >
+            -Dsonar.organization=${{ vars.SONAR_ORGANIZATION }}
+            -Dsonar.projectKey=${{ vars.SONAR_FRONTEND_PROJECT_KEY }}
+            -Dsonar.projectName=ShopSphere-Frontend
+            -Dsonar.qualitygate.wait=true
+            -Dsonar.qualitygate.timeout=300
+
+      - name: Explain SonarQube processing failure
+        if: failure()
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        shell: bash
+        run: |
+          report_file=".scannerwork/report-task.txt"
+
+          if [ ! -f "$report_file" ]; then
+            echo "::warning::Aucun rapport de tache SonarQube n'a ete genere. Consultez les logs du scanner."
+            exit 0
+          fi
+
+          task_url=$(awk -F= '$1 == "ceTaskUrl" { print $2 }' "$report_file")
+          if [ -z "$task_url" ]; then
+            echo "::warning::L'URL de la tache SonarQube est absente du rapport."
+            exit 0
+          fi
+
+          response=$(curl --fail --silent --show-error --user "${SONAR_TOKEN}:" "$task_url")
+          status=$(printf '%s' "$response" | jq -r '.task.status // "UNKNOWN"')
+          message=$(printf '%s' "$response" | jq -r '.task.errorMessage // empty')
+
+          echo "Statut de traitement SonarQube : $status"
+          if [ -n "$message" ]; then
+            echo "::error title=Echec du traitement SonarQube::$message"
+          else
+            echo "::warning::SonarQube n'a retourne aucun detail supplementaire. Consultez Administration > Background tasks."
+          fi

@@ -1,0 +1,134 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: shopsphere-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    expose:
+      - "5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - data
+
+  minio:
+    image: minio/minio:latest
+    container_name: shopsphere-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?MINIO_ROOT_USER is required}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD is required}
+    # The S3 API is loopback-only so the host backup service can reach it.
+    # The MinIO console (9001) is intentionally not published.
+    ports:
+      - "127.0.0.1:${MINIO_BACKUP_PORT:-9000}:9000"
+    expose:
+      - "9000"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/minio/health/live || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - data
+
+  backend:
+    build:
+      context: ./backend
+    container_name: shopsphere-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8080
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      APP_ADMIN_ENABLED: ${APP_ADMIN_ENABLED:-true}
+      APP_ADMIN_FULL_NAME: ${APP_ADMIN_FULL_NAME:-ShopSphere Admin}
+      APP_ADMIN_EMAIL: ${APP_ADMIN_EMAIL:-admin@shopsphere.local}
+      APP_ADMIN_PHONE: ${APP_ADMIN_PHONE:-+212600000000}
+      APP_ADMIN_PASSWORD: ${APP_ADMIN_PASSWORD:?APP_ADMIN_PASSWORD is required}
+      APP_ADMIN_RESET_PASSWORD: ${APP_ADMIN_RESET_PASSWORD:-false}
+      APP_AUTH_RATE_LIMIT_ENABLED: ${APP_AUTH_RATE_LIMIT_ENABLED:-true}
+      APP_AUTH_RATE_LIMIT_MAX_ATTEMPTS: ${APP_AUTH_RATE_LIMIT_MAX_ATTEMPTS:-5}
+      APP_AUTH_RATE_LIMIT_WINDOW_SECONDS: ${APP_AUTH_RATE_LIMIT_WINDOW_SECONDS:-60}
+      APP_WEB_PUSH_ENABLED: ${APP_WEB_PUSH_ENABLED:-false}
+      APP_WEB_PUSH_PUBLIC_KEY: ${APP_WEB_PUSH_PUBLIC_KEY:-}
+      APP_WEB_PUSH_PRIVATE_KEY: ${APP_WEB_PUSH_PRIVATE_KEY:-}
+      APP_WEB_PUSH_SUBJECT: ${APP_WEB_PUSH_SUBJECT:-mailto:admin@shopsphere.local}
+      APP_WEB_PUSH_STORAGE_ENCRYPTION_KEY: ${APP_WEB_PUSH_STORAGE_ENCRYPTION_KEY:-}
+      APP_WEB_PUSH_TTL_SECONDS: ${APP_WEB_PUSH_TTL_SECONDS:-3600}
+      APP_WEB_PUSH_MAX_ATTEMPTS: ${APP_WEB_PUSH_MAX_ATTEMPTS:-5}
+      APP_WEB_PUSH_WORKER_DELAY_MS: ${APP_WEB_PUSH_WORKER_DELAY_MS:-5000}
+      APP_EMAIL_ENABLED: ${APP_EMAIL_ENABLED:-false}
+      APP_EMAIL_FROM: ${APP_EMAIL_FROM:-no-reply@shopsphere.local}
+      APP_EMAIL_STORE_NAME: ${APP_EMAIL_STORE_NAME:-ShopSphere}
+      AWS_SES_SMTP_HOST: ${AWS_SES_SMTP_HOST:-}
+      AWS_SES_SMTP_PORT: ${AWS_SES_SMTP_PORT:-587}
+      AWS_SES_SMTP_USERNAME: ${AWS_SES_SMTP_USERNAME:-}
+      AWS_SES_SMTP_PASSWORD: ${AWS_SES_SMTP_PASSWORD:-}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
+      CLOUDINARY_PRODUCT_FOLDER: ${CLOUDINARY_PRODUCT_FOLDER:-shopsphere/products}
+      APP_UPLOAD_MAX_FILE_SIZE: ${APP_UPLOAD_MAX_FILE_SIZE:-100MB}
+      APP_UPLOAD_MAX_REQUEST_SIZE: ${APP_UPLOAD_MAX_REQUEST_SIZE:-105MB}
+      APP_INVOICE_STORAGE_PROVIDER: ${APP_INVOICE_STORAGE_PROVIDER:-minio}
+      APP_INVOICE_STORAGE_PATH: /app/storage/invoices
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      MINIO_BUCKET: ${MINIO_BUCKET:-shopsphere-invoices}
+      MINIO_INVOICE_PREFIX: ${MINIO_INVOICE_PREFIX:-invoices}
+      APP_BLOG_STORAGE_PROVIDER: ${APP_BLOG_STORAGE_PROVIDER:-minio}
+      MINIO_BLOG_BUCKET: ${MINIO_BLOG_BUCKET:-shopsphere-media}
+      APP_BLOG_MAX_IMAGE_SIZE: ${APP_BLOG_MAX_IMAGE_SIZE:-5242880}
+    expose:
+      - "8080"
+    volumes:
+      - invoice_storage:/app/storage/invoices
+    networks:
+      - edge
+      - data
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: /api
+    container_name: shopsphere-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    # Internal HTTP upstream for the host-level HTTPS reverse proxy.
+    # Binding to loopback prevents direct public access to the container.
+    ports:
+      - "127.0.0.1:${SHOPSPHERE_PROXY_UPSTREAM_PORT:-8088}:8080"
+    networks:
+      - edge
+
+networks:
+  edge:
+  data:
+    internal: true
+
+volumes:
+  postgres_data:
+  invoice_storage:
+  minio_data:

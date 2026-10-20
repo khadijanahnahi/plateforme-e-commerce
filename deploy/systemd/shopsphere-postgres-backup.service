@@ -1,0 +1,27 @@
+[Unit]
+Description=ShopSphere PostgreSQL backup
+Documentation=file:/opt/shopsphere/current/docs/backups.md
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+ConditionPathExists=/etc/shopsphere/backup.env
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+Environment=BACKUP_ENV_FILE=/etc/shopsphere/backup.env
+ExecStart=/opt/shopsphere/current/scripts/backup-postgres.sh
+UMask=0077
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+ReadWritePaths=/opt/shopsphere/backups /var/log/shopsphere-backups /var/lib/shopsphere-backups /run/lock/shopsphere-backups /run
+TimeoutStartSec=2h
+
+[Install]
+WantedBy=multi-user.target

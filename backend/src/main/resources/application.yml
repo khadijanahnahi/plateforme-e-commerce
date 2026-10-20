@@ -1,0 +1,145 @@
+spring:
+  application:
+    name: ecommerce
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://127.0.0.1:5433/ecommerce_db}
+    driver-class-name: org.postgresql.Driver
+    username: ${SPRING_DATASOURCE_USERNAME:ecommerce_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:ecommerce_password}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: ${SPRING_JPA_SHOW_SQL:true}
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
+  servlet:
+    multipart:
+      max-file-size: ${APP_UPLOAD_MAX_FILE_SIZE:100MB}
+      max-request-size: ${APP_UPLOAD_MAX_REQUEST_SIZE:105MB}
+  mail:
+    host: ${AWS_SES_SMTP_HOST:}
+    port: ${AWS_SES_SMTP_PORT:587}
+    username: ${AWS_SES_SMTP_USERNAME:}
+    password: ${AWS_SES_SMTP_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+server:
+  port: ${SERVER_PORT:8080}
+  shutdown: graceful
+
+spring.lifecycle.timeout-per-shutdown-phase: 20s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState,db,diskSpace
+        liveness:
+          include: livenessState
+
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-expiration-ms: ${JWT_ACCESS_TOKEN_EXPIRATION_MS:900000}
+  refresh-token-expiration-ms: ${JWT_REFRESH_TOKEN_EXPIRATION_MS:604800000}
+
+app:
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174}
+  admin:
+    enabled: ${APP_ADMIN_ENABLED:true}
+    full-name: ${APP_ADMIN_FULL_NAME:ShopSphere Admin}
+    email: ${APP_ADMIN_EMAIL:admin@shopsphere.local}
+    phone: ${APP_ADMIN_PHONE:+212600000000}
+    password: ${APP_ADMIN_PASSWORD}
+    reset-password: ${APP_ADMIN_RESET_PASSWORD:false}
+  email:
+    enabled: ${APP_EMAIL_ENABLED:false}
+    from: ${APP_EMAIL_FROM:no-reply@shopsphere.local}
+    store-name: ${APP_EMAIL_STORE_NAME:ShopSphere}
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:5173}
+  upload:
+    storage-provider: ${APP_UPLOAD_STORAGE_PROVIDER:cloudinary}
+  invoice:
+    storage-path: ${APP_INVOICE_STORAGE_PATH:./storage/invoices}
+    storage-provider: ${APP_INVOICE_STORAGE_PROVIDER:local}
+    minio-endpoint: ${MINIO_ENDPOINT:http://127.0.0.1:9000}
+    minio-access-key: ${MINIO_ACCESS_KEY:minioadmin}
+    minio-secret-key: ${MINIO_SECRET_KEY:minioadmin}
+    minio-bucket: ${MINIO_BUCKET:shopsphere-invoices}
+    minio-prefix: ${MINIO_INVOICE_PREFIX:invoices}
+    s3-bucket: ${APP_INVOICE_S3_BUCKET:shopsphere-invoices}
+    s3-prefix: ${APP_INVOICE_S3_PREFIX:invoices}
+  blog:
+    storage-provider: ${APP_BLOG_STORAGE_PROVIDER:local}
+    local-path: ${APP_BLOG_STORAGE_PATH:./storage/blog}
+    minio-endpoint: ${MINIO_ENDPOINT:http://127.0.0.1:9000}
+    minio-access-key: ${MINIO_ACCESS_KEY:minioadmin}
+    minio-secret-key: ${MINIO_SECRET_KEY:minioadmin}
+    minio-bucket: ${MINIO_BLOG_BUCKET:shopsphere-media}
+    max-image-size: ${APP_BLOG_MAX_IMAGE_SIZE:5242880}
+  rate-limit:
+    auth:
+      enabled: ${APP_AUTH_RATE_LIMIT_ENABLED:true}
+      max-attempts: ${APP_AUTH_RATE_LIMIT_MAX_ATTEMPTS:5}
+      window-seconds: ${APP_AUTH_RATE_LIMIT_WINDOW_SECONDS:60}
+  security:
+    refresh-cookie:
+      secure: ${APP_REFRESH_COOKIE_SECURE:false}
+      same-site: ${APP_REFRESH_COOKIE_SAME_SITE:Lax}
+  web-push:
+    enabled: ${APP_WEB_PUSH_ENABLED:false}
+    public-key: ${APP_WEB_PUSH_PUBLIC_KEY:}
+    private-key: ${APP_WEB_PUSH_PRIVATE_KEY:}
+    subject: ${APP_WEB_PUSH_SUBJECT:mailto:admin@shopsphere.local}
+    storage-encryption-key: ${APP_WEB_PUSH_STORAGE_ENCRYPTION_KEY:}
+    ttl-seconds: ${APP_WEB_PUSH_TTL_SECONDS:3600}
+    max-attempts: ${APP_WEB_PUSH_MAX_ATTEMPTS:5}
+    worker-delay-ms: ${APP_WEB_PUSH_WORKER_DELAY_MS:5000}
+  cloud:
+    enabled: ${APP_CLOUD_ENABLED:false}
+    region: ${AWS_REGION:us-east-1}
+    endpoint: ${AWS_ENDPOINT_URL:}
+    access-key: ${AWS_ACCESS_KEY_ID:test}
+    secret-key: ${AWS_SECRET_ACCESS_KEY:test}
+    s3:
+      product-media-bucket: ${APP_PRODUCT_MEDIA_S3_BUCKET:shopsphere-media}
+      product-media-prefix: ${APP_PRODUCT_MEDIA_S3_PREFIX:products}
+      product-media-public-url-prefix: ${APP_PRODUCT_MEDIA_PUBLIC_URL_PREFIX:}
+    sqs:
+      enabled: ${APP_CLOUD_SQS_ENABLED:false}
+      worker-enabled: ${APP_CLOUD_SQS_WORKER_ENABLED:true}
+      order-events-queue-url: ${APP_ORDER_EVENTS_QUEUE_URL:}
+      worker-delay-ms: ${APP_CLOUD_SQS_WORKER_DELAY_MS:5000}
+      max-messages: ${APP_CLOUD_SQS_MAX_MESSAGES:5}
+    secrets:
+      enabled: ${APP_CLOUD_SECRETS_ENABLED:false}
+      runtime-secret-name: ${APP_RUNTIME_SECRET_NAME:shopsphere/runtime}
+
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:}
+  api-key: ${CLOUDINARY_API_KEY:}
+  api-secret: ${CLOUDINARY_API_SECRET:}
+  product-folder: ${CLOUDINARY_PRODUCT_FOLDER:shopsphere/products}
